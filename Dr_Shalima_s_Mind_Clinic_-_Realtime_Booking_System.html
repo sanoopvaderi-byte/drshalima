@@ -140,9 +140,10 @@
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span>Live Sync Active</span>
                 </button>
-                <!-- External Popup Notification Bell Button -->
-                <button id="notif-perm-btn" onclick="enableAndTestExternalNotification()" class="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 text-[#235847] hover:bg-[#E8F3EE] active:scale-95 transition" title="Enable / Test External 10-Min Popup Notification">
-                    🔔
+                <!-- External Popup Notification Bell Button (Click to Enable / Disable Notification Alerts) -->
+                <button id="notif-perm-btn" onclick="toggleExternalNotifications()" class="px-2.5 h-9 flex items-center justify-center gap-1 rounded-full bg-white shadow-sm border border-gray-200 text-[#235847] hover:bg-[#E8F3EE] active:scale-95 transition text-xs font-bold" title="Click to Enable / Disable External Notification Alerts">
+                    <span id="notif-perm-icon">🔔</span>
+                    <span id="notif-perm-label" class="hidden sm:inline">Alerts ON</span>
                 </button>
                 <!-- Dark / Light Mode Toggle -->
                 <button id="dark-toggle" onclick="toggleDarkMode()" class="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 text-gray-700 hover:bg-gray-50 active:scale-95 transition" title="Toggle Dark / Light Mode">
@@ -153,9 +154,10 @@
                     <button onclick="toggleMenu()" class="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 text-gray-700 hover:bg-gray-50 active:scale-95 transition">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 10a2 2 0 110-4 2 2 0 010 4zm6 0a2 2 0 110-4 2 2 0 010 4zm6 0a2 2 0 110-4 2 2 0 010 4z"></path></svg>
                     </button>
-                    <div id="top-dropdown" class="hidden absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-100 z-50 py-1 text-sm">
+                    <div id="top-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 z-50 py-1 text-sm">
                         <button onclick="openSyncModal(); toggleMenu();" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-[#235847] font-semibold">Team Sync Settings</button>
-                        <button onclick="enableAndTestExternalNotification(); toggleMenu();" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-[#235847] font-semibold">🔔 Test 10m Popup Alert</button>
+                        <button id="menu-notif-toggle" onclick="toggleExternalNotifications(); toggleMenu();" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-[#235847] font-semibold">🔕 Disable Notification Alerts</button>
+                        <button onclick="enableAndTestExternalNotification(); toggleMenu();" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-[#235847] font-semibold">🔔 Test External Popup Alert</button>
                         <button onclick="exportJSON(); toggleMenu();" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700">🔒 Export Backup Data</button>
                         <button onclick="importJSON()" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700">Import Data</button>
                         <button onclick="resetState(); toggleMenu();" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600 border-t border-gray-100">🔒 Reset / Erase Data</button>
@@ -850,18 +852,21 @@
         </div>
     </div>
 
-    <!-- External 10-Minute Pre-Booking Floating Popup Alert Modal -->
+    <!-- External Pre-Booking & New-Booking Floating Popup Alert Modal -->
     <div id="external-reminder-popup-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4">
         <div class="bg-white border-2 border-[#235847] rounded-3xl p-6 w-full max-w-sm card-shadow relative">
             <div class="flex items-start justify-between gap-2 mb-3">
                 <div class="flex items-center gap-2.5">
-                    <span class="w-10 h-10 rounded-2xl bg-[#E8F3EE] text-[#235847] flex items-center justify-center text-xl animate-bounce">🔔</span>
+                    <span id="ext-popup-icon" class="w-10 h-10 rounded-2xl bg-[#E8F3EE] text-[#235847] flex items-center justify-center text-xl animate-bounce">🔔</span>
                     <div>
-                        <span class="text-xs font-extrabold uppercase tracking-wider text-[#235847] block">10-Minute Session Reminder</span>
+                        <span id="ext-popup-title" class="text-xs font-extrabold uppercase tracking-wider text-[#235847] block">10-Minute Session Reminder</span>
                         <span id="ext-popup-countdown" class="inline-block mt-0.5 px-2.5 py-0.5 bg-[#FFF2C2] text-[#7A5B00] text-xs font-bold rounded-full">Starts in 10 mins</span>
                     </div>
                 </div>
-                <button type="button" onclick="closeExternalReminderModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold">✕</button>
+                <div class="flex items-center gap-1">
+                    <button type="button" onclick="toggleExternalNotifications()" class="px-2 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 text-[10px] font-bold transition" title="Disable external notification alerts">🔕 Disable</button>
+                    <button type="button" onclick="closeExternalReminderModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold">✕</button>
+                </div>
             </div>
             <div id="ext-popup-body" class="bg-[#F7F6F0] rounded-2xl p-4 mb-4 text-xs space-y-1.5">
                 <!-- Populated dynamically -->
@@ -964,12 +969,16 @@
                     });
 
                     let hasChanges = false;
+                    const newlyAddedRemoteBookings = [];
                     remote.bookings.forEach(rb => {
                         if (!rb || !rb.id || deletedSet.has(rb.id)) return;
                         const existing = bookingMap.get(rb.id);
                         if (!existing) {
                             bookingMap.set(rb.id, rb);
                             hasChanges = true;
+                            if (rb.status === 'active' && rb.updatedAt && (Date.now() - rb.updatedAt < 180000)) {
+                                newlyAddedRemoteBookings.push(rb);
+                            }
                         } else {
                             const rTime = rb.updatedAt || 0;
                             const lTime = existing.updatedAt || 0;
@@ -1014,6 +1023,9 @@
                             } else if (!stillExists && typeof closeBookingDetail === 'function') {
                                 closeBookingDetail();
                             }
+                        }
+                        if (newlyAddedRemoteBookings.length > 0 && typeof window.notifyNewBookingExternal === 'function') {
+                            window.notifyNewBookingExternal(newlyAddedRemoteBookings[0], newlyAddedRemoteBookings[1] || null);
                         }
                         updateSyncBadgeUI('syncing', '⚡ Live Updated');
                         setTimeout(() => {
@@ -1494,22 +1506,86 @@
             return changed;
         }
 
-        // ── 10-Minute Pre-Booking Notification Popup (Inline + External OS/Browser Popup) ─────
+        // ── External Notification Engine (10-Min Pre-Session Reminder + New Booking Alert + Enable/Disable Toggle) ─────
         const dismissedNotificationIds = new Set();
         const notifiedSoundIds = new Set();
         const externalPopupShownIds = new Set();
+        const notifiedNewBookingIds = new Set();
+        window.notifiedNewBookingIds = notifiedNewBookingIds;
         let lastNotificationSignature = '';
         let currentExternalAlertBooking = null;
         let currentExternalAlertMins = 10;
+        let currentExternalAlertType = 'reminder_10m';
+        let currentExternalFollowupBooking = null;
 
-        // Automatically request browser notification permission on first user interaction
+        function isExternalNotifEnabled() {
+            return localStorage.getItem('dr_shalima_ext_notif_enabled') !== '0';
+        }
+        window.isExternalNotifEnabled = isExternalNotifEnabled;
+
+        function updateNotifButtonUI() {
+            const enabled = isExternalNotifEnabled();
+            const btn = document.getElementById('notif-perm-btn');
+            const icon = document.getElementById('notif-perm-icon');
+            const label = document.getElementById('notif-perm-label');
+            const menuBtn = document.getElementById('menu-notif-toggle');
+
+            if (btn) {
+                if (enabled) {
+                    btn.className = 'px-2.5 h-9 flex items-center justify-center gap-1 rounded-full bg-white shadow-sm border border-gray-200 text-[#235847] hover:bg-[#E8F3EE] active:scale-95 transition text-xs font-bold';
+                    btn.title = 'Notification Alerts ENABLED (Click to Disable)';
+                } else {
+                    btn.className = 'px-2.5 h-9 flex items-center justify-center gap-1 rounded-full bg-red-50 shadow-sm border border-red-200 text-red-700 hover:bg-red-100 active:scale-95 transition text-xs font-bold';
+                    btn.title = 'Notification Alerts DISABLED (Click to Enable)';
+                }
+            }
+            if (icon) icon.textContent = enabled ? '🔔' : '🔕';
+            if (label) label.textContent = enabled ? 'Alerts ON' : 'Alerts OFF';
+            if (menuBtn) {
+                menuBtn.textContent = enabled ? '🔕 Disable Notification Alerts' : '🔔 Enable Notification Alerts';
+                menuBtn.className = enabled
+                    ? 'w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600 font-semibold'
+                    : 'w-full text-left px-4 py-2 hover:bg-gray-50 text-[#235847] font-semibold';
+            }
+        }
+
+        function toggleExternalNotifications() {
+            const currentlyEnabled = isExternalNotifEnabled();
+            const nextState = !currentlyEnabled;
+            localStorage.setItem('dr_shalima_ext_notif_enabled', nextState ? '1' : '0');
+            updateNotifButtonUI();
+
+            if (!nextState) {
+                // Immediately hide any open notification popups or inline banners when disabled
+                const modal = document.getElementById('external-reminder-popup-modal');
+                if (modal) modal.classList.add('hidden');
+                const container = document.getElementById('upcoming-session-notifications');
+                if (container) {
+                    container.innerHTML = '';
+                    container.classList.add('hidden');
+                }
+                lastNotificationSignature = '';
+                showMessageModal('🔕 External notification alerts have been DISABLED. Click the top bell button anytime to re-enable.');
+            } else {
+                if ('Notification' in window && Notification.permission !== 'granted') {
+                    Notification.requestPermission().catch(() => {});
+                }
+                playNotificationChime();
+                lastNotificationSignature = '';
+                checkUpcomingSessionNotifications(true);
+                showMessageModal('🔔 External notification alerts are now ENABLED for new bookings and 10-minute pre-session reminders.');
+            }
+        }
+
+        // Automatically request browser notification permission on first user interaction (if alerts enabled)
         document.addEventListener('click', function requestNotifOnce() {
-            if ('Notification' in window && Notification.permission === 'default') {
+            if (isExternalNotifEnabled() && 'Notification' in window && Notification.permission === 'default') {
                 Notification.requestPermission().catch(() => {});
             }
         }, { once: true });
 
         function playNotificationChime() {
+            if (!isExternalNotifEnabled()) return;
             try {
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
                 if (!AudioCtx) return;
@@ -1530,31 +1606,85 @@
             }
         }
 
-        // Open standalone external browser popup window (420x360)
-        function openStandalonePopupWindow(booking, minsLeft) {
+        // Send OS / Browser System Notification externally
+        function sendSystemBrowserNotification(title, bodyText, tagId) {
+            if (!isExternalNotifEnabled()) return;
+            if (!('Notification' in window)) return;
+            const fireNotif = () => {
+                try {
+                    const sysNotif = new Notification(title, {
+                        body: bodyText,
+                        icon: 'logo.jpg',
+                        badge: 'logo.jpg',
+                        tag: tagId,
+                        requireInteraction: true
+                    });
+                    sysNotif.onclick = function() {
+                        window.focus();
+                        this.close();
+                    };
+                } catch (e) {
+                    if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+                        navigator.serviceWorker.ready.then(reg => {
+                            reg.showNotification(title, {
+                                body: bodyText,
+                                icon: 'logo.jpg',
+                                tag: tagId,
+                                requireInteraction: true
+                            });
+                        }).catch(() => {});
+                    }
+                }
+            };
+            if (Notification.permission === 'granted') {
+                fireNotif();
+            } else if (Notification.permission === 'default') {
+                Notification.requestPermission().then(p => {
+                    if (p === 'granted') fireNotif();
+                }).catch(() => {});
+            }
+        }
+
+        // Open standalone external browser popup window (430x390)
+        function openStandalonePopupWindow(booking, minsLeft, alertType = 'reminder_10m', followupBooking = null) {
+            if (!isExternalNotifEnabled()) return false;
             try {
-                const countdownText = minsLeft > 0
-                    ? `Starts in ${minsLeft} min${minsLeft === 1 ? '' : 's'}`
-                    : 'Starting now!';
+                const isNewBooking = alertType === 'new_booking';
+                const headerLabel = isNewBooking
+                    ? `✅ Dr Shalima's Mind Clinic · New Booking Added`
+                    : `🔔 Dr Shalima's Mind Clinic · 10-Min Session Alert`;
+                const badgeText = isNewBooking
+                    ? `New Session Confirmed · ${booking.date}`
+                    : (minsLeft > 0 ? `Starts in ${minsLeft} min${minsLeft === 1 ? '' : 's'}` : 'Starting now!');
+                const badgeStyle = isNewBooking
+                    ? 'background:#E8F3EE;color:#235847;'
+                    : 'background:#FFF2C2;color:#7A5B00;';
                 const channelInfo = booking.caseType === 'Initial case'
                     ? (booking.channel || 'c/o Dr Shalima')
                     : 'Follow-up case';
                 const modeInfo = booking.consultationMode || 'Offline';
-                const waMsg = encodeURIComponent(`Hello ${booking.clientName}, this is a reminder for your psychology session with ${booking.psychologist} at Dr Shalima's Mind Clinic on ${booking.date} at ${booking.time}.`);
+                const followupHtml = followupBooking
+                    ? `<div style="margin-top:6px;padding-top:6px;border-top:1px dashed #CBD5E1;color:#235847;font-weight:600;">📅 Follow-up also booked: ${followupBooking.date} (${followupBooking.time})</div>`
+                    : '';
+                const waMsg = isNewBooking
+                    ? encodeURIComponent(`Hello ${booking.clientName}, your psychology session (${modeInfo}) with ${booking.psychologist} at Dr Shalima's Mind Clinic is confirmed for ${booking.date} at ${booking.time}.`)
+                    : encodeURIComponent(`Hello ${booking.clientName}, this is a reminder for your psychology session (${modeInfo}) with ${booking.psychologist} at Dr Shalima's Mind Clinic on ${booking.date} at ${booking.time} (starting in ${minsLeft} mins).`);
                 const waUrl = `https://wa.me/${booking.phone}?text=${waMsg}`;
+                const waBtnLabel = isNewBooking ? 'Send WhatsApp Confirmation' : 'Send WhatsApp Reminder';
+                const winName = isNewBooking ? 'DrShalimaNewBookingPopup' : 'DrShalimaReminderPopup';
 
-                const popupWin = window.open('', 'DrShalimaReminderPopup', 'width=420,height=370,top=90,left=90,resizable=yes,scrollbars=no');
+                const popupWin = window.open('', winName, 'width=430,height=395,top=90,left=90,resizable=yes,scrollbars=no');
                 if (popupWin) {
                     popupWin.document.open();
                     popupWin.document.write(`<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>🔔 Session Reminder — ${booking.clientName}</title>
+<title>${isNewBooking ? '✅ New Booking' : '🔔 10-Min Reminder'} — ${booking.clientName}</title>
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background:#FAF8F3; margin:0; padding:18px; color:#1E293B; }
   .card { background:#fff; border:2px solid #235847; border-radius:20px; padding:18px; box-shadow:0 8px 24px rgba(0,0,0,0.08); }
-  .badge { display:inline-block; background:#FFF2C2; color:#7A5B00; font-weight:700; font-size:12px; padding:4px 10px; border-radius:999px; margin-top:4px; }
+  .badge { display:inline-block; ${badgeStyle} font-weight:700; font-size:12px; padding:4px 10px; border-radius:999px; margin-top:4px; }
   .info { background:#F7F6F0; border-radius:14px; padding:12px; margin:14px 0; font-size:13px; line-height:1.6; }
   .btn-row { display:flex; gap:8px; }
   .btn-wa { flex:1; background:#235847; color:#fff; text-decoration:none; text-align:center; padding:10px 12px; border-radius:12px; font-size:13px; font-weight:600; }
@@ -1563,17 +1693,18 @@
 </head>
 <body>
   <div class="card">
-    <div style="font-size:12px;font-weight:800;color:#235847;text-transform:uppercase;letter-spacing:0.05em;">🔔 Dr Shalima's Mind Clinic · 10-Min Alert</div>
-    <div class="badge">${countdownText}</div>
+    <div style="font-size:12px;font-weight:800;color:#235847;text-transform:uppercase;letter-spacing:0.05em;">${headerLabel}</div>
+    <div class="badge">${badgeText}</div>
     <div class="info">
       <div style="font-size:16px;font-weight:700;color:#0F172A;">${booking.clientName}</div>
       <div><strong>Psychologist:</strong> ${booking.psychologist}</div>
-      <div><strong>Time:</strong> ${booking.time} (${booking.date})</div>
+      <div><strong>Date & Time:</strong> ${booking.date} · ${booking.time}</div>
       <div><strong>Phone:</strong> ${booking.phone}</div>
       <div><strong>Details:</strong> ${booking.caseType} · ${booking.sessionType} · <strong>${modeInfo}</strong> (${channelInfo})</div>
+      ${followupHtml}
     </div>
     <div class="btn-row">
-      <a class="btn-wa" href="${waUrl}" target="_blank">Send WhatsApp Reminder</a>
+      <a class="btn-wa" href="${waUrl}" target="_blank">${waBtnLabel}</a>
       <button class="btn-close" onclick="window.close()">Dismiss</button>
     </div>
   </div>
@@ -1588,68 +1719,94 @@
         }
 
         // Trigger external OS/Browser notification + Floating Modal + Pop-out Window
-        function triggerExternalPopupNotification(booking, minsLeft, forceOpenWin = false) {
+        function triggerExternalPopupNotification(booking, minsLeft, forceOpenWin = false, alertType = 'reminder_10m', followupBooking = null) {
+            if (!isExternalNotifEnabled()) return;
+
             currentExternalAlertBooking = booking;
             currentExternalAlertMins = minsLeft;
+            currentExternalAlertType = alertType;
+            currentExternalFollowupBooking = followupBooking;
 
-            const countdownText = minsLeft > 0
-                ? `Starts in ${minsLeft} min${minsLeft === 1 ? '' : 's'}`
-                : 'Starting now!';
+            const isNewBooking = alertType === 'new_booking';
+            const countdownText = isNewBooking
+                ? `New Booking · ${booking.date}`
+                : (minsLeft > 0 ? `Starts in ${minsLeft} min${minsLeft === 1 ? '' : 's'}` : 'Starting now!');
             const isInitial = booking.caseType === 'Initial case';
             const channelText = isInitial ? (booking.channel || 'c/o Dr Shalima') : 'Follow-up case';
             const modeText = booking.consultationMode || 'Offline';
 
             // 1. External OS / Browser System Notification (shows outside browser & over other apps)
-            if ('Notification' in window && Notification.permission === 'granted') {
-                try {
-                    const sysNotif = new Notification(`🔔 Session in ${minsLeft} min: ${booking.clientName}`, {
-                        body: `Psychologist: ${booking.psychologist} · ${booking.time}\nPhone: ${booking.phone} · ${booking.caseType} (${modeText})`,
-                        icon: 'logo.jpg',
-                        tag: 'clinic_reminder_' + booking.id,
-                        requireInteraction: true
-                    });
-                    sysNotif.onclick = function() {
-                        window.focus();
-                        this.close();
-                    };
-                } catch (e) {}
-            }
+            const notifTitle = isNewBooking
+                ? `✅ New Booking Added: ${booking.clientName}`
+                : `🔔 Session in ${minsLeft} min: ${booking.clientName}`;
+            const notifBody = `Psychologist: ${booking.psychologist} · ${booking.date} (${booking.time})\nPhone: ${booking.phone} · ${booking.caseType} (${modeText})`;
+            const notifTag = (isNewBooking ? 'clinic_new_booking_' : 'clinic_reminder_') + booking.id;
+            sendSystemBrowserNotification(notifTitle, notifBody, notifTag);
 
             // 2. Populate & show high-priority floating popup modal on the page
-            const modal = document.getElementById('external-reminder-popup-modal');
-            const cdEl  = document.getElementById('ext-popup-countdown');
-            const bodyEl= document.getElementById('ext-popup-body');
-            const waBtn = document.getElementById('ext-popup-wa-btn');
-            if (cdEl) cdEl.textContent = countdownText;
+            const modal   = document.getElementById('external-reminder-popup-modal');
+            const iconEl  = document.getElementById('ext-popup-icon');
+            const titleEl = document.getElementById('ext-popup-title');
+            const cdEl    = document.getElementById('ext-popup-countdown');
+            const bodyEl  = document.getElementById('ext-popup-body');
+            const waBtn   = document.getElementById('ext-popup-wa-btn');
+
+            if (iconEl) iconEl.textContent = isNewBooking ? '✅' : '🔔';
+            if (titleEl) titleEl.textContent = isNewBooking ? 'New Session Booking Alert' : '10-Minute Session Reminder';
+            if (cdEl) {
+                cdEl.textContent = countdownText;
+                cdEl.className = isNewBooking
+                    ? 'inline-block mt-0.5 px-2.5 py-0.5 bg-[#E8F3EE] text-[#235847] text-xs font-bold rounded-full'
+                    : 'inline-block mt-0.5 px-2.5 py-0.5 bg-[#FFF2C2] text-[#7A5B00] text-xs font-bold rounded-full';
+            }
             if (bodyEl) {
+                const followupRow = followupBooking
+                    ? `<div class="pt-1.5 mt-1.5 border-t border-gray-200 text-[#235847] font-semibold">📅 Auto Follow-up: ${followupBooking.date} &middot; ${followupBooking.time}</div>`
+                    : '';
                 bodyEl.innerHTML = `
                     <div class="flex items-center justify-between gap-2">
                         <span class="text-base font-bold text-gray-900">${booking.clientName}</span>
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E8F3EE] text-[#235847]">${channelText}</span>
                     </div>
                     <div class="text-gray-800 font-semibold">
-                        Psychologist: <span class="text-[#235847]">${booking.psychologist}</span> &middot; Time: <span class="text-gray-900">${booking.time}</span>
+                        Psychologist: <span class="text-[#235847]">${booking.psychologist}</span> &middot; <span class="text-gray-900">${booking.date} (${booking.time})</span>
                     </div>
                     <div class="text-gray-600">
                         📞 ${booking.phone} &middot; ${booking.caseType} &middot; ${booking.sessionType} &middot; <strong class="text-[#235847]">${modeText}</strong>
                     </div>
+                    ${followupRow}
                 `;
             }
             if (waBtn) {
+                waBtn.textContent = isNewBooking ? 'Send WhatsApp Confirmation' : 'Send WhatsApp Reminder';
                 waBtn.onclick = function() { sendReminder(booking.id); };
             }
             if (modal) {
                 modal.classList.remove('hidden');
             }
 
-            // 3. Also attempt external pop-out browser window
-            openStandalonePopupWindow(booking, minsLeft);
+            // 3. Also open external standalone pop-out browser window
+            openStandalonePopupWindow(booking, minsLeft, alertType, followupBooking);
         }
+
+        // Trigger external notification whenever a new booking is added (locally or synced from another device)
+        function notifyNewBookingExternal(booking, followupBooking = null) {
+            if (!booking || !booking.id) return;
+            if (notifiedNewBookingIds.has(booking.id)) return;
+            notifiedNewBookingIds.add(booking.id);
+            if (followupBooking && followupBooking.id) {
+                notifiedNewBookingIds.add(followupBooking.id);
+            }
+            if (!isExternalNotifEnabled()) return;
+            playNotificationChime();
+            triggerExternalPopupNotification(booking, 0, false, 'new_booking', followupBooking);
+        }
+        window.notifyNewBookingExternal = notifyNewBookingExternal;
 
         function closeExternalReminderModal() {
             const modal = document.getElementById('external-reminder-popup-modal');
             if (modal) modal.classList.add('hidden');
-            if (currentExternalAlertBooking && currentExternalAlertBooking.id) {
+            if (currentExternalAlertType === 'reminder_10m' && currentExternalAlertBooking && currentExternalAlertBooking.id) {
                 dismissedNotificationIds.add(currentExternalAlertBooking.id);
                 lastNotificationSignature = '';
                 checkUpcomingSessionNotifications(true);
@@ -1658,11 +1815,15 @@
 
         function popOutExternalWindowCurrent() {
             if (currentExternalAlertBooking) {
-                openStandalonePopupWindow(currentExternalAlertBooking, currentExternalAlertMins);
+                openStandalonePopupWindow(currentExternalAlertBooking, currentExternalAlertMins, currentExternalAlertType, currentExternalFollowupBooking);
             }
         }
 
         function enableAndTestExternalNotification() {
+            if (!isExternalNotifEnabled()) {
+                localStorage.setItem('dr_shalima_ext_notif_enabled', '1');
+                updateNotifButtonUI();
+            }
             const runTest = () => {
                 playNotificationChime();
                 const sampleBooking = (appState && Array.isArray(appState.bookings) && appState.bookings.find(b => b.status === 'active')) || {
@@ -1677,7 +1838,7 @@
                     sessionType: 'Individual',
                     consultationMode: 'Offline'
                 };
-                triggerExternalPopupNotification(sampleBooking, 10, true);
+                triggerExternalPopupNotification(sampleBooking, 10, true, 'reminder_10m');
             };
 
             if ('Notification' in window && Notification.permission !== 'granted') {
@@ -1698,8 +1859,15 @@
         }
 
         function checkUpcomingSessionNotifications(forceRender = false) {
+            updateNotifButtonUI();
             const container = document.getElementById('upcoming-session-notifications');
             if (!container || !appState || !Array.isArray(appState.bookings)) return;
+
+            if (!isExternalNotifEnabled()) {
+                container.innerHTML = '';
+                container.classList.add('hidden');
+                return;
+            }
 
             const { todayStr, exactNowMins } = getClinicNow();
 
@@ -1742,7 +1910,7 @@
                 }
                 if (!externalPopupShownIds.has(booking.id)) {
                     externalPopupShownIds.add(booking.id);
-                    triggerExternalPopupNotification(booking, minsLeft);
+                    triggerExternalPopupNotification(booking, minsLeft, false, 'reminder_10m');
                 }
 
                 const countdownText = minsLeft > 0
@@ -1768,10 +1936,13 @@
                                     <span class="text-xs font-extrabold uppercase tracking-wider text-[#235847]">Upcoming Session Alert</span>
                                     <span class="px-2 py-0.5 bg-[#FFF2C2] text-[#7A5B00] text-[10px] font-bold rounded-full">${countdownText}</span>
                                 </div>
-                                <p class="text-[11px] text-gray-500 font-medium">10-minute pre-session notification</p>
+                                <p class="text-[11px] text-gray-500 font-medium">10-minute pre-session external notification</p>
                             </div>
                         </div>
-                        <button onclick="dismissSessionNotification('${booking.id}')" class="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs transition" title="Dismiss notification">✕</button>
+                        <div class="flex items-center gap-1">
+                            <button onclick="toggleExternalNotifications()" class="px-2 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 text-[10px] font-bold transition" title="Disable notification alerts">🔕 Disable</button>
+                            <button onclick="dismissSessionNotification('${booking.id}')" class="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs transition" title="Dismiss notification">✕</button>
+                        </div>
                     </div>
 
                     <div class="bg-[#F7F6F0] rounded-2xl p-3 mb-2.5 text-xs space-y-1">
@@ -1793,6 +1964,7 @@
 
                     <div class="flex gap-2 text-xs">
                         <button onclick="sendReminder('${booking.id}')" class="flex-1 py-2 bg-[#235847] hover:bg-[#1B4739] text-white font-semibold rounded-xl transition">Send WhatsApp Reminder</button>
+                        <button onclick="triggerExternalPopupNotification(appState.bookings.find(b=>b.id==='${booking.id}'), ${minsLeft}, true, 'reminder_10m')" class="px-3 py-2 bg-[#E8F3EE] hover:bg-[#D4E8DF] text-[#235847] font-semibold rounded-xl transition" title="Open external popup window">↗ External Popup</button>
                     </div>
                 `;
                 container.appendChild(alertEl);
@@ -2359,6 +2531,7 @@
             }
 
             let alertMsg = `Booking confirmed for ${clientName}!`;
+            let createdFollowupBooking = null;
 
             if (followupDateStr) {
                 const followupBooking = {
@@ -2377,6 +2550,7 @@
                     updatedAt: nowTs + 1
                 };
                 appState.bookings.push(followupBooking);
+                createdFollowupBooking = followupBooking;
 
                 const fuDateObj = new Date(followupDateStr + 'T00:00:00');
                 const fuFormatted = fuDateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -2398,8 +2572,14 @@
             }
 
             lockBookSessionSection();
-            showMessageModal(alertMsg);
             renderAll();
+
+            // Send external notification alert when new booking is added (or show standard message modal if alerts are disabled)
+            if (isExternalNotifEnabled()) {
+                notifyNewBookingExternal(newBooking, createdFollowupBooking);
+            } else {
+                showMessageModal(alertMsg);
+            }
         }
 
         // Front Desk Component
