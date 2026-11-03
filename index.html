@@ -140,11 +140,6 @@
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span>Live Sync Active</span>
                 </button>
-                <!-- External Popup Notification Bell Button (Click to Enable / Disable Notification Alerts) -->
-                <button id="notif-perm-btn" onclick="toggleExternalNotifications()" class="px-2.5 h-9 flex items-center justify-center gap-1 rounded-full bg-white shadow-sm border border-gray-200 text-[#235847] hover:bg-[#E8F3EE] active:scale-95 transition text-xs font-bold" title="Click to Enable / Disable External Notification Alerts">
-                    <span id="notif-perm-icon">🔔</span>
-                    <span id="notif-perm-label" class="hidden sm:inline">Alerts ON</span>
-                </button>
                 <!-- Dark / Light Mode Toggle -->
                 <button id="dark-toggle" onclick="toggleDarkMode()" class="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 text-gray-700 hover:bg-gray-50 active:scale-95 transition" title="Toggle Dark / Light Mode">
                     <svg id="icon-moon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>
@@ -154,10 +149,8 @@
                     <button onclick="toggleMenu()" class="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 text-gray-700 hover:bg-gray-50 active:scale-95 transition">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 10a2 2 0 110-4 2 2 0 010 4zm6 0a2 2 0 110-4 2 2 0 010 4zm6 0a2 2 0 110-4 2 2 0 010 4z"></path></svg>
                     </button>
-                    <div id="top-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 z-50 py-1 text-sm">
+                    <div id="top-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 py-1 text-sm">
                         <button onclick="openSyncModal(); toggleMenu();" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-[#235847] font-semibold">Team Sync Settings</button>
-                        <button id="menu-notif-toggle" onclick="toggleExternalNotifications(); toggleMenu();" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-[#235847] font-semibold">🔕 Disable Notification Alerts</button>
-                        <button onclick="enableAndTestExternalNotification(); toggleMenu();" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-[#235847] font-semibold">🔔 Test External Popup Alert</button>
                         <button onclick="exportJSON(); toggleMenu();" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700">🔒 Export Backup Data</button>
                         <button onclick="importJSON()" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700">Import Data</button>
                         <button onclick="resetState(); toggleMenu();" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600 border-t border-gray-100">🔒 Reset / Erase Data</button>
@@ -863,18 +856,14 @@
                         <span id="ext-popup-countdown" class="inline-block mt-0.5 px-2.5 py-0.5 bg-[#FFF2C2] text-[#7A5B00] text-xs font-bold rounded-full">Starts in 10 mins</span>
                     </div>
                 </div>
-                <div class="flex items-center gap-1">
-                    <button type="button" onclick="toggleExternalNotifications()" class="px-2 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 text-[10px] font-bold transition" title="Disable external notification alerts">🔕 Disable</button>
-                    <button type="button" onclick="closeExternalReminderModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold">✕</button>
-                </div>
+                <button type="button" onclick="closeExternalReminderModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold">✕</button>
             </div>
             <div id="ext-popup-body" class="bg-[#F7F6F0] rounded-2xl p-4 mb-4 text-xs space-y-1.5">
                 <!-- Populated dynamically -->
             </div>
             <div class="flex gap-2 text-xs">
                 <button type="button" id="ext-popup-wa-btn" class="flex-1 py-2.5 bg-[#235847] hover:bg-[#1B4739] text-white font-semibold rounded-xl transition">Send WhatsApp Reminder</button>
-                <button type="button" onclick="popOutExternalWindowCurrent()" class="px-3 py-2.5 bg-[#E8F3EE] hover:bg-[#D4E8DF] text-[#235847] font-semibold rounded-xl transition" title="Open in separate external popup window">↗ Pop-out</button>
-                <button type="button" onclick="closeExternalReminderModal()" class="px-3.5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition">OK</button>
+                <button type="button" onclick="closeExternalReminderModal()" class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition">OK</button>
             </div>
         </div>
     </div>
@@ -1519,35 +1508,11 @@
         let currentExternalFollowupBooking = null;
 
         function isExternalNotifEnabled() {
-            return localStorage.getItem('dr_shalima_ext_notif_enabled') !== '0';
+            return true;
         }
         window.isExternalNotifEnabled = isExternalNotifEnabled;
 
-        function updateNotifButtonUI() {
-            const enabled = isExternalNotifEnabled();
-            const btn = document.getElementById('notif-perm-btn');
-            const icon = document.getElementById('notif-perm-icon');
-            const label = document.getElementById('notif-perm-label');
-            const menuBtn = document.getElementById('menu-notif-toggle');
-
-            if (btn) {
-                if (enabled) {
-                    btn.className = 'px-2.5 h-9 flex items-center justify-center gap-1 rounded-full bg-white shadow-sm border border-gray-200 text-[#235847] hover:bg-[#E8F3EE] active:scale-95 transition text-xs font-bold';
-                    btn.title = 'Notification Alerts ENABLED (Click to Disable)';
-                } else {
-                    btn.className = 'px-2.5 h-9 flex items-center justify-center gap-1 rounded-full bg-red-50 shadow-sm border border-red-200 text-red-700 hover:bg-red-100 active:scale-95 transition text-xs font-bold';
-                    btn.title = 'Notification Alerts DISABLED (Click to Enable)';
-                }
-            }
-            if (icon) icon.textContent = enabled ? '🔔' : '🔕';
-            if (label) label.textContent = enabled ? 'Alerts ON' : 'Alerts OFF';
-            if (menuBtn) {
-                menuBtn.textContent = enabled ? '🔕 Disable Notification Alerts' : '🔔 Enable Notification Alerts';
-                menuBtn.className = enabled
-                    ? 'w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600 font-semibold'
-                    : 'w-full text-left px-4 py-2 hover:bg-gray-50 text-[#235847] font-semibold';
-            }
-        }
+        function updateNotifButtonUI() {}
 
         function toggleExternalNotifications() {
             const currentlyEnabled = isExternalNotifEnabled();
@@ -1939,10 +1904,7 @@
                                 <p class="text-[11px] text-gray-500 font-medium">10-minute pre-session external notification</p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-1">
-                            <button onclick="toggleExternalNotifications()" class="px-2 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 text-[10px] font-bold transition" title="Disable notification alerts">🔕 Disable</button>
-                            <button onclick="dismissSessionNotification('${booking.id}')" class="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs transition" title="Dismiss notification">✕</button>
-                        </div>
+                        <button onclick="dismissSessionNotification('${booking.id}')" class="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs transition" title="Dismiss notification">✕</button>
                     </div>
 
                     <div class="bg-[#F7F6F0] rounded-2xl p-3 mb-2.5 text-xs space-y-1">
@@ -1964,7 +1926,6 @@
 
                     <div class="flex gap-2 text-xs">
                         <button onclick="sendReminder('${booking.id}')" class="flex-1 py-2 bg-[#235847] hover:bg-[#1B4739] text-white font-semibold rounded-xl transition">Send WhatsApp Reminder</button>
-                        <button onclick="triggerExternalPopupNotification(appState.bookings.find(b=>b.id==='${booking.id}'), ${minsLeft}, true, 'reminder_10m')" class="px-3 py-2 bg-[#E8F3EE] hover:bg-[#D4E8DF] text-[#235847] font-semibold rounded-xl transition" title="Open external popup window">↗ External Popup</button>
                     </div>
                 `;
                 container.appendChild(alertEl);
