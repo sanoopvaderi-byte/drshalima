@@ -505,15 +505,17 @@
                                 <th class="py-2 px-1 text-center font-semibold">Done</th>
                                 <th class="py-2 px-1 text-center font-semibold">Left</th>
                                 <th class="py-2 px-1 text-center font-semibold">Initial</th>
-                                <th class="py-2 pl-1 text-center font-semibold">F/Up</th>
+                                <th class="py-2 px-1 text-center font-semibold">F/Up</th>
+                                <th class="py-2 px-1 text-center font-semibold">c/o Dr S</th>
+                                <th class="py-2 pl-1 text-center font-semibold">Direct</th>
                             </tr>
                         </thead>
                         <tbody id="report-table-body" class="divide-y divide-gray-50"></tbody>
                     </table>
                 </div>
 
-                <!-- Channel breakdown -->
-                <div id="monthly-channel-row" class="flex gap-2 mb-4"></div>
+                <!-- Case Type & Initial Channel breakdown -->
+                <div id="monthly-channel-row" class="grid grid-cols-2 gap-2 mb-4"></div>
 
                 <!-- Psychologist bullets -->
                 <div class="space-y-1.5 text-xs text-gray-800 font-semibold mb-4">
@@ -586,7 +588,10 @@
                 <div id="daily-date-headline" class="text-sm font-bold text-gray-900 mb-3 text-center"></div>
 
                 <!-- Daily stats chips -->
-                <div id="daily-stats-row" class="grid grid-cols-3 gap-2 mb-4"></div>
+                <div id="daily-stats-row" class="grid grid-cols-3 gap-2 mb-3"></div>
+
+                <!-- Daily Case Type & Initial Channel breakdown -->
+                <div id="daily-channel-row" class="grid grid-cols-2 gap-2 mb-4"></div>
 
                 <!-- Session list for day -->
                 <div id="daily-session-list" class="space-y-2 mb-4"></div>
@@ -1215,7 +1220,7 @@
                     date: '2026-11-01',
                     time: '12:00 PM–12:45 PM',
                     phone: '9876543211',
-                    channel: 'Direct',
+                    channel: '',
                     caseType: 'Follow-up case',
                     sessionType: 'Individual',
                     status: 'done',
@@ -1241,7 +1246,7 @@
                     date: '2026-11-01',
                     time: '03:00 PM–03:45 PM',
                     phone: '9876543213',
-                    channel: 'Direct',
+                    channel: '',
                     caseType: 'Follow-up case',
                     sessionType: 'Individual',
                     status: 'done',
@@ -1376,7 +1381,11 @@
                     const parsed = JSON.parse(data);
                     if (parsed && Array.isArray(parsed.bookings)) {
                         parsed.bookings.forEach(b => {
-                            if (!b.channel) b.channel = 'c/o Dr Shalima';
+                            if (b.caseType === 'Initial case') {
+                                if (!b.channel) b.channel = 'c/o Dr Shalima';
+                            } else {
+                                b.channel = '';
+                            }
                             // Ensure demo booking b3 does not block 11:00 AM on Nov 1
                             if (b.id === 'b3' && b.time && b.time.includes('11:00 AM')) {
                                 b.time = '12:00 PM–12:45 PM';
@@ -1538,9 +1547,13 @@
                     ? `Starts in ${minsLeft} min${minsLeft === 1 ? '' : 's'}`
                     : 'Starting now!';
 
+                const isInitial = booking.caseType === 'Initial case';
                 const channelBadgeClass = (booking.channel === 'c/o Dr Shalima')
                     ? 'bg-amber-100 text-amber-800'
                     : 'bg-emerald-100 text-emerald-800';
+                const topRightBadgeHtml = isInitial
+                    ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${channelBadgeClass}">${booking.channel || 'c/o Dr Shalima'}</span>`
+                    : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">Follow-up case</span>`;
 
                 const alertEl = document.createElement('div');
                 alertEl.className = 'bg-white border-2 border-[#235847] rounded-3xl p-4 card-shadow relative overflow-hidden';
@@ -1562,7 +1575,7 @@
                     <div class="bg-[#F7F6F0] rounded-2xl p-3 mb-2.5 text-xs space-y-1">
                         <div class="flex items-center justify-between flex-wrap gap-1">
                             <span class="text-sm font-bold text-gray-900">${booking.clientName}</span>
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${channelBadgeClass}">${booking.channel || 'c/o Dr Shalima'}</span>
+                            ${topRightBadgeHtml}
                         </div>
                         <div class="text-gray-700 font-semibold">
                             Psychologist: <span class="text-[#235847]">${booking.psychologist}</span> &middot; Time: <span class="text-gray-900">${booking.time}</span>
@@ -2879,7 +2892,7 @@
 
             const monthBookings = appState.bookings.filter(b => b.date.startsWith(monthPfx) && b.status !== 'cancelled');
             const psychologists = ['Habla', 'Varda', 'Sahla'];
-            let totals = { sessions:0, done:0, upcoming:0, initial:0, followup:0 };
+            let totals = { sessions:0, done:0, upcoming:0, initial:0, followup:0, shalima:0, direct:0 };
             let psyData = {};
 
             psychologists.forEach(psy => {
@@ -2888,9 +2901,15 @@
                 const upcoming= pb.filter(b => b.status === 'active').length;
                 const initial = pb.filter(b => b.caseType === 'Initial case').length;
                 const follow  = pb.filter(b => b.caseType === 'Follow-up case').length;
-                psyData[psy]  = { total: pb.length, done, upcoming, initial, followup: follow };
+                // Only Initial case bookings have a booking channel (c/o Dr Shalima or Direct)
+                const shalima = pb.filter(b => b.caseType === 'Initial case' && (b.channel || 'c/o Dr Shalima') === 'c/o Dr Shalima').length;
+                const direct  = pb.filter(b => b.caseType === 'Initial case' && b.channel === 'Direct').length;
+
+                psyData[psy]  = { total: pb.length, done, upcoming, initial, followup: follow, shalima, direct };
                 totals.sessions += pb.length; totals.done += done; totals.upcoming += upcoming;
                 totals.initial  += initial;   totals.followup += follow;
+                totals.shalima  += shalima;   totals.direct += direct;
+
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-gray-50';
                 tr.innerHTML = `
@@ -2898,8 +2917,10 @@
                     <td class="py-2.5 px-1 text-center font-semibold text-gray-700">${pb.length}</td>
                     <td class="py-2.5 px-1 text-center font-semibold text-gray-700">${done}</td>
                     <td class="py-2.5 px-1 text-center font-semibold text-gray-700">${upcoming}</td>
-                    <td class="py-2.5 px-1 text-center font-semibold text-gray-700">${initial}</td>
-                    <td class="py-2.5 pl-1 text-center font-semibold text-gray-700">${follow}</td>
+                    <td class="py-2.5 px-1 text-center font-semibold text-[#235847]">${initial}</td>
+                    <td class="py-2.5 px-1 text-center font-semibold text-purple-700">${follow}</td>
+                    <td class="py-2.5 px-1 text-center font-semibold text-amber-800">${shalima}</td>
+                    <td class="py-2.5 pl-1 text-center font-semibold text-emerald-800">${direct}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -2912,8 +2933,10 @@
                 <td class="py-3 px-1 text-center">${totals.sessions}</td>
                 <td class="py-3 px-1 text-center">${totals.done}</td>
                 <td class="py-3 px-1 text-center">${totals.upcoming}</td>
-                <td class="py-3 px-1 text-center">${totals.initial}</td>
-                <td class="py-3 pl-1 text-center">${totals.followup}</td>
+                <td class="py-3 px-1 text-center text-[#235847]">${totals.initial}</td>
+                <td class="py-3 px-1 text-center text-purple-700">${totals.followup}</td>
+                <td class="py-3 px-1 text-center text-amber-800">${totals.shalima}</td>
+                <td class="py-3 pl-1 text-center text-emerald-800">${totals.direct}</td>
             `;
             tbody.appendChild(totalTr);
 
@@ -2935,25 +2958,33 @@
                 </div>
             `;
 
-            // Channel breakdown chips
-            const chShalima = monthBookings.filter(b => (b.channel || 'c/o Dr Shalima') === 'c/o Dr Shalima').length;
-            const chDirect  = monthBookings.filter(b => b.channel === 'Direct').length;
+            // Case Type (Initial vs Follow-up) + Initial Case Channel breakdown (c/o Dr Shalima vs Direct)
+            const chShalima = totals.shalima;
+            const chDirect  = totals.direct;
             const chanRow = document.getElementById('monthly-channel-row');
             if (chanRow) chanRow.innerHTML = `
-                <div class="flex-1 bg-amber-50 border border-amber-100 rounded-xl p-2.5 text-center">
-                    <p class="text-[10px] text-amber-700 font-semibold uppercase mb-0.5">c/o Dr Shalima</p>
+                <div class="bg-[#E8F3EE] border border-emerald-200 rounded-xl p-2.5 text-center">
+                    <p class="text-[10px] text-[#235847] font-semibold uppercase mb-0.5">Initial Case</p>
+                    <p class="text-lg font-bold text-[#235847]">${totals.initial}</p>
+                </div>
+                <div class="bg-purple-50 border border-purple-100 rounded-xl p-2.5 text-center">
+                    <p class="text-[10px] text-purple-700 font-semibold uppercase mb-0.5">Follow-up Case</p>
+                    <p class="text-lg font-bold text-purple-800">${totals.followup}</p>
+                </div>
+                <div class="bg-amber-50 border border-amber-100 rounded-xl p-2.5 text-center">
+                    <p class="text-[10px] text-amber-700 font-semibold uppercase mb-0.5">c/o Dr Shalima <span class="text-[9px] font-normal">(Initial)</span></p>
                     <p class="text-lg font-bold text-amber-800">${chShalima}</p>
                 </div>
-                <div class="flex-1 bg-emerald-50 border border-emerald-100 rounded-xl p-2.5 text-center">
-                    <p class="text-[10px] text-emerald-700 font-semibold uppercase mb-0.5">Direct</p>
+                <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-2.5 text-center">
+                    <p class="text-[10px] text-emerald-700 font-semibold uppercase mb-0.5">Direct <span class="text-[9px] font-normal">(Initial)</span></p>
                     <p class="text-lg font-bold text-emerald-800">${chDirect}</p>
                 </div>
             `;
 
             // Bullets
-            document.getElementById('sum-habla-text').textContent = `Habla · ${psyData['Habla'].initial} new, ${psyData['Habla'].followup} follow-up`;
-            document.getElementById('sum-varda-text').textContent = `Varda · ${psyData['Varda'].initial} new, ${psyData['Varda'].followup} follow-up`;
-            document.getElementById('sum-sahla-text').textContent = `Sahla · ${psyData['Sahla'].initial} new, ${psyData['Sahla'].followup} follow-up`;
+            document.getElementById('sum-habla-text').textContent = `Habla · ${psyData['Habla'].initial} initial (${psyData['Habla'].shalima} c/o Dr Shalima, ${psyData['Habla'].direct} Direct), ${psyData['Habla'].followup} follow-up`;
+            document.getElementById('sum-varda-text').textContent = `Varda · ${psyData['Varda'].initial} initial (${psyData['Varda'].shalima} c/o Dr Shalima, ${psyData['Varda'].direct} Direct), ${psyData['Varda'].followup} follow-up`;
+            document.getElementById('sum-sahla-text').textContent = `Sahla · ${psyData['Sahla'].initial} initial (${psyData['Sahla'].shalima} c/o Dr Shalima, ${psyData['Sahla'].direct} Direct), ${psyData['Sahla'].followup} follow-up`;
         }
 
         // ── Day-by-Day Report render ───────────────────────────────────────
@@ -2985,6 +3016,11 @@
             const done     = dayBookings.filter(b => b.status === 'done').length;
             const upcoming = dayBookings.filter(b => b.status === 'active').length;
             const hours    = (dayBookings.length * 45 / 60).toFixed(1);
+            const dayInitial  = dayBookings.filter(b => b.caseType === 'Initial case').length;
+            const dayFollowup = dayBookings.filter(b => b.caseType === 'Follow-up case').length;
+            const dayShalima  = dayBookings.filter(b => b.caseType === 'Initial case' && (b.channel || 'c/o Dr Shalima') === 'c/o Dr Shalima').length;
+            const dayDirect   = dayBookings.filter(b => b.caseType === 'Initial case' && b.channel === 'Direct').length;
+
             const statsRow = document.getElementById('daily-stats-row');
             statsRow.innerHTML = `
                 <div class="bg-[#E8F3EE] rounded-2xl p-3 text-center">
@@ -2998,6 +3034,26 @@
                 <div class="bg-[#FFF9DF] rounded-2xl p-3 text-center">
                     <p class="text-[10px] text-gray-500 font-semibold uppercase tracking-wide mb-0.5">Hours</p>
                     <p class="text-xl font-bold text-[#7A5B00]">${hours}</p>
+                </div>
+            `;
+
+            const dailyChanRow = document.getElementById('daily-channel-row');
+            if (dailyChanRow) dailyChanRow.innerHTML = `
+                <div class="bg-[#E8F3EE] border border-emerald-200 rounded-xl p-2.5 text-center">
+                    <p class="text-[10px] text-[#235847] font-semibold uppercase mb-0.5">Initial Case</p>
+                    <p class="text-lg font-bold text-[#235847]">${dayInitial}</p>
+                </div>
+                <div class="bg-purple-50 border border-purple-100 rounded-xl p-2.5 text-center">
+                    <p class="text-[10px] text-purple-700 font-semibold uppercase mb-0.5">Follow-up Case</p>
+                    <p class="text-lg font-bold text-purple-800">${dayFollowup}</p>
+                </div>
+                <div class="bg-amber-50 border border-amber-100 rounded-xl p-2.5 text-center">
+                    <p class="text-[10px] text-amber-700 font-semibold uppercase mb-0.5">c/o Dr Shalima <span class="text-[9px] font-normal">(Initial)</span></p>
+                    <p class="text-lg font-bold text-amber-800">${dayShalima}</p>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-2.5 text-center">
+                    <p class="text-[10px] text-emerald-700 font-semibold uppercase mb-0.5">Direct <span class="text-[9px] font-normal">(Initial)</span></p>
+                    <p class="text-lg font-bold text-emerald-800">${dayDirect}</p>
                 </div>
             `;
 
@@ -3020,9 +3076,12 @@
                         endStr = `${h}:${String(m).padStart(2,'0')} ${mer}`;
                     }
                     const dotColor = psyColors[b.psychologist] || '#235847';
-                    const chBadge  = b.channel === 'Direct'
-                        ? '<span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[9px] font-bold">Direct</span>'
-                        : '<span class="px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[9px] font-bold">c/o Dr S</span>';
+                    const isInit   = b.caseType === 'Initial case';
+                    const chBadge  = isInit
+                        ? (b.channel === 'Direct'
+                            ? '<span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[9px] font-bold">Direct</span>'
+                            : '<span class="px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[9px] font-bold">c/o Dr S</span>')
+                        : '<span class="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded-full text-[9px] font-bold">Follow-up</span>';
                     const statusBadge = b.status === 'done'
                         ? '<span class="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded-full text-[9px] font-bold">Done</span>'
                         : '<span class="px-1.5 py-0.5 bg-[#E8F3EE] text-[#235847] rounded-full text-[9px] font-bold">Active</span>';
@@ -3090,6 +3149,8 @@
                     "Upcoming": pb.filter(b => b.status === 'active').length,
                     "Initial Case": pb.filter(b => b.caseType === 'Initial case').length,
                     "Follow-up Case": pb.filter(b => b.caseType === 'Follow-up case').length,
+                    "c/o Dr Shalima (Initial)": pb.filter(b => b.caseType === 'Initial case' && (b.channel || 'c/o Dr Shalima') === 'c/o Dr Shalima').length,
+                    "Direct (Initial)": pb.filter(b => b.caseType === 'Initial case' && b.channel === 'Direct').length,
                     "Hours (45m/session)": Number((pb.length * 45 / 60).toFixed(2))
                 };
             });
@@ -3100,6 +3161,8 @@
                 "Upcoming": records.filter(b => b.status === 'active').length,
                 "Initial Case": records.filter(b => b.caseType === 'Initial case').length,
                 "Follow-up Case": records.filter(b => b.caseType === 'Follow-up case').length,
+                "c/o Dr Shalima (Initial)": records.filter(b => b.caseType === 'Initial case' && (b.channel || 'c/o Dr Shalima') === 'c/o Dr Shalima').length,
+                "Direct (Initial)": records.filter(b => b.caseType === 'Initial case' && b.channel === 'Direct').length,
                 "Hours (45m/session)": Number((records.length * 45 / 60).toFixed(2))
             });
 
@@ -3109,8 +3172,8 @@
                 "Client Name": b.clientName,
                 "Phone": b.phone,
                 "Psychologist": b.psychologist,
-                "Booking Channel": b.channel || "c/o Dr Shalima",
                 "Case Type": b.caseType,
+                "Booking Channel (Initial Only)": b.caseType === 'Initial case' ? (b.channel || "c/o Dr Shalima") : "—",
                 "Session Type": b.sessionType,
                 "Case Mode": b.consultationMode || "Offline",
                 "Status": b.status === 'done' ? 'Done' : 'Active'
@@ -3120,8 +3183,8 @@
                 "Client Name": "No sessions recorded for this period",
                 "Phone": "—",
                 "Psychologist": "—",
-                "Booking Channel": "—",
                 "Case Type": "—",
+                "Booking Channel (Initial Only)": "—",
                 "Session Type": "—",
                 "Case Mode": "—",
                 "Status": "—"
@@ -3172,13 +3235,15 @@
 
             const doneCount = records.filter(b => b.status === 'done').length;
             const upcomingCount = records.filter(b => b.status === 'active').length;
+            const initialCount = records.filter(b => b.caseType === 'Initial case').length;
+            const followupCount = records.filter(b => b.caseType === 'Follow-up case').length;
             const hours = (records.length * 45 / 60).toFixed(1);
-            const chShalima = records.filter(b => (b.channel || 'c/o Dr Shalima') === 'c/o Dr Shalima').length;
-            const chDirect = records.filter(b => b.channel === 'Direct').length;
+            const chShalima = records.filter(b => b.caseType === 'Initial case' && (b.channel || 'c/o Dr Shalima') === 'c/o Dr Shalima').length;
+            const chDirect = records.filter(b => b.caseType === 'Initial case' && b.channel === 'Direct').length;
 
             doc.setFontSize(9);
             doc.setTextColor(100);
-            doc.text(`Total Sessions: ${records.length}  |  Done: ${doneCount}  |  Upcoming: ${upcomingCount}  |  Hours: ${hours}  |  c/o Dr Shalima: ${chShalima}  |  Direct: ${chDirect}`, 14, 31);
+            doc.text(`Total: ${records.length}  |  Done: ${doneCount}  |  Upcoming: ${upcomingCount}  |  Initial: ${initialCount} (c/o Dr Shalima: ${chShalima}, Direct: ${chDirect})  |  Follow-up: ${followupCount}  |  Hours: ${hours}`, 14, 31);
 
             // Psychologist Summary Table
             const psychologists = ['Habla', 'Varda', 'Sahla'];
@@ -3191,6 +3256,8 @@
                     pb.filter(b => b.status === 'active').length,
                     pb.filter(b => b.caseType === 'Initial case').length,
                     pb.filter(b => b.caseType === 'Follow-up case').length,
+                    pb.filter(b => b.caseType === 'Initial case' && (b.channel || 'c/o Dr Shalima') === 'c/o Dr Shalima').length,
+                    pb.filter(b => b.caseType === 'Initial case' && b.channel === 'Direct').length,
                     (pb.length * 45 / 60).toFixed(1) + ' hrs'
                 ];
             });
@@ -3199,14 +3266,16 @@
                 records.length,
                 doneCount,
                 upcomingCount,
-                records.filter(b => b.caseType === 'Initial case').length,
-                records.filter(b => b.caseType === 'Follow-up case').length,
+                initialCount,
+                followupCount,
+                chShalima,
+                chDirect,
                 hours + ' hrs'
             ]);
 
             doc.autoTable({
                 startY: 35,
-                head: [['Psychologist', 'Total', 'Done', 'Upcoming', 'Initial', 'Follow-up', 'Hours']],
+                head: [['Psychologist', 'Total', 'Done', 'Upcoming', 'Initial', 'Follow-up', 'c/o Dr S (Init)', 'Direct (Init)', 'Hours']],
                 body: summaryBody,
                 headStyles: { fillColor: [35, 88, 71] },
                 styles: { fontSize: 8 }
@@ -3220,8 +3289,8 @@
                 b.clientName,
                 b.phone,
                 b.psychologist,
-                b.channel || 'c/o Dr Shalima',
                 b.caseType,
+                b.caseType === 'Initial case' ? (b.channel || 'c/o Dr Shalima') : '—',
                 b.sessionType,
                 b.consultationMode || 'Offline',
                 b.status === 'done' ? 'Done' : 'Active'
@@ -3229,7 +3298,7 @@
 
             doc.autoTable({
                 startY: nextY,
-                head: [['Date', 'Time (45m)', 'Client Name', 'Phone', 'Psychologist', 'Channel', 'Case Type', 'Session Type', 'Mode', 'Status']],
+                head: [['Date', 'Time (45m)', 'Client Name', 'Phone', 'Psychologist', 'Case Type', 'Channel (Init)', 'Session Type', 'Mode', 'Status']],
                 body: tableRows.length > 0 ? tableRows : [['—', '—', 'No sessions booked for this period', '—', '—', '—', '—', '—', '—', '—']],
                 headStyles: { fillColor: [35, 88, 71] },
                 styles: { fontSize: 8 }
@@ -3260,8 +3329,8 @@
                 "Client Name": b.clientName,
                 "Phone": b.phone,
                 "Psychologist": b.psychologist,
-                "Booking Channel": b.channel || "c/o Dr Shalima",
                 "Case Type": b.caseType,
+                "Booking Channel (Initial Only)": b.caseType === 'Initial case' ? (b.channel || "c/o Dr Shalima") : "—",
                 "Session Type": b.sessionType,
                 "Case Mode": b.consultationMode || "Offline",
                 "Status": b.status === 'done' ? 'Done' : 'Active'
@@ -3271,8 +3340,8 @@
                 "Client Name": "No sessions booked on this day",
                 "Phone": "—",
                 "Psychologist": "—",
-                "Booking Channel": "—",
                 "Case Type": "—",
+                "Booking Channel (Initial Only)": "—",
                 "Session Type": "—",
                 "Case Mode": "—",
                 "Status": "—"
@@ -3289,6 +3358,8 @@
                     "Upcoming": pb.filter(b => b.status === 'active').length,
                     "Initial Case": pb.filter(b => b.caseType === 'Initial case').length,
                     "Follow-up Case": pb.filter(b => b.caseType === 'Follow-up case').length,
+                    "c/o Dr Shalima (Initial)": pb.filter(b => b.caseType === 'Initial case' && (b.channel || 'c/o Dr Shalima') === 'c/o Dr Shalima').length,
+                    "Direct (Initial)": pb.filter(b => b.caseType === 'Initial case' && b.channel === 'Direct').length,
                     "Hours": Number((pb.length * 45 / 60).toFixed(2))
                 };
             });
@@ -3300,6 +3371,8 @@
                 "Upcoming": dayBookings.filter(b => b.status === 'active').length,
                 "Initial Case": dayBookings.filter(b => b.caseType === 'Initial case').length,
                 "Follow-up Case": dayBookings.filter(b => b.caseType === 'Follow-up case').length,
+                "c/o Dr Shalima (Initial)": dayBookings.filter(b => b.caseType === 'Initial case' && (b.channel || 'c/o Dr Shalima') === 'c/o Dr Shalima').length,
+                "Direct (Initial)": dayBookings.filter(b => b.caseType === 'Initial case' && b.channel === 'Direct').length,
                 "Hours": Number((dayBookings.length * 45 / 60).toFixed(2))
             });
 
@@ -3336,9 +3409,11 @@
 
             const doneCount = dayBookings.filter(b => b.status === 'done').length;
             const upcomingCount = dayBookings.filter(b => b.status === 'active').length;
+            const initialCount = dayBookings.filter(b => b.caseType === 'Initial case').length;
+            const followupCount = dayBookings.filter(b => b.caseType === 'Follow-up case').length;
             const hours = (dayBookings.length * 45 / 60).toFixed(1);
-            const chShalima = dayBookings.filter(b => (b.channel || 'c/o Dr Shalima') === 'c/o Dr Shalima').length;
-            const chDirect = dayBookings.filter(b => b.channel === 'Direct').length;
+            const chShalima = dayBookings.filter(b => b.caseType === 'Initial case' && (b.channel || 'c/o Dr Shalima') === 'c/o Dr Shalima').length;
+            const chDirect = dayBookings.filter(b => b.caseType === 'Initial case' && b.channel === 'Direct').length;
 
             doc.setFontSize(16);
             doc.setTextColor(35, 88, 71);
@@ -3350,7 +3425,7 @@
 
             doc.setFontSize(9);
             doc.setTextColor(100);
-            doc.text(`Total Bookings: ${dayBookings.length}  |  Done: ${doneCount}  |  Upcoming: ${upcomingCount}  |  Hours: ${hours}  |  c/o Dr Shalima: ${chShalima}  |  Direct: ${chDirect}`, 14, 31);
+            doc.text(`Total: ${dayBookings.length}  |  Done: ${doneCount}  |  Upcoming: ${upcomingCount}  |  Initial: ${initialCount} (c/o Dr Shalima: ${chShalima}, Direct: ${chDirect})  |  Follow-up: ${followupCount}  |  Hours: ${hours}`, 14, 31);
 
             const psychologists = ['Habla', 'Varda', 'Sahla'];
             const summaryBody = psychologists.map(psy => {
@@ -3362,6 +3437,8 @@
                     pb.filter(b => b.status === 'active').length,
                     pb.filter(b => b.caseType === 'Initial case').length,
                     pb.filter(b => b.caseType === 'Follow-up case').length,
+                    pb.filter(b => b.caseType === 'Initial case' && (b.channel || 'c/o Dr Shalima') === 'c/o Dr Shalima').length,
+                    pb.filter(b => b.caseType === 'Initial case' && b.channel === 'Direct').length,
                     (pb.length * 45 / 60).toFixed(1) + ' hrs'
                 ];
             });
@@ -3370,14 +3447,16 @@
                 dayBookings.length,
                 doneCount,
                 upcomingCount,
-                dayBookings.filter(b => b.caseType === 'Initial case').length,
-                dayBookings.filter(b => b.caseType === 'Follow-up case').length,
+                initialCount,
+                followupCount,
+                chShalima,
+                chDirect,
                 hours + ' hrs'
             ]);
 
             doc.autoTable({
                 startY: 35,
-                head: [['Psychologist', 'Total', 'Done', 'Upcoming', 'Initial', 'Follow-up', 'Hours']],
+                head: [['Psychologist', 'Total', 'Done', 'Upcoming', 'Initial', 'Follow-up', 'c/o Dr S (Init)', 'Direct (Init)', 'Hours']],
                 body: summaryBody,
                 headStyles: { fillColor: [35, 88, 71] },
                 styles: { fontSize: 8 }
@@ -3390,8 +3469,8 @@
                 b.clientName,
                 b.phone,
                 b.psychologist,
-                b.channel || 'c/o Dr Shalima',
                 b.caseType,
+                b.caseType === 'Initial case' ? (b.channel || 'c/o Dr Shalima') : '—',
                 b.sessionType,
                 b.consultationMode || 'Offline',
                 b.status === 'done' ? 'Done' : 'Active'
@@ -3399,7 +3478,7 @@
 
             doc.autoTable({
                 startY: nextY,
-                head: [['Time (45m)', 'Client Name', 'Phone', 'Psychologist', 'Channel', 'Case Type', 'Session Type', 'Mode', 'Status']],
+                head: [['Time (45m)', 'Client Name', 'Phone', 'Psychologist', 'Case Type', 'Channel (Init)', 'Session Type', 'Mode', 'Status']],
                 body: tableRows.length > 0 ? tableRows : [['—', 'No sessions booked on this date', '—', '—', '—', '—', '—', '—', '—']],
                 headStyles: { fillColor: [35, 88, 71] },
                 styles: { fontSize: 8 }
