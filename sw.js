@@ -1,4 +1,4 @@
-// Service Worker for Dr Shalima's Mind Clinic — Real-Time Mobile Push Notifications
+// Service Worker for Dr. Shalima's Mind Clinic — Professional Mobile Push Notifications
 self.addEventListener('install', (event) => {
     self.skipWaiting();
 });
@@ -7,17 +7,20 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(self.clients.claim());
 });
 
-// Listen for push events or messages from the page to trigger native mobile notifications
+// Listen for push events from web push servers
 self.addEventListener('push', (event) => {
     let data = {};
     try {
         data = event.data ? event.data.json() : {};
     } catch (e) {
-        data = { title: "Dr Shalima's Mind Clinic", body: event.data ? event.data.text() : 'New clinic notification' };
+        data = {
+            title: "Dr. Shalima's Mind Clinic",
+            body: event.data ? event.data.text() : 'New counselling session notification'
+        };
     }
-    const title = data.title || "Dr Shalima's Mind Clinic";
+    const title = data.title || "Dr. Shalima's Mind Clinic";
     const options = {
-        body: data.body || 'Session notification alert',
+        body: data.body || 'Counselling session notification alert',
         icon: 'logo.jpg',
         badge: 'logo.jpg',
         tag: data.tag || ('clinic_push_' + Date.now()),
@@ -29,19 +32,22 @@ self.addEventListener('push', (event) => {
     event.waitUntil(self.registration.showNotification(title, options));
 });
 
+// Listen for direct notification commands from the clinic web app
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SHOW_MOBILE_NOTIFICATION') {
         const { title, body, tag, url } = event.data;
-        self.registration.showNotification(title || "Dr Shalima's Mind Clinic", {
-            body: body || '',
-            icon: 'logo.jpg',
-            badge: 'logo.jpg',
-            tag: tag || ('clinic_mobile_' + Date.now()),
-            vibrate: [250, 120, 250, 120, 400],
-            requireInteraction: true,
-            renotify: true,
-            data: { url: url || './index.html' }
-        });
+        event.waitUntil(
+            self.registration.showNotification(title || "Dr. Shalima's Mind Clinic", {
+                body: body || '',
+                icon: 'logo.jpg',
+                badge: 'logo.jpg',
+                tag: tag || ('clinic_mobile_' + Date.now()),
+                vibrate: [250, 120, 250, 120, 400],
+                requireInteraction: true,
+                renotify: true,
+                data: { url: url || './index.html' }
+            })
+        );
     }
 });
 

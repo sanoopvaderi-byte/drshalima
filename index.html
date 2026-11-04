@@ -290,30 +290,30 @@
             <!-- Team Schedule Matrix Header -->
             <div class="grid grid-cols-[58px_1fr_1fr_1fr] gap-2 text-center mb-2 items-start">
                 <div></div>
-                <div>
-                    <div class="flex items-center justify-center gap-1 whitespace-nowrap">
-                        <span class="font-bold text-gray-800 text-[13px] leading-tight">Habla</span>
-                        <button id="habla-status-btn" type="button" onclick="togglePsychologistOfflineStatus('Habla')" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] leading-none font-extrabold border bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm hover:bg-emerald-100 active:scale-95 transition cursor-pointer whitespace-nowrap" title="Click to toggle Active / Offline (Leave) for this date">
+                <div class="min-w-0">
+                    <div onclick="togglePsychologistOfflineStatus('Habla')" class="inline-flex items-center justify-center gap-1 whitespace-nowrap cursor-pointer select-none" title="Click to toggle Active / Offline (Passcode: 6498)">
+                        <span class="font-bold text-gray-800 text-xs sm:text-[13px] leading-tight">Habla</span>
+                        <button id="habla-status-btn" type="button" class="relative z-10 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] sm:text-[9.5px] leading-none font-extrabold border bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm hover:bg-emerald-100 active:scale-95 transition cursor-pointer whitespace-nowrap">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                             <span>Active</span>
                         </button>
                     </div>
                     <div id="habla-free-count" class="text-xs text-gray-400 mt-0.5">20 free</div>
                 </div>
-                <div>
-                    <div class="flex items-center justify-center gap-1 whitespace-nowrap">
-                        <span class="font-bold text-gray-800 text-[13px] leading-tight">Varda</span>
-                        <button id="varda-status-btn" type="button" onclick="togglePsychologistOfflineStatus('Varda')" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] leading-none font-extrabold border bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm hover:bg-emerald-100 active:scale-95 transition cursor-pointer whitespace-nowrap" title="Click to toggle Active / Offline (Leave) for this date">
+                <div class="min-w-0">
+                    <div onclick="togglePsychologistOfflineStatus('Varda')" class="inline-flex items-center justify-center gap-1 whitespace-nowrap cursor-pointer select-none" title="Click to toggle Active / Offline (Passcode: 6498)">
+                        <span class="font-bold text-gray-800 text-xs sm:text-[13px] leading-tight">Varda</span>
+                        <button id="varda-status-btn" type="button" class="relative z-10 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] sm:text-[9.5px] leading-none font-extrabold border bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm hover:bg-emerald-100 active:scale-95 transition cursor-pointer whitespace-nowrap">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                             <span>Active</span>
                         </button>
                     </div>
                     <div id="varda-free-count" class="text-xs text-gray-400 mt-0.5">20 free</div>
                 </div>
-                <div>
-                    <div class="flex items-center justify-center gap-1 whitespace-nowrap">
-                        <span class="font-bold text-gray-800 text-[13px] leading-tight">Sahla</span>
-                        <button id="sahla-status-btn" type="button" onclick="togglePsychologistOfflineStatus('Sahla')" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] leading-none font-extrabold border bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm hover:bg-emerald-100 active:scale-95 transition cursor-pointer whitespace-nowrap" title="Click to toggle Active / Offline (Leave) for this date">
+                <div class="min-w-0">
+                    <div onclick="togglePsychologistOfflineStatus('Sahla')" class="inline-flex items-center justify-center gap-1 whitespace-nowrap cursor-pointer select-none" title="Click to toggle Active / Offline (Passcode: 6498)">
+                        <span class="font-bold text-gray-800 text-xs sm:text-[13px] leading-tight">Sahla</span>
+                        <button id="sahla-status-btn" type="button" class="relative z-10 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] sm:text-[9.5px] leading-none font-extrabold border bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm hover:bg-emerald-100 active:scale-95 transition cursor-pointer whitespace-nowrap">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                             <span>Active</span>
                         </button>
@@ -1736,15 +1736,15 @@
             }
         }
 
-        // Automatically request browser notification permission on first user interaction (if alerts enabled)
+        // Automatically request browser notification permission on first user interaction (if alerts or mobile push enabled)
         document.addEventListener('click', function requestNotifOnce() {
-            if (isExternalNotifEnabled() && 'Notification' in window && Notification.permission === 'default') {
+            if ((isExternalNotifEnabled() || isMobilePushEnabled()) && 'Notification' in window && Notification.permission === 'default') {
                 Notification.requestPermission().catch(() => {});
             }
         }, { once: true });
 
         function playNotificationChime() {
-            if (!isExternalNotifEnabled()) return;
+            if (!isExternalNotifEnabled() && !isMobilePushEnabled()) return;
             try {
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
                 if (!AudioCtx) return;
@@ -1768,6 +1768,7 @@
         // ── Real-Time Mobile Phone Push Notification Engine (PWA Service Worker + ntfy.sh Live Mobile Push) ─────
         const DEFAULT_MOBILE_PUSH_TOPIC = 'dr-shalima-mind-clinic-live';
         const mobileCloudPushedTags = new Set();
+        const mobilePhoneNotified10mIds = new Set();
 
         function getMobilePushTopic() {
             const saved = (localStorage.getItem('dr_shalima_mobile_push_topic') || '').trim();
@@ -1815,19 +1816,39 @@
 
             if (nextState) {
                 registerClinicServiceWorker();
-                if ('Notification' in window && Notification.permission !== 'granted') {
-                    Notification.requestPermission().catch(() => {});
-                }
                 if (navigator.vibrate) {
-                    try { navigator.vibrate([150]); } catch (e) {}
+                    try { navigator.vibrate([200, 100, 200]); } catch (e) {}
                 }
                 playNotificationChime();
+
+                const activationTag = 'clinic_mobile_push_active_' + Date.now();
+                const activationTitle = "📲 Dr. Shalima's Mind Clinic — Mobile Alerts Active";
+                const activationBody = "Real-time phone notifications are enabled:\n• Instant alert when a new counselling session is booked\n• Automatic reminder 10 minutes before each scheduled session";
+
+                const fireActivationPush = () => {
+                    sendSystemBrowserNotification(activationTitle, activationBody, activationTag, true);
+                    sendMobileCloudPush(activationTitle, activationBody, activationTag, true);
+                    // Also check immediately if any scheduled session is within 10 minutes right now
+                    mobilePhoneNotified10mIds.clear();
+                    lastNotificationSignature = '';
+                    checkUpcomingSessionNotifications(true);
+                };
+
+                if ('Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission().then(() => {
+                        fireActivationPush();
+                    }).catch(() => {
+                        fireActivationPush();
+                    });
+                } else {
+                    fireActivationPush();
+                }
             }
         }
 
         // Push real-time notification directly to mobile phones via ntfy.sh (works even when mobile browser is closed)
         function sendMobileCloudPush(title, bodyText, tagId, isUrgent = true) {
-            if (!isExternalNotifEnabled() || !isMobilePushEnabled()) return;
+            if (!isMobilePushEnabled()) return;
             if (tagId && mobileCloudPushedTags.has(tagId)) return;
             if (tagId) mobileCloudPushedTags.add(tagId);
 
@@ -1838,7 +1859,7 @@
                 fetch(`https://ntfy.sh/${encodeURIComponent(topic)}`, {
                     method: 'POST',
                     headers: {
-                        'Title': title.replace(/[^\x20-\x7E]/g, '').trim() || "Dr Shalima's Mind Clinic",
+                        'Title': title.replace(/[^\x20-\x7E]/g, '').trim() || "Dr. Shalima's Mind Clinic",
                         'Priority': isUrgent ? 'high' : 'default',
                         'Tags': isUrgent ? 'bell,calendar' : 'calendar'
                     },
@@ -1848,65 +1869,63 @@
         }
 
         // Send OS / Mobile Browser System Notification externally (ServiceWorker first for Android/iOS mobile support)
-        function sendSystemBrowserNotification(title, bodyText, tagId) {
-            if (!isExternalNotifEnabled()) return;
+        function sendSystemBrowserNotification(title, bodyText, tagId, forceSend = false) {
+            if (!forceSend && !isMobilePushEnabled() && !isExternalNotifEnabled()) return;
             if (navigator.vibrate) {
                 try { navigator.vibrate([250, 120, 250, 120, 400]); } catch (e) {}
             }
             if (!('Notification' in window)) return;
+
+            const notifOptions = {
+                body: bodyText,
+                icon: 'logo.jpg',
+                badge: 'logo.jpg',
+                tag: tagId || ('clinic_notif_' + Date.now()),
+                vibrate: [250, 120, 250, 120, 400],
+                requireInteraction: true,
+                renotify: true,
+                data: { url: './index.html' }
+            };
+
+            const fallbackNativeNotif = () => {
+                try {
+                    const sysNotif = new Notification(title, notifOptions);
+                    sysNotif.onclick = function() {
+                        window.focus();
+                        this.close();
+                    };
+                } catch (e) {}
+            };
+
             const fireNotif = () => {
-                if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.ready.then(reg => {
-                        reg.showNotification(title, {
-                            body: bodyText,
-                            icon: 'logo.jpg',
-                            badge: 'logo.jpg',
-                            tag: tagId,
-                            vibrate: [250, 120, 250, 120, 400],
-                            requireInteraction: true,
-                            renotify: true
-                        });
-                    }).catch(() => {
-                        try {
-                            const sysNotif = new Notification(title, {
-                                body: bodyText,
-                                icon: 'logo.jpg',
-                                badge: 'logo.jpg',
-                                tag: tagId,
-                                requireInteraction: true
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistration().then(reg => {
+                        const targetReg = reg || null;
+                        if (targetReg && typeof targetReg.showNotification === 'function') {
+                            targetReg.showNotification(title, notifOptions).catch(() => {
+                                if (targetReg.active) {
+                                    targetReg.active.postMessage({
+                                        type: 'SHOW_MOBILE_NOTIFICATION',
+                                        title: title,
+                                        body: bodyText,
+                                        tag: notifOptions.tag,
+                                        url: './index.html'
+                                    });
+                                } else {
+                                    fallbackNativeNotif();
+                                }
                             });
-                            sysNotif.onclick = function() { window.focus(); this.close(); };
-                        } catch (e) {}
-                    });
-                } else {
-                    try {
-                        const sysNotif = new Notification(title, {
-                            body: bodyText,
-                            icon: 'logo.jpg',
-                            badge: 'logo.jpg',
-                            tag: tagId,
-                            requireInteraction: true
-                        });
-                        sysNotif.onclick = function() {
-                            window.focus();
-                            this.close();
-                        };
-                    } catch (e) {
-                        if (navigator.serviceWorker && navigator.serviceWorker.ready) {
-                            navigator.serviceWorker.ready.then(reg => {
-                                reg.showNotification(title, {
-                                    body: bodyText,
-                                    icon: 'logo.jpg',
-                                    badge: 'logo.jpg',
-                                    tag: tagId,
-                                    vibrate: [250, 120, 250, 120, 400],
-                                    requireInteraction: true
-                                });
-                            }).catch(() => {});
+                        } else {
+                            navigator.serviceWorker.ready.then(readyReg => {
+                                readyReg.showNotification(title, notifOptions).catch(() => fallbackNativeNotif());
+                            }).catch(() => fallbackNativeNotif());
                         }
-                    }
+                    }).catch(() => fallbackNativeNotif());
+                } else {
+                    fallbackNativeNotif();
                 }
             };
+
             if (Notification.permission === 'granted') {
                 fireNotif();
             } else if (Notification.permission === 'default') {
@@ -1914,6 +1933,39 @@
                     if (p === 'granted') fireNotif();
                 }).catch(() => {});
             }
+        }
+
+        // Format and dispatch professional phone notification for new bookings & 10-min pre-session reminders
+        function dispatchProfessionalPhoneNotification(booking, minsLeft, alertType = 'reminder_10m', followupBooking = null) {
+            if (!booking) return;
+            if (!isMobilePushEnabled() && !isExternalNotifEnabled()) return;
+
+            const isNewBooking = alertType === 'new_booking';
+            const isInitial = booking.caseType === 'Initial case';
+            const channelText = isInitial ? (booking.channel || 'c/o Dr Shalima') : '';
+            const modeText = booking.consultationMode || 'Offline';
+            const caseSummary = `${booking.caseType} • ${booking.sessionType} (${modeText}${channelText ? ' • ' + channelText : ''})`;
+
+            let notifTitle = '';
+            let notifBody = '';
+            const notifTag = (isNewBooking ? 'clinic_new_booking_' : 'clinic_reminder_10m_') + booking.id;
+
+            if (isNewBooking) {
+                notifTitle = `📅 New Counselling Session Booked — Dr. Shalima's Mind Clinic`;
+                const followupLine = followupBooking
+                    ? `\nFollow-up Scheduled: ${followupBooking.date} (${followupBooking.time})`
+                    : '';
+                notifBody = `Client: ${booking.clientName} (${booking.phone})\nPsychologist: ${booking.psychologist}\nDate & Time: ${booking.date} | ${booking.time}\nSession: ${caseSummary}${followupLine}`;
+            } else {
+                const timeStatus = minsLeft > 0
+                    ? `Starting in ${minsLeft} Min${minsLeft === 1 ? '' : 's'}`
+                    : 'Starting Now';
+                notifTitle = `⏰ Upcoming Counselling Session (${timeStatus}) — Dr. Shalima's Mind Clinic`;
+                notifBody = `Client: ${booking.clientName} (${booking.phone})\nPsychologist: ${booking.psychologist}\nScheduled Time: ${booking.time} (${booking.date})\nSession: ${caseSummary}`;
+            }
+
+            sendSystemBrowserNotification(notifTitle, notifBody, notifTag);
+            sendMobileCloudPush(notifTitle, notifBody, notifTag, true);
         }
 
         // Open standalone external browser popup window (430x390)
@@ -1991,6 +2043,9 @@
 
         // Trigger external OS/Browser notification + Floating Modal + Pop-out Window
         function triggerExternalPopupNotification(booking, minsLeft, forceOpenWin = false, alertType = 'reminder_10m', followupBooking = null) {
+            // 1. Always dispatch professional mobile phone notification if Mobile Push (📱) or External Bell (🔔) is active
+            dispatchProfessionalPhoneNotification(booking, minsLeft, alertType, followupBooking);
+
             if (!isExternalNotifEnabled()) return;
 
             currentExternalAlertBooking = booking;
@@ -2006,16 +2061,6 @@
             const channelText = isInitial ? (booking.channel || 'c/o Dr Shalima') : 'Follow-up case';
             const modeText = booking.consultationMode || 'Offline';
 
-            // 1. External OS / Mobile Browser System Notification + Direct Mobile Phone Cloud Push
-            const notifTitle = isNewBooking
-                ? `✅ New Booking Added: ${booking.clientName}`
-                : `🔔 Session in ${minsLeft} min: ${booking.clientName}`;
-            const followupPushNote = followupBooking ? `\nFollow-up also booked: ${followupBooking.date} (${followupBooking.time})` : '';
-            const notifBody = `Psychologist: ${booking.psychologist} · ${booking.date} (${booking.time})\nPhone: ${booking.phone} · ${booking.caseType} · ${modeText} (${channelText})${followupPushNote}`;
-            const notifTag = (isNewBooking ? 'clinic_new_booking_' : 'clinic_reminder_') + booking.id;
-            sendSystemBrowserNotification(notifTitle, notifBody, notifTag);
-            sendMobileCloudPush(notifTitle, notifBody, notifTag, true);
-
             // 2. Populate & show high-priority floating popup modal on the page
             const modal   = document.getElementById('external-reminder-popup-modal');
             const iconEl  = document.getElementById('ext-popup-icon');
@@ -2025,7 +2070,7 @@
             const waBtn   = document.getElementById('ext-popup-wa-btn');
 
             if (iconEl) iconEl.textContent = isNewBooking ? '✅' : '🔔';
-            if (titleEl) titleEl.textContent = isNewBooking ? 'New Session Booking Alert' : '10-Minute Session Reminder';
+            if (titleEl) titleEl.textContent = isNewBooking ? 'New Counselling Session Booked' : '10-Minute Session Reminder';
             if (cdEl) {
                 cdEl.textContent = countdownText;
                 cdEl.className = isNewBooking
@@ -2062,7 +2107,7 @@
             openStandalonePopupWindow(booking, minsLeft, alertType, followupBooking);
         }
 
-        // Trigger external notification whenever a new booking is added (locally or synced from another device)
+        // Trigger external & mobile phone notification whenever a new counselling session is booked (locally or synced from another device)
         function notifyNewBookingExternal(booking, followupBooking = null) {
             if (!booking || !booking.id) return;
             if (notifiedNewBookingIds.has(booking.id)) return;
@@ -2070,7 +2115,7 @@
             if (followupBooking && followupBooking.id) {
                 notifiedNewBookingIds.add(followupBooking.id);
             }
-            if (!isExternalNotifEnabled()) return;
+            if (!isExternalNotifEnabled() && !isMobilePushEnabled()) return;
             playNotificationChime();
             triggerExternalPopupNotification(booking, 0, false, 'new_booking', followupBooking);
         }
@@ -2137,7 +2182,7 @@
             const container = document.getElementById('upcoming-session-notifications');
             if (!container || !appState || !Array.isArray(appState.bookings)) return;
 
-            if (!isExternalNotifEnabled()) {
+            if (!isExternalNotifEnabled() && !isMobilePushEnabled()) {
                 container.innerHTML = '';
                 container.classList.add('hidden');
                 return;
@@ -2164,6 +2209,21 @@
                 }
             });
 
+            // Always send 10-min pre-session phone notification if Mobile Push (📱) is enabled
+            upcomingAlerts.forEach(({ booking, minsLeft }) => {
+                if (!mobilePhoneNotified10mIds.has(booking.id) && isMobilePushEnabled()) {
+                    mobilePhoneNotified10mIds.add(booking.id);
+                    playNotificationChime();
+                    dispatchProfessionalPhoneNotification(booking, minsLeft, 'reminder_10m', null);
+                }
+            });
+
+            if (!isExternalNotifEnabled()) {
+                container.innerHTML = '';
+                container.classList.add('hidden');
+                return;
+            }
+
             const signature = upcomingAlerts.map(a => `${a.booking.id}:${a.minsLeft}`).join('|');
             if (!forceRender && signature === lastNotificationSignature) return;
             lastNotificationSignature = signature;
@@ -2184,6 +2244,7 @@
                 }
                 if (!externalPopupShownIds.has(booking.id)) {
                     externalPopupShownIds.add(booking.id);
+                    mobilePhoneNotified10mIds.add(booking.id);
                     triggerExternalPopupNotification(booking, minsLeft, false, 'reminder_10m');
                 }
 
@@ -2274,6 +2335,13 @@
             // Real-time check: show notification popup above calendar when within 10 minutes before booking time
             checkUpcomingSessionNotifications();
         }
+
+        // Immediately check for 10-min pre-session reminders whenever mobile phone screen wakes up or tab becomes visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                checkUpcomingSessionNotifications(true);
+            }
+        });
 
         // Calendar Component
         function renderCalendar() {
@@ -2412,12 +2480,12 @@
                 if (statusBtn) {
                     if (isOffline) {
                         statusBtn.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span><span>Offline</span>`;
-                        statusBtn.className = 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] leading-none font-extrabold border bg-red-50 text-red-600 border-red-300 shadow-sm hover:bg-red-100 active:scale-95 transition cursor-pointer whitespace-nowrap';
-                        statusBtn.title = `${psy} is marked Offline (On Leave) on this date. Click to switch back to Active.`;
+                        statusBtn.className = 'relative z-10 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] sm:text-[9.5px] leading-none font-extrabold border bg-red-50 text-red-600 border-red-300 shadow-sm hover:bg-red-100 active:scale-95 transition cursor-pointer whitespace-nowrap';
+                        statusBtn.title = `${psy} is marked Offline (On Leave) on this date. Click to switch back to Active (Passcode: 6498).`;
                     } else {
                         statusBtn.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>Active</span>`;
-                        statusBtn.className = 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] leading-none font-extrabold border bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm hover:bg-emerald-100 active:scale-95 transition cursor-pointer whitespace-nowrap';
-                        statusBtn.title = `${psy} is Active on this date. Click to mark Offline (Leave).`;
+                        statusBtn.className = 'relative z-10 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] sm:text-[9.5px] leading-none font-extrabold border bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm hover:bg-emerald-100 active:scale-95 transition cursor-pointer whitespace-nowrap';
+                        statusBtn.title = `${psy} is Active on this date. Click to mark Offline (Passcode: 6498).`;
                     }
                 }
 
@@ -2463,9 +2531,9 @@
                         `;
                     } else if (isOffline) {
                         col.innerHTML = `
-                            <div class="w-full bg-red-50/70 text-red-400 border border-red-100 font-medium rounded-lg py-1.5 text-center text-[11px] cursor-not-allowed select-none" title="${psy} is Offline (On Leave) on this date">
+                            <button type="button" onclick="togglePsychologistOfflineStatus('${psy}')" class="w-full bg-red-50/70 hover:bg-red-100/80 text-red-500 border border-red-200 font-semibold rounded-lg py-1.5 text-center text-[11px] transition cursor-pointer" title="${psy} is Offline (On Leave). Click to Activate with Passcode 6498">
                                 Offline
-                            </div>
+                            </button>
                         `;
                     } else if (slotPassed) {
                         col.innerHTML = `
@@ -2794,8 +2862,11 @@
 
                 if (isPsychologistOffline(appState.selectedPsychologist, appState.selectedDateStr)) {
                     chipsContainer.innerHTML = `
-                        <div class="w-full bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-xs font-semibold">
-                            ○ ${appState.selectedPsychologist} is currently marked <strong>Offline (On Leave)</strong> for this date. Switch to <strong>Active</strong> in Team Schedule or choose another psychologist.
+                        <div class="w-full bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-xs font-semibold flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <span>○ ${appState.selectedPsychologist} is currently marked <strong>Offline (On Leave)</strong> for this date.</span>
+                            <button type="button" onclick="togglePsychologistOfflineStatus('${appState.selectedPsychologist}')" class="px-3 py-1.5 bg-[#235847] hover:bg-[#1B4739] text-white rounded-lg text-xs font-bold transition whitespace-nowrap">
+                                🔒 Activate ${appState.selectedPsychologist}
+                            </button>
                         </div>
                     `;
                     return;
