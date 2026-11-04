@@ -29,23 +29,35 @@ self.addEventListener('push', (event) => {
         renotify: true,
         data: { url: data.url || './index.html' }
     };
-    event.waitUntil(self.registration.showNotification(title, options));
+    event.waitUntil(
+        self.registration.showNotification(title, options).catch(() => {
+            delete options.icon;
+            delete options.badge;
+            return self.registration.showNotification(title, options);
+        })
+    );
 });
 
 // Listen for direct notification commands from the clinic web app
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SHOW_MOBILE_NOTIFICATION') {
-        const { title, body, tag, url } = event.data;
+        const { title, body, tag, url, icon } = event.data;
+        const iconPath = icon || 'logo.jpg';
+        const notifOptions = {
+            body: body || '',
+            icon: iconPath,
+            badge: iconPath,
+            tag: tag || ('clinic_mobile_' + Date.now()),
+            vibrate: [250, 120, 250, 120, 400],
+            requireInteraction: true,
+            renotify: true,
+            data: { url: url || './index.html' }
+        };
         event.waitUntil(
-            self.registration.showNotification(title || "Dr. Shalima's Mind Clinic", {
-                body: body || '',
-                icon: 'logo.jpg',
-                badge: 'logo.jpg',
-                tag: tag || ('clinic_mobile_' + Date.now()),
-                vibrate: [250, 120, 250, 120, 400],
-                requireInteraction: true,
-                renotify: true,
-                data: { url: url || './index.html' }
+            self.registration.showNotification(title || "Dr. Shalima's Mind Clinic", notifOptions).catch(() => {
+                delete notifOptions.icon;
+                delete notifOptions.badge;
+                return self.registration.showNotification(title || "Dr. Shalima's Mind Clinic", notifOptions);
             })
         );
     }

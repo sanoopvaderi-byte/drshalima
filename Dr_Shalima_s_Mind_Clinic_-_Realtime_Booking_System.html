@@ -163,8 +163,10 @@
                     <button onclick="toggleMenu()" class="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 text-gray-700 hover:bg-gray-50 active:scale-95 transition">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 10a2 2 0 110-4 2 2 0 010 4zm6 0a2 2 0 110-4 2 2 0 010 4zm6 0a2 2 0 110-4 2 2 0 010 4z"></path></svg>
                     </button>
-                    <div id="top-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 py-1 text-sm">
+                    <div id="top-dropdown" class="hidden absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-100 z-50 py-1 text-sm">
                         <button onclick="openSyncModal(); toggleMenu();" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-[#235847] font-semibold">Team Sync Settings</button>
+                        <button onclick="testPhonePushAlert(); toggleMenu();" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-emerald-700 font-semibold">📲 Test Phone Notification</button>
+                        <a href="https://ntfy.sh/dr-shalima-mind-clinic-live" target="_blank" onclick="toggleMenu();" class="block w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700">📱 Open Phone Channel</a>
                         <button onclick="exportJSON(); toggleMenu();" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700">🔒 Export Backup Data</button>
                         <button onclick="importJSON(); toggleMenu();" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700">🔒 Import Data</button>
                         <button onclick="resetState(); toggleMenu();" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600 border-t border-gray-100">🔒 Reset / Erase Data</button>
@@ -1813,36 +1815,106 @@
             localStorage.setItem('dr_shalima_mobile_push_enabled', nextState ? '1' : '0');
             updateMobilePushButtonUI();
 
-            if (nextState) {
-                registerClinicServiceWorker();
-                if (navigator.vibrate) {
-                    try { navigator.vibrate([200, 100, 200]); } catch (e) {}
-                }
-                playNotificationChime();
-
-                const activationTag = 'clinic_mobile_push_active_' + Date.now();
-                const activationTitle = "📲 Dr. Shalima's Mind Clinic — Mobile Alerts Active";
-                const activationBody = "Real-time phone notifications are enabled:\n• Instant alert when a new counselling session is booked\n• Automatic reminder 10 minutes before each scheduled session";
-
-                const fireActivationPush = () => {
-                    sendSystemBrowserNotification(activationTitle, activationBody, activationTag, true);
-                    sendMobileCloudPush(activationTitle, activationBody, activationTag, true);
-                    // Also check immediately if any scheduled session is within 10 minutes right now
-                    mobilePhoneNotified10mIds.clear();
-                    lastNotificationSignature = '';
-                    checkUpcomingSessionNotifications(true);
-                };
-
-                if ('Notification' in window && Notification.permission === 'default') {
-                    Notification.requestPermission().then(() => {
-                        fireActivationPush();
-                    }).catch(() => {
-                        fireActivationPush();
-                    });
-                } else {
-                    fireActivationPush();
-                }
+            if (!nextState) {
+                showMessageModal("📴 Mobile Push Notifications have been turned OFF.");
+                return;
             }
+
+            registerClinicServiceWorker();
+            if (navigator.vibrate) {
+                try { navigator.vibrate([200, 100, 200]); } catch (e) {}
+            }
+            playNotificationChime();
+
+            const activationTag = 'clinic_mobile_push_active_' + Date.now();
+            const activationTitle = "📲 Dr. Shalima's Mind Clinic — Mobile Alerts Active";
+            const activationBody = "Real-time phone notifications are enabled:\n• Instant alert when a new counselling session is booked\n• Automatic reminder 10 minutes before each scheduled session";
+
+            const fireActivationPush = () => {
+                sendSystemBrowserNotification(activationTitle, activationBody, activationTag, true);
+                sendMobileCloudPush(activationTitle, activationBody, activationTag, true);
+                mobilePhoneNotified10mIds.clear();
+                lastNotificationSignature = '';
+                checkUpcomingSessionNotifications(true);
+            };
+
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission().then(() => {
+                    fireActivationPush();
+                }).catch(() => {
+                    fireActivationPush();
+                });
+            } else {
+                fireActivationPush();
+            }
+        }
+
+        // Show friendly confirmation dialog when Mobile Push is activated with 1-tap phone connection
+        function showMobilePushActiveModal() {
+            const topic = getMobilePushTopic();
+            const ntfyWebUrl = `https://ntfy.sh/${encodeURIComponent(topic)}`;
+            const isPermDenied = ('Notification' in window && Notification.permission === 'denied');
+
+            const permWarningHtml = isPermDenied
+                ? `<div class="p-2.5 rounded-xl bg-red-50 text-red-700 text-xs font-semibold mb-3">
+                     ⚠️ Browser notifications are currently blocked. Please allow notifications in site settings, or use the 1-Tap Subscribe button below for your phone.
+                   </div>`
+                : '';
+
+            const modal = document.createElement('div');
+            modal.id = 'mobile-push-activated-modal';
+            modal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4';
+            modal.innerHTML = `
+                <div class="bg-white rounded-3xl p-6 w-full max-w-sm text-center card-shadow animate-fade-in">
+                    <div class="w-12 h-12 rounded-2xl bg-[#E8F3EE] text-[#235847] flex items-center justify-center text-2xl mx-auto mb-3 animate-bounce">
+                        📱
+                    </div>
+                    <h3 class="text-base font-bold text-gray-900 mb-1">Mobile Push Activated</h3>
+                    <p class="text-xs text-gray-600 mb-3">
+                        Real-time alerts for <strong>new bookings</strong> and <strong>10-min session reminders</strong> are now live.
+                    </p>
+                    ${permWarningHtml}
+                    <div class="bg-[#F7F6F0] rounded-2xl p-3 text-xs text-left space-y-1.5 mb-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-500 font-semibold">Phone Channel:</span>
+                            <span class="font-bold text-[#235847] font-mono">${topic}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-500 font-semibold">Phone Delivery:</span>
+                            <span class="font-bold text-emerald-700">● 24/7 Cloud Relay Active</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <button type="button" onclick="testPhonePushAlert(); this.closest('#mobile-push-activated-modal').remove();" class="w-full py-2.5 bg-[#235847] hover:bg-[#1B4739] text-white text-xs font-bold rounded-xl transition shadow-sm">
+                            🔔 Send Live Test Alert to My Phone
+                        </button>
+                        <a href="${ntfyWebUrl}" target="_blank" onclick="this.closest('#mobile-push-activated-modal').remove();" class="block w-full py-2.5 bg-[#E8F3EE] hover:bg-[#D4E8DF] text-[#235847] text-xs font-bold rounded-xl transition">
+                            📲 Open &amp; Subscribe on Phone (${topic})
+                        </a>
+                        <button type="button" onclick="this.closest('#mobile-push-activated-modal').remove();" class="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl transition">
+                            Done
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Test phone notification trigger (can also be called from 3-dots menu)
+        function testPhonePushAlert() {
+            localStorage.setItem('dr_shalima_mobile_push_enabled', '1');
+            updateMobilePushButtonUI();
+            playNotificationChime();
+
+            const topic = getMobilePushTopic();
+            const testTag = 'clinic_test_phone_' + Date.now();
+            const testTitle = "🔔 Test Notification — Dr. Shalima's Mind Clinic";
+            const testBody = "✅ Live phone notifications are working perfectly!\n• New booking alerts: Active\n• 10-minute session reminders: Active";
+
+            sendSystemBrowserNotification(testTitle, testBody, testTag, true);
+            sendMobileCloudPush(testTitle, testBody, testTag, true);
+            showMessageModal(`📲 Test notification sent to your phone (Channel: "${topic}")!\n\n• If your clinic browser is active, it sounds immediately.\n• For 24/7 locked-screen alerts, ensure your phone is subscribed to:\nhttps://ntfy.sh/${topic}`);
         }
 
         // Push real-time notification directly to mobile phones via ntfy.sh (works even when mobile browser is closed)
@@ -1854,17 +1926,39 @@
             const topic = getMobilePushTopic();
             if (!topic) return;
 
+            const cleanTitle = (title || "Dr. Shalima's Mind Clinic").replace(/[\r\n\t]/g, ' ').trim();
+            const clinicUrl = window.location.href.startsWith('http') ? window.location.href : 'https://sanoopvaderi-byte.github.io/drshalima/';
+
+            // 1. JSON POST to ntfy.sh (standard, full UTF-8 emojis, priority 5 wakes phone)
+            const payload = {
+                topic: topic,
+                title: cleanTitle,
+                message: bodyText || '',
+                priority: isUrgent ? 5 : 3,
+                tags: isUrgent ? ['bell', 'calendar'] : ['calendar'],
+                click: clinicUrl
+            };
+
+            const sendFallback = () => {
+                try {
+                    const qUrl = `https://ntfy.sh/${encodeURIComponent(topic)}?title=${encodeURIComponent(cleanTitle)}&priority=${isUrgent ? '5' : '3'}&tags=bell`;
+                    fetch(qUrl, { method: 'POST', body: bodyText || '' }).catch(() => {});
+                } catch (e2) {}
+            };
+
             try {
-                fetch(`https://ntfy.sh/${encodeURIComponent(topic)}`, {
+                fetch('https://ntfy.sh', {
                     method: 'POST',
-                    headers: {
-                        'Title': title.replace(/[^\x20-\x7E]/g, '').trim() || "Dr. Shalima's Mind Clinic",
-                        'Priority': isUrgent ? 'high' : 'default',
-                        'Tags': isUrgent ? 'bell,calendar' : 'calendar'
-                    },
-                    body: bodyText
-                }).catch(() => {});
-            } catch (e) {}
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).then(res => {
+                    if (!res.ok) sendFallback();
+                }).catch(() => {
+                    sendFallback();
+                });
+            } catch (e) {
+                sendFallback();
+            }
         }
 
         // Send OS / Mobile Browser System Notification externally (ServiceWorker first for Android/iOS mobile support)
@@ -1875,15 +1969,20 @@
             }
             if (!('Notification' in window)) return;
 
+            let iconUrl = 'logo.jpg';
+            try {
+                iconUrl = new URL('logo.jpg', window.location.href).href;
+            } catch (e) {}
+
             const notifOptions = {
                 body: bodyText,
-                icon: 'logo.jpg',
-                badge: 'logo.jpg',
+                icon: iconUrl,
+                badge: iconUrl,
                 tag: tagId || ('clinic_notif_' + Date.now()),
                 vibrate: [250, 120, 250, 120, 400],
                 requireInteraction: true,
                 renotify: true,
-                data: { url: './index.html' }
+                data: { url: window.location.href }
             };
 
             const fallbackNativeNotif = () => {
@@ -1898,26 +1997,24 @@
 
             const fireNotif = () => {
                 if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.getRegistration().then(reg => {
-                        const targetReg = reg || null;
-                        if (targetReg && typeof targetReg.showNotification === 'function') {
-                            targetReg.showNotification(title, notifOptions).catch(() => {
-                                if (targetReg.active) {
-                                    targetReg.active.postMessage({
+                    navigator.serviceWorker.ready.then(reg => {
+                        if (reg && typeof reg.showNotification === 'function') {
+                            reg.showNotification(title, notifOptions).catch(() => {
+                                if (reg.active) {
+                                    reg.active.postMessage({
                                         type: 'SHOW_MOBILE_NOTIFICATION',
                                         title: title,
                                         body: bodyText,
                                         tag: notifOptions.tag,
-                                        url: './index.html'
+                                        icon: iconUrl,
+                                        url: window.location.href
                                     });
                                 } else {
                                     fallbackNativeNotif();
                                 }
                             });
                         } else {
-                            navigator.serviceWorker.ready.then(readyReg => {
-                                readyReg.showNotification(title, notifOptions).catch(() => fallbackNativeNotif());
-                            }).catch(() => fallbackNativeNotif());
+                            fallbackNativeNotif();
                         }
                     }).catch(() => fallbackNativeNotif());
                 } else {
@@ -2198,8 +2295,11 @@
 
             // Always send 10-min pre-session phone notification if Mobile Push (📱) is enabled
             upcomingAlerts.forEach(({ booking, minsLeft }) => {
-                if (!mobilePhoneNotified10mIds.has(booking.id) && isMobilePushEnabled()) {
+                const reminderKey = 'clinic_reminder_10m_' + booking.id;
+                const alreadyPushed = mobilePhoneNotified10mIds.has(booking.id) || (localStorage.getItem(reminderKey) === '1');
+                if (!alreadyPushed && isMobilePushEnabled()) {
                     mobilePhoneNotified10mIds.add(booking.id);
+                    try { localStorage.setItem(reminderKey, '1'); } catch (e) {}
                     playNotificationChime();
                     dispatchProfessionalPhoneNotification(booking, minsLeft, 'reminder_10m', null);
                 }
@@ -3063,10 +3163,24 @@
                 alertMsg = `Booking confirmed for ${clientName}! Next session automatically booked on ${fuFormatted} at ${formattedTime} (marked on calendar).`;
             }
 
-            // Mark as created locally so this device does NOT notify itself; only other connected devices receive the new-booking notification
+            // Mark as created locally so this screen does NOT pop up an intrusive dialog on itself
             notifiedNewBookingIds.add(newBooking.id);
             if (createdFollowupBooking && createdFollowupBooking.id) {
                 notifiedNewBookingIds.add(createdFollowupBooking.id);
+            }
+
+            // Immediately send real-time cloud push to mobile phone (ntfy.sh) so the doctor/staff phone receives the booking
+            if (isMobilePushEnabled()) {
+                const isInitial = newBooking.caseType === 'Initial case';
+                const channelText = isInitial ? (newBooking.channel || 'c/o Dr Shalima') : '';
+                const modeText = newBooking.consultationMode || 'Offline';
+                const caseSummary = `${newBooking.caseType} • ${newBooking.sessionType} (${modeText}${channelText ? ' • ' + channelText : ''})`;
+                const followupLine = createdFollowupBooking
+                    ? `\nFollow-up Scheduled: ${createdFollowupBooking.date} (${createdFollowupBooking.time})`
+                    : '';
+                const notifTitle = `📅 New Counselling Session Booked — Dr. Shalima's Mind Clinic`;
+                const notifBody = `Client: ${newBooking.clientName} (${newBooking.phone})\nPsychologist: ${newBooking.psychologist}\nDate & Time: ${newBooking.date} | ${newBooking.time}\nSession: ${caseSummary}${followupLine}`;
+                sendMobileCloudPush(notifTitle, notifBody, 'clinic_new_booking_' + newBooking.id, true);
             }
 
             saveToStorage();
