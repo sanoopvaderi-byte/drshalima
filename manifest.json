@@ -1,0 +1,21 @@
+{
+  "name": "Dr Shalima's Mind Clinic — Booking System",
+  "short_name": "Mind Clinic",
+  "description": "Real-time psychology session booking & mobile notification system for Dr Shalima's Mind Clinic",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FAF8F3",
+  "theme_color": "#235847",
+  "icons": [
+    {
+      "src": "logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}

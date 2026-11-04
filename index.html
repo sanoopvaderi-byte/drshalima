@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#235847">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Mind Clinic">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="logo.jpg">
     <title>Dr Shalima's Mind Clinic - Booking System</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -139,6 +145,10 @@
                 <button id="sync-status" onclick="openSyncModal()" class="flex items-center space-x-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-full text-emerald-700 text-xs font-semibold hover:bg-emerald-100 active:scale-95 transition" title="Click for Live Multi-Device Team Sync Settings">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span>Live Sync Active</span>
+                </button>
+                <!-- Mobile Push Symbol Button (Click to Activate / Inactivate) -->
+                <button id="mobile-push-btn" onclick="toggleMobilePushNotifications()" class="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 text-[#235847] hover:bg-[#E8F3EE] active:scale-95 transition" title="Mobile Push Active (Click to Inactivate)">
+                    <span id="mobile-push-icon">📱</span>
                 </button>
                 <!-- Notification Alert Symbol Button (Click to Turn Alerts ON / OFF) -->
                 <button id="notif-perm-btn" onclick="toggleExternalNotifications()" class="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 text-[#235847] hover:bg-[#E8F3EE] active:scale-95 transition" title="Notification Alerts ON (Click to Turn OFF)">
@@ -278,19 +288,34 @@
             </div>
 
             <!-- Team Schedule Matrix Header -->
-            <div class="grid grid-cols-4 gap-2 text-center mb-2">
+            <div class="grid grid-cols-4 gap-2 text-center mb-2 items-start">
                 <div></div>
                 <div>
-                    <div class="font-bold text-gray-800 text-sm">Habla</div>
-                    <div id="habla-free-count" class="text-xs text-gray-400">20 free</div>
+                    <div class="flex items-center justify-center gap-1 flex-wrap">
+                        <span class="font-bold text-gray-800 text-sm">Habla</span>
+                        <button id="habla-status-btn" type="button" onclick="togglePsychologistOfflineStatus('Habla')" class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold border bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 transition cursor-pointer" title="Click to toggle Active / Offline (Leave) for this date">
+                            ● Active
+                        </button>
+                    </div>
+                    <div id="habla-free-count" class="text-xs text-gray-400 mt-0.5">20 free</div>
                 </div>
                 <div>
-                    <div class="font-bold text-gray-800 text-sm">Varda</div>
-                    <div id="varda-free-count" class="text-xs text-gray-400">20 free</div>
+                    <div class="flex items-center justify-center gap-1 flex-wrap">
+                        <span class="font-bold text-gray-800 text-sm">Varda</span>
+                        <button id="varda-status-btn" type="button" onclick="togglePsychologistOfflineStatus('Varda')" class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold border bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 transition cursor-pointer" title="Click to toggle Active / Offline (Leave) for this date">
+                            ● Active
+                        </button>
+                    </div>
+                    <div id="varda-free-count" class="text-xs text-gray-400 mt-0.5">20 free</div>
                 </div>
                 <div>
-                    <div class="font-bold text-gray-800 text-sm">Sahla</div>
-                    <div id="sahla-free-count" class="text-xs text-gray-400">20 free</div>
+                    <div class="flex items-center justify-center gap-1 flex-wrap">
+                        <span class="font-bold text-gray-800 text-sm">Sahla</span>
+                        <button id="sahla-status-btn" type="button" onclick="togglePsychologistOfflineStatus('Sahla')" class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold border bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 transition cursor-pointer" title="Click to toggle Active / Offline (Leave) for this date">
+                            ● Active
+                        </button>
+                    </div>
+                    <div id="sahla-free-count" class="text-xs text-gray-400 mt-0.5">20 free</div>
                 </div>
             </div>
 
@@ -1063,6 +1088,25 @@
                         hasChanges = true;
                     }
 
+                    if (remote.psychologistOfflineByDate && typeof remote.psychologistOfflineByDate === 'object') {
+                        if (!window.appState.psychologistOfflineByDate || typeof window.appState.psychologistOfflineByDate !== 'object') {
+                            window.appState.psychologistOfflineByDate = {};
+                        }
+                        Object.keys(remote.psychologistOfflineByDate).forEach(dStr => {
+                            const rEntry = remote.psychologistOfflineByDate[dStr];
+                            if (!rEntry || typeof rEntry !== 'object') return;
+                            const lEntry = window.appState.psychologistOfflineByDate[dStr];
+                            const rTs = rEntry.updatedAt || remote.lastModified || 0;
+                            const lTs = lEntry ? (lEntry.updatedAt || 0) : -1;
+                            if (!lEntry || rTs >= lTs) {
+                                if (JSON.stringify(lEntry) !== JSON.stringify(rEntry)) {
+                                    window.appState.psychologistOfflineByDate[dStr] = rEntry;
+                                    hasChanges = true;
+                                }
+                            }
+                        });
+                    }
+
                     window.appState.bookings = mergedBookings;
                     window.appState.deletedBookingIds = Array.from(deletedSet).slice(-500);
                     window.appState.lastModified = Math.max(window.appState.lastModified || 0, remote.lastModified || 0);
@@ -1102,6 +1146,7 @@
                     lastModified: Date.now(),
                     clinicPhone: stateData.clinicPhone || '91XXXXXXXXXX',
                     lastBackupTimestamp: stateData.lastBackupTimestamp || null,
+                    psychologistOfflineByDate: (stateData.psychologistOfflineByDate && typeof stateData.psychologistOfflineByDate === 'object') ? stateData.psychologistOfflineByDate : {},
                     deletedBookingIds: Array.isArray(stateData.deletedBookingIds) ? stateData.deletedBookingIds.slice(-500) : [],
                     bookings: Array.isArray(stateData.bookings) ? stateData.bookings : []
                 };
@@ -1284,6 +1329,7 @@
             selectedTimeSlot: '6:30 PM',
             clinicPhone: '91XXXXXXXXXX',
             lastBackupTimestamp: null,
+            psychologistOfflineByDate: {},
             bookings: [
                 {
                     id: 'b1',
@@ -1716,33 +1762,145 @@
             }
         }
 
-        // Send OS / Browser System Notification externally
+        // ── Real-Time Mobile Phone Push Notification Engine (PWA Service Worker + ntfy.sh Live Mobile Push) ─────
+        const DEFAULT_MOBILE_PUSH_TOPIC = 'dr-shalima-mind-clinic-live';
+        const mobileCloudPushedTags = new Set();
+
+        function getMobilePushTopic() {
+            const saved = (localStorage.getItem('dr_shalima_mobile_push_topic') || '').trim();
+            if (saved) return saved;
+            const syncRoom = (localStorage.getItem('dr_shalima_sync_room') || '').trim();
+            if (syncRoom) {
+                return syncRoom.toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+            }
+            return DEFAULT_MOBILE_PUSH_TOPIC;
+        }
+
+        function registerClinicServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            }
+        }
+        registerClinicServiceWorker();
+
+        function isMobilePushEnabled() {
+            return localStorage.getItem('dr_shalima_mobile_push_enabled') !== '0';
+        }
+
+        function updateMobilePushButtonUI() {
+            const enabled = isMobilePushEnabled();
+            const btn = document.getElementById('mobile-push-btn');
+            const icon = document.getElementById('mobile-push-icon');
+
+            if (btn) {
+                if (enabled) {
+                    btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 text-[#235847] hover:bg-[#E8F3EE] active:scale-95 transition';
+                    btn.title = 'Mobile Push Active (Click to Inactivate)';
+                } else {
+                    btn.className = 'w-9 h-9 flex items-center justify-center rounded-full bg-red-50 shadow-sm border border-red-200 text-red-700 hover:bg-red-100 active:scale-95 transition';
+                    btn.title = 'Mobile Push Inactive (Click to Activate)';
+                }
+            }
+            if (icon) icon.textContent = enabled ? '📱' : '📴';
+        }
+
+        function toggleMobilePushNotifications() {
+            const currentlyEnabled = isMobilePushEnabled();
+            const nextState = !currentlyEnabled;
+            localStorage.setItem('dr_shalima_mobile_push_enabled', nextState ? '1' : '0');
+            updateMobilePushButtonUI();
+
+            if (nextState) {
+                registerClinicServiceWorker();
+                if ('Notification' in window && Notification.permission !== 'granted') {
+                    Notification.requestPermission().catch(() => {});
+                }
+                if (navigator.vibrate) {
+                    try { navigator.vibrate([150]); } catch (e) {}
+                }
+                playNotificationChime();
+            }
+        }
+
+        // Push real-time notification directly to mobile phones via ntfy.sh (works even when mobile browser is closed)
+        function sendMobileCloudPush(title, bodyText, tagId, isUrgent = true) {
+            if (!isExternalNotifEnabled() || !isMobilePushEnabled()) return;
+            if (tagId && mobileCloudPushedTags.has(tagId)) return;
+            if (tagId) mobileCloudPushedTags.add(tagId);
+
+            const topic = getMobilePushTopic();
+            if (!topic) return;
+
+            try {
+                fetch(`https://ntfy.sh/${encodeURIComponent(topic)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Title': title.replace(/[^\x20-\x7E]/g, '').trim() || "Dr Shalima's Mind Clinic",
+                        'Priority': isUrgent ? 'high' : 'default',
+                        'Tags': isUrgent ? 'bell,calendar' : 'calendar'
+                    },
+                    body: bodyText
+                }).catch(() => {});
+            } catch (e) {}
+        }
+
+        // Send OS / Mobile Browser System Notification externally (ServiceWorker first for Android/iOS mobile support)
         function sendSystemBrowserNotification(title, bodyText, tagId) {
             if (!isExternalNotifEnabled()) return;
+            if (navigator.vibrate) {
+                try { navigator.vibrate([250, 120, 250, 120, 400]); } catch (e) {}
+            }
             if (!('Notification' in window)) return;
             const fireNotif = () => {
-                try {
-                    const sysNotif = new Notification(title, {
-                        body: bodyText,
-                        icon: 'logo.jpg',
-                        badge: 'logo.jpg',
-                        tag: tagId,
-                        requireInteraction: true
-                    });
-                    sysNotif.onclick = function() {
-                        window.focus();
-                        this.close();
-                    };
-                } catch (e) {
-                    if (navigator.serviceWorker && navigator.serviceWorker.ready) {
-                        navigator.serviceWorker.ready.then(reg => {
-                            reg.showNotification(title, {
+                if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.ready.then(reg => {
+                        reg.showNotification(title, {
+                            body: bodyText,
+                            icon: 'logo.jpg',
+                            badge: 'logo.jpg',
+                            tag: tagId,
+                            vibrate: [250, 120, 250, 120, 400],
+                            requireInteraction: true,
+                            renotify: true
+                        });
+                    }).catch(() => {
+                        try {
+                            const sysNotif = new Notification(title, {
                                 body: bodyText,
                                 icon: 'logo.jpg',
+                                badge: 'logo.jpg',
                                 tag: tagId,
                                 requireInteraction: true
                             });
-                        }).catch(() => {});
+                            sysNotif.onclick = function() { window.focus(); this.close(); };
+                        } catch (e) {}
+                    });
+                } else {
+                    try {
+                        const sysNotif = new Notification(title, {
+                            body: bodyText,
+                            icon: 'logo.jpg',
+                            badge: 'logo.jpg',
+                            tag: tagId,
+                            requireInteraction: true
+                        });
+                        sysNotif.onclick = function() {
+                            window.focus();
+                            this.close();
+                        };
+                    } catch (e) {
+                        if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+                            navigator.serviceWorker.ready.then(reg => {
+                                reg.showNotification(title, {
+                                    body: bodyText,
+                                    icon: 'logo.jpg',
+                                    badge: 'logo.jpg',
+                                    tag: tagId,
+                                    vibrate: [250, 120, 250, 120, 400],
+                                    requireInteraction: true
+                                });
+                            }).catch(() => {});
+                        }
                     }
                 }
             };
@@ -1845,13 +2003,15 @@
             const channelText = isInitial ? (booking.channel || 'c/o Dr Shalima') : 'Follow-up case';
             const modeText = booking.consultationMode || 'Offline';
 
-            // 1. External OS / Browser System Notification (shows outside browser & over other apps)
+            // 1. External OS / Mobile Browser System Notification + Direct Mobile Phone Cloud Push
             const notifTitle = isNewBooking
                 ? `✅ New Booking Added: ${booking.clientName}`
                 : `🔔 Session in ${minsLeft} min: ${booking.clientName}`;
-            const notifBody = `Psychologist: ${booking.psychologist} · ${booking.date} (${booking.time})\nPhone: ${booking.phone} · ${booking.caseType} (${modeText})`;
+            const followupPushNote = followupBooking ? `\nFollow-up also booked: ${followupBooking.date} (${followupBooking.time})` : '';
+            const notifBody = `Psychologist: ${booking.psychologist} · ${booking.date} (${booking.time})\nPhone: ${booking.phone} · ${booking.caseType} · ${modeText} (${channelText})${followupPushNote}`;
             const notifTag = (isNewBooking ? 'clinic_new_booking_' : 'clinic_reminder_') + booking.id;
             sendSystemBrowserNotification(notifTitle, notifBody, notifTag);
+            sendMobileCloudPush(notifTitle, notifBody, notifTag, true);
 
             // 2. Populate & show high-priority floating popup modal on the page
             const modal   = document.getElementById('external-reminder-popup-modal');
@@ -1970,6 +2130,7 @@
 
         function checkUpcomingSessionNotifications(forceRender = false) {
             updateNotifButtonUI();
+            updateMobilePushButtonUI();
             const container = document.getElementById('upcoming-session-notifications');
             if (!container || !appState || !Array.isArray(appState.bookings)) return;
 
@@ -2198,6 +2359,30 @@
             }, 30);
         }
 
+        // Psychologist Active / Offline (Leave) Status Helpers
+        function isPsychologistOffline(psy, dateStr) {
+            const dStr = dateStr || appState.selectedDateStr;
+            if (!appState.psychologistOfflineByDate || !appState.psychologistOfflineByDate[dStr]) {
+                return false;
+            }
+            return !!appState.psychologistOfflineByDate[dStr][psy];
+        }
+
+        function togglePsychologistOfflineStatus(psy) {
+            const dStr = appState.selectedDateStr;
+            if (!appState.psychologistOfflineByDate || typeof appState.psychologistOfflineByDate !== 'object') {
+                appState.psychologistOfflineByDate = {};
+            }
+            if (!appState.psychologistOfflineByDate[dStr] || typeof appState.psychologistOfflineByDate[dStr] !== 'object') {
+                appState.psychologistOfflineByDate[dStr] = {};
+            }
+            const currentlyOffline = !!appState.psychologistOfflineByDate[dStr][psy];
+            appState.psychologistOfflineByDate[dStr][psy] = !currentlyOffline;
+            appState.psychologistOfflineByDate[dStr].updatedAt = Date.now();
+            saveToStorage();
+            renderAll();
+        }
+
         // Team Schedule Component
         function renderTeamSchedule() {
             const dateObj = new Date(appState.selectedDateStr + 'T00:00:00');
@@ -2209,12 +2394,32 @@
 
             const dayBookings = appState.bookings.filter(b => b.date === appState.selectedDateStr && b.status !== 'cancelled');
 
-            // Count free slots dynamically per psychologist (only upcoming, non-passed slots count as free)
+            // Update Active / Offline toggle button and free slots count per psychologist
             ['Habla', 'Varda', 'Sahla'].forEach(psy => {
-                const freeCount = timeSlotsList.filter(slot => !getOverlappingBooking(slot, dayBookings, psy) && !isSlotTimePassed(appState.selectedDateStr, slot)).length;
+                const isOffline = isPsychologistOffline(psy, appState.selectedDateStr);
+                const statusBtn = document.getElementById(`${psy.toLowerCase()}-status-btn`);
+                if (statusBtn) {
+                    if (isOffline) {
+                        statusBtn.textContent = '○ Offline';
+                        statusBtn.className = 'inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold border bg-red-50 text-red-600 border-red-200 hover:bg-red-100 transition cursor-pointer';
+                        statusBtn.title = `${psy} is marked Offline (On Leave) on this date. Click to switch back to Active.`;
+                    } else {
+                        statusBtn.textContent = '● Active';
+                        statusBtn.className = 'inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold border bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 transition cursor-pointer';
+                        statusBtn.title = `${psy} is Active on this date. Click to mark Offline (Leave).`;
+                    }
+                }
+
                 const badgeEl = document.getElementById(`${psy.toLowerCase()}-free-count`);
                 if (badgeEl) {
-                    badgeEl.textContent = `${freeCount} free`;
+                    if (isOffline) {
+                        badgeEl.textContent = 'Offline (Leave)';
+                        badgeEl.className = 'text-xs font-semibold text-red-500 mt-0.5';
+                    } else {
+                        const freeCount = timeSlotsList.filter(slot => !getOverlappingBooking(slot, dayBookings, psy) && !isSlotTimePassed(appState.selectedDateStr, slot)).length;
+                        badgeEl.textContent = `${freeCount} free`;
+                        badgeEl.className = 'text-xs text-gray-400 mt-0.5';
+                    }
                 }
             });
 
@@ -2231,6 +2436,7 @@
 
                 ['Habla', 'Varda', 'Sahla'].forEach(psy => {
                     const col = document.createElement('div');
+                    const isOffline = isPsychologistOffline(psy, appState.selectedDateStr);
                     
                     // Check if booked directly or blocked due to 45-minute duration (e.g., 10:00 AM booking also blocks 10:30 AM)
                     const booking = getOverlappingBooking(slot, dayBookings, psy);
@@ -2243,6 +2449,12 @@
                             <button onclick="showBookingDetail('${booking.id}')" class="w-full bg-[#EAE8E1] hover:bg-[#D5D0C8] text-gray-800 rounded-lg py-1.5 text-center font-semibold truncate px-1 text-xs transition active:scale-95" title="Tap for details / edit · ${booking.clientName} (${booking.time})">
                                 ${labelText}
                             </button>
+                        `;
+                    } else if (isOffline) {
+                        col.innerHTML = `
+                            <div class="w-full bg-red-50/70 text-red-400 border border-red-100 font-medium rounded-lg py-1.5 text-center text-[11px] cursor-not-allowed select-none" title="${psy} is Offline (On Leave) on this date">
+                                Offline
+                            </div>
                         `;
                     } else if (slotPassed) {
                         col.innerHTML = `
@@ -2400,6 +2612,10 @@
         }
 
         function quickSelectSlot(psy, time) {
+            if (isPsychologistOffline(psy, appState.selectedDateStr)) {
+                showMessageModal(`${psy} is marked Offline (On Leave) on this date.`);
+                return;
+            }
             if (isSlotTimePassed(appState.selectedDateStr, time)) {
                 showMessageModal("This session time has already passed and is finished.");
                 return;
@@ -2505,6 +2721,11 @@
             const previewEl = document.getElementById('booking-manual-preview');
             if (!previewEl) return;
 
+            if (appState.selectedPsychologist && isPsychologistOffline(appState.selectedPsychologist, appState.selectedDateStr)) {
+                previewEl.innerHTML = `<span class="text-red-600 font-bold">○ ${appState.selectedPsychologist} is marked Offline (On Leave) on this date.</span>`;
+                return;
+            }
+
             const currentSlot = appState.selectedTimeSlot || '';
             if (currentSlot) {
                 syncDirectTimeSelectUI(currentSlot);
@@ -2559,6 +2780,16 @@
 
             if (appState.selectedPsychologist && appState.selectedDateStr) {
                 statusLabel.style.display = 'none';
+
+                if (isPsychologistOffline(appState.selectedPsychologist, appState.selectedDateStr)) {
+                    chipsContainer.innerHTML = `
+                        <div class="w-full bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-xs font-semibold">
+                            ○ ${appState.selectedPsychologist} is currently marked <strong>Offline (On Leave)</strong> for this date. Switch to <strong>Active</strong> in Team Schedule or choose another psychologist.
+                        </div>
+                    `;
+                    return;
+                }
+
                 const dayBookings = appState.bookings.filter(b => b.date === appState.selectedDateStr && b.psychologist === appState.selectedPsychologist && b.status !== 'cancelled');
                 const isCustomSelected = appState.selectedTimeSlot && !timeSlotsList.includes(appState.selectedTimeSlot);
                 const previewLockedSlots = appState.selectedTimeSlot ? getLockedGridSlots(appState.selectedTimeSlot) : [];
@@ -2630,10 +2861,16 @@
             ['Habla', 'Varda', 'Sahla'].forEach(p => {
                 const btn = document.getElementById(`btn-psy-${p}`);
                 if (btn) {
+                    const isOffline = isPsychologistOffline(p, appState.selectedDateStr);
+                    btn.textContent = isOffline ? `${p} (Offline)` : p;
                     if (p === appState.selectedPsychologist) {
-                        btn.className = 'psy-pill px-4 py-2 rounded-full border border-transparent bg-[#235847] text-white text-sm font-semibold shadow-sm transition';
+                        btn.className = isOffline
+                            ? 'psy-pill px-4 py-2 rounded-full border border-red-300 bg-red-600 text-white text-sm font-semibold shadow-sm transition'
+                            : 'psy-pill px-4 py-2 rounded-full border border-transparent bg-[#235847] text-white text-sm font-semibold shadow-sm transition';
                     } else {
-                        btn.className = 'psy-pill px-4 py-2 rounded-full border border-gray-200 text-sm font-medium text-gray-700 bg-white hover:border-gray-400 transition';
+                        btn.className = isOffline
+                            ? 'psy-pill px-4 py-2 rounded-full border border-red-200 text-sm font-medium text-red-500 bg-red-50/60 hover:border-red-300 transition'
+                            : 'psy-pill px-4 py-2 rounded-full border border-gray-200 text-sm font-medium text-gray-700 bg-white hover:border-gray-400 transition';
                     }
                 }
             });
@@ -2651,6 +2888,11 @@
 
             if (isDayFullyPassed(appState.selectedDateStr)) {
                 showMessageModal("This date/time has already passed. New sessions cannot be added to finished dates.");
+                return;
+            }
+
+            if (isPsychologistOffline(appState.selectedPsychologist, appState.selectedDateStr)) {
+                showMessageModal(`${appState.selectedPsychologist} is marked Offline (On Leave) on this date. Please switch their status to Active in Team Schedule or choose another psychologist.`);
                 return;
             }
 
