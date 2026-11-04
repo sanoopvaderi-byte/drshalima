@@ -459,9 +459,9 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 mb-1">Session type</label>
-                    <select id="booking-session-type" class="w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none appearance-none">
-                        <option value="Individual session">Individual session</option>
-                        <option value="Couples session">Couples session</option>
+                    <select id="booking-session-type" onchange="onBookingSessionTypeChange()" class="w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none appearance-none">
+                        <option value="Individual session">Individual session (45 min)</option>
+                        <option value="Couples session">Couples session (60 min)</option>
                     </select>
                 </div>
 
@@ -718,9 +718,9 @@
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-1">Session Type</label>
-                        <select id="edit-sessiontype" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-sm outline-none">
-                            <option value="Individual">Individual</option>
-                            <option value="Couples">Couples</option>
+                        <select id="edit-sessiontype" onchange="onEditSessionTypeChange()" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-sm outline-none">
+                            <option value="Individual">Individual (45 min)</option>
+                            <option value="Couples">Couples (60 min)</option>
                         </select>
                     </div>
                 </div>
@@ -1466,24 +1466,60 @@
             return `${h}:${String(m).padStart(2, '0')} ${mer}`;
         }
 
-        // Helper: Format start slot to 45 min interval, e.g. "10:00 AM–10:45 AM" or "10:10 AM–10:55 AM"
-        function formatSessionTime(startSlotStr) {
+        // Helper: Check if session type is couple session
+        function isCoupleSessionType(sessionType) {
+            return /couple/i.test(sessionType || '');
+        }
+
+        // Helper: Get duration in minutes (60 mins for couple session, 45 mins for individual session)
+        function getSessionDuration(sessionType, timeStr) {
+            if (isCoupleSessionType(sessionType)) return 60;
+            if (timeStr && (timeStr.includes('–') || timeStr.includes('-'))) {
+                const parts = timeStr.split(/–|-/);
+                const sM = timeToMinutes(parts[0]);
+                const eM = timeToMinutes(parts[1]);
+                if (sM !== null && eM !== null && eM > sM) {
+                    return eM - sM;
+                }
+            }
+            return 45;
+        }
+
+        // Helper: Format start slot to interval (45 min for individual, 60 min for couple)
+        function formatSessionTime(startSlotStr, sessionType = null) {
             const startMins = timeToMinutes(startSlotStr);
-            if (startMins === null) return `${startSlotStr}–45m`;
+            if (startMins === null) return `${startSlotStr}`;
+            let duration = 45;
+            if (sessionType) {
+                duration = isCoupleSessionType(sessionType) ? 60 : 45;
+            } else {
+                const stInput = document.getElementById('booking-session-type');
+                if (stInput && isCoupleSessionType(stInput.value)) {
+                    duration = 60;
+                }
+            }
             const normStart = minutesToTimeStr(startMins);
-            const endStr = minutesToTimeStr(startMins + 45);
+            const endStr = minutesToTimeStr(startMins + duration);
             return `${normStart}–${endStr}`;
         }
 
-        // Helper: Return all 30-min schedule grid slots locked by a 45-min booking starting at startSlotStr
-        // Rule: 45 minutes fixed lock after chosen time ([startMins, startMins + 45]):
-        // - "10:00 AM" (600..645) -> ["10:00 AM", "10:30 AM"] (11:00 AM is free)
-        // - "10:10 AM" (610..655) -> ["10:30 AM"] (locks 10:30 AM; 11:00 AM is free)
-        // - "10:15 AM" (615..660) -> ["10:30 AM", "11:00 AM"] (locks both 10:30 AM & 11:00 AM)
-        function getLockedGridSlots(startSlotStr) {
+        // Helper: Return all 30-min schedule grid slots locked by a booking starting at startSlotStr
+        // Rule:
+        // - Individual session (45 min): "10:00 AM" (600..645) -> ["10:00 AM", "10:30 AM"] (11:00 AM is free)
+        // - Couple session (60 min): "10:00 AM" (600..660) -> ["10:00 AM", "10:30 AM", "11:00 AM"] (11:30 AM is free)
+        function getLockedGridSlots(startSlotStr, sessionType = null) {
             const startMins = timeToMinutes(startSlotStr);
             if (startMins === null) return [];
-            const endMins = startMins + 45;
+            let duration = 45;
+            if (sessionType) {
+                duration = isCoupleSessionType(sessionType) ? 60 : 45;
+            } else {
+                const stInput = document.getElementById('booking-session-type');
+                if (stInput && isCoupleSessionType(stInput.value)) {
+                    duration = 60;
+                }
+            }
+            const endMins = startMins + duration;
             const locked = timeSlotsList.filter(s => {
                 const sMins = timeToMinutes(s);
                 return sMins !== null && sMins >= startMins && sMins <= endMins;
@@ -1494,30 +1530,47 @@
             return locked;
         }
 
-        // Helper: Check if a 30-min grid slot (or selected start time) is occupied/locked by an existing 45-min booking
-        function getOverlappingBooking(slotStr, dayBookings, psy) {
+        // Helper: Check if a 30-min grid slot (or selected start time) is occupied/locked by an existing booking
+        function getOverlappingBooking(slotStr, dayBookings, psy, candidateSessionType = null) {
             const slotMins = timeToMinutes(slotStr);
             if (slotMins === null) return null;
             const isGridSlot = timeSlotsList.includes(minutesToTimeStr(slotMins));
-            const candidateLockedSlots = getLockedGridSlots(slotStr);
+            
+            let candidateDuration = 45;
+            if (candidateSessionType) {
+                candidateDuration = isCoupleSessionType(candidateSessionType) ? 60 : 45;
+            } else {
+                const stInput = document.getElementById('booking-session-type');
+                if (stInput && isCoupleSessionType(stInput.value)) {
+                    candidateDuration = 60;
+                }
+            }
+            const candidateEndMins = slotMins + candidateDuration;
+            const candidateLockedSlots = getLockedGridSlots(slotStr, candidateDuration === 60 ? 'Couples' : 'Individual');
 
             return dayBookings.find(b => {
                 if (psy && b.psychologist !== psy) return false;
                 if (b.status === 'cancelled') return false;
                 const bStart = timeToMinutes(b.time);
                 if (bStart === null) return false;
-                const bEnd = bStart + 45;
+                const bDuration = getSessionDuration(b.sessionType, b.time);
+                const bEnd = bStart + bDuration;
 
-                // 1. Direct 45-min lock coverage: slotMins falls within [bStart, bStart + 45]
-                if (slotMins >= bStart && slotMins <= bEnd) return true;
-                if (bStart > 1170 && slotMins === 1170) return true;
-
-                // 2. If checking a non-grid direct start time (e.g. 10:10 AM or 10:15 AM), also conflict if any grid slot it locks is already booked
-                if (!isGridSlot) {
-                    if (bStart >= slotMins && bStart <= (slotMins + 45)) return true;
-                    const bLocked = getLockedGridSlots(b.time);
-                    if (candidateLockedSlots.some(s => bLocked.includes(s))) return true;
+                // 1. Grid slot check: does this 30-min grid slot fall within [bStart, bEnd]?
+                if (isGridSlot) {
+                    if (slotMins >= bStart && slotMins <= bEnd) return true;
+                    if (bStart > 1170 && slotMins === 1170) return true;
+                    return false;
                 }
+
+                // 2. Candidate start time check:
+                // If any grid slot the candidate would lock is already locked by booking b:
+                const bLocked = getLockedGridSlots(b.time, b.sessionType);
+                if (candidateLockedSlots.some(s => bLocked.includes(s))) return true;
+
+                // Time interval overlap
+                if (slotMins < bEnd && candidateEndMins > bStart) return true;
+
                 return false;
             });
         }
@@ -1638,17 +1691,18 @@
             return timeSlotsList.every(slot => isSlotTimePassed(dateStr, slot));
         }
 
-        // Helper: Check if a booking's 45-minute session time has passed compared to current clinic time
+        // Helper: Check if a booking's session time has passed compared to current clinic time (45m individual, 60m couple)
         function isSessionTimePassed(booking) {
             if (!booking || !booking.date) return false;
             const { todayStr, nowMins } = getClinicNow();
             if (booking.date < todayStr) return true;
             if (booking.date > todayStr) return false;
-            // Same day: check if session end time (start + 45 mins) has passed
-            const startStr = (booking.time || '').split('–')[0].trim();
+            // Same day: check if session end time (start + duration) has passed
+            const startStr = (booking.time || '').split(/–|-/)[0].trim();
             const startMins = timeToMinutes(startStr);
             if (startMins === null) return false;
-            const endMins = startMins + 45;
+            const duration = getSessionDuration(booking.sessionType, booking.time);
+            const endMins = startMins + duration;
             return nowMins >= endMins;
         }
 
@@ -2874,6 +2928,15 @@
             }
         }
 
+        function onBookingSessionTypeChange() {
+            renderBookingTimeChipsOnly();
+            updateManualTimePreviewUI();
+        }
+
+        function onEditSessionTypeChange() {
+            // Re-render when session type changes in edit modal
+        }
+
         function updateManualTimePreviewUI() {
             const previewEl = document.getElementById('booking-manual-preview');
             if (!previewEl) return;
@@ -2884,22 +2947,26 @@
             }
 
             const currentSlot = appState.selectedTimeSlot || '';
+            const isCouple = isCoupleSessionType(document.getElementById('booking-session-type')?.value);
+            const durationMins = isCouple ? 60 : 45;
+            const durationLabel = isCouple ? '60 min session' : '45 min fixed slot';
+
             if (currentSlot) {
                 syncDirectTimeSelectUI(currentSlot);
-                const fullRange = formatSessionTime(currentSlot);
-                const lockedSlots = getLockedGridSlots(currentSlot);
+                const fullRange = formatSessionTime(currentSlot, isCouple ? 'Couples' : 'Individual');
+                const lockedSlots = getLockedGridSlots(currentSlot, isCouple ? 'Couples' : 'Individual');
                 const lockedText = lockedSlots.length > 0
                     ? `Blocks <strong>${lockedSlots.join(', ')}</strong> on Team Schedule`
-                    : '45 min fixed slot';
+                    : durationLabel;
                 const dayBookings = appState.bookings.filter(b => b.date === appState.selectedDateStr && b.psychologist === appState.selectedPsychologist && b.status !== 'cancelled');
-                const conflict = getOverlappingBooking(currentSlot, dayBookings, appState.selectedPsychologist);
+                const conflict = getOverlappingBooking(currentSlot, dayBookings, appState.selectedPsychologist, isCouple ? 'Couples' : 'Individual');
                 if (conflict) {
                     previewEl.innerHTML = `<span class="text-red-600 font-bold">⚠ Conflict: ${fullRange} overlaps with ${conflict.clientName} (${conflict.time}).</span>`;
                 } else {
-                    previewEl.innerHTML = `<span class="inline-block px-2.5 py-1 rounded-lg bg-[#E8F3EE] text-[#235847] font-bold">✓ Selected: ${fullRange} (45 min fixed) &middot; ${lockedText}</span>`;
+                    previewEl.innerHTML = `<span class="inline-block px-2.5 py-1 rounded-lg bg-[#E8F3EE] text-[#235847] font-bold">✓ Selected: ${fullRange} (${durationLabel}) &middot; ${lockedText}</span>`;
                 }
             } else {
-                previewEl.innerHTML = `Select Hour &amp; Minute above (45 min fixed lock after chosen time).`;
+                previewEl.innerHTML = `Select Hour &amp; Minute above (${isCouple ? '60 min session lock' : '45 min fixed lock'} after chosen time).`;
             }
         }
 
@@ -2952,18 +3019,19 @@
 
                 const dayBookings = appState.bookings.filter(b => b.date === appState.selectedDateStr && b.psychologist === appState.selectedPsychologist && b.status !== 'cancelled');
                 const isCustomSelected = appState.selectedTimeSlot && !timeSlotsList.includes(appState.selectedTimeSlot);
-                const previewLockedSlots = appState.selectedTimeSlot ? getLockedGridSlots(appState.selectedTimeSlot) : [];
+                const isCouple = isCoupleSessionType(document.getElementById('booking-session-type')?.value);
+                const previewLockedSlots = appState.selectedTimeSlot ? getLockedGridSlots(appState.selectedTimeSlot, isCouple ? 'Couples' : 'Individual') : [];
 
                 // If currently selected standard slot conflicts or has passed, clear selection
                 if (appState.selectedTimeSlot && !isCustomSelected && (
-                    getOverlappingBooking(appState.selectedTimeSlot, dayBookings, appState.selectedPsychologist) ||
+                    getOverlappingBooking(appState.selectedTimeSlot, dayBookings, appState.selectedPsychologist, isCouple ? 'Couples' : 'Individual') ||
                     isSlotTimePassed(appState.selectedDateStr, appState.selectedTimeSlot)
                 )) {
                     appState.selectedTimeSlot = '';
                 }
 
                 timeSlotsList.forEach(slot => {
-                    const isTaken = !!getOverlappingBooking(slot, dayBookings, appState.selectedPsychologist);
+                    const isTaken = !!getOverlappingBooking(slot, dayBookings, appState.selectedPsychologist, isCouple ? 'Couples' : 'Individual');
                     const isPassed = isSlotTimePassed(appState.selectedDateStr, slot);
                     const isDisabled = isTaken || isPassed;
                     const isSelected = appState.selectedTimeSlot === slot && !isDisabled;
@@ -2975,14 +3043,14 @@
 
                     if (isDisabled) {
                         chip.className = 'px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-400 cursor-not-allowed line-through';
-                        chip.title = isTaken ? 'Slot occupied (45 min session)' : 'Session time has already passed';
+                        chip.title = isTaken ? (isCouple ? 'Slot occupied (60 min couple session)' : 'Slot occupied (45 min session)') : 'Session time has already passed';
                         chip.textContent = slot;
                     } else if (isSelected) {
                         chip.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#235847] text-white shadow-sm';
                         chip.textContent = slot;
                     } else if (willBeLocked) {
                         chip.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-[#FFF2C2] text-[#7A5B00] border border-[#F3E5A5] shadow-sm';
-                        chip.title = `Will be locked by 45-min booking (${formatSessionTime(appState.selectedTimeSlot)})`;
+                        chip.title = `Will be locked by ${isCouple ? '60-min couple' : '45-min'} booking (${formatSessionTime(appState.selectedTimeSlot, isCouple ? 'Couples' : 'Individual')})`;
                         chip.textContent = `🔒 ${slot}`;
                     } else {
                         chip.className = 'px-3 py-1.5 rounded-lg text-xs font-medium bg-[#F7F6F0] text-gray-700 hover:bg-gray-200 transition';
@@ -3085,8 +3153,10 @@
             }
 
             const dayBookings = appState.bookings.filter(b => b.date === appState.selectedDateStr && b.psychologist === appState.selectedPsychologist && b.status !== 'cancelled');
-            if (getOverlappingBooking(appState.selectedTimeSlot, dayBookings, appState.selectedPsychologist)) {
-                showMessageModal("This time slot conflicts with an existing 45-minute booking. Please choose another time.");
+            const candidateST = sessionTypeInput ? sessionTypeInput.value : 'Individual';
+            const isCouple = isCoupleSessionType(candidateST);
+            if (getOverlappingBooking(appState.selectedTimeSlot, dayBookings, appState.selectedPsychologist, candidateST)) {
+                showMessageModal(`This time slot conflicts with an existing booking (${isCouple ? '60-minute couple session' : '45-minute booking'}). Please choose another time.`);
                 return;
             }
 
@@ -3095,7 +3165,7 @@
             const isInitial = caseTypeInput.value === 'Initial case';
             const channelVal = isInitial ? (channelInput ? channelInput.value : 'c/o Dr Shalima') : '';
             const modeVal = modeInput ? modeInput.value : 'Offline';
-            const formattedTime = formatSessionTime(appState.selectedTimeSlot);
+            const formattedTime = formatSessionTime(appState.selectedTimeSlot, candidateST);
 
             // 1. Create main booking
             const nowTs = Date.now();
@@ -3470,7 +3540,10 @@
             document.getElementById('edit-psychologist').value = booking.psychologist || 'Habla';
 
             const stEl = document.getElementById('edit-sessiontype');
-            if (stEl) stEl.value = (booking.sessionType || 'Individual').replace(' session', '');
+            if (stEl) {
+                const isC = isCoupleSessionType(booking.sessionType);
+                stEl.value = isC ? 'Couples' : 'Individual';
+            }
 
             const dtEl = document.getElementById('edit-date');
             if (dtEl) dtEl.value = booking.date || appState.selectedDateStr;
@@ -3533,10 +3606,11 @@
                     newStartSlot = `${h}:${m} ${mer}`;
                 }
 
-                // Check 45-min slot conflict with other bookings on that date for that psychologist
+                // Check slot conflict with other bookings on that date for that psychologist
                 const otherDayBookings = appState.bookings.filter(b => b.id !== id && b.date === newDate && b.psychologist === newPsy && b.status !== 'cancelled');
-                if (getOverlappingBooking(newStartSlot, otherDayBookings, newPsy)) {
-                    showMessageModal(`This time slot (${newStartSlot}) conflicts with another 45-minute booking for ${newPsy} on ${newDate}. Please choose another time.`);
+                const isCouple = isCoupleSessionType(newSessionType);
+                if (getOverlappingBooking(newStartSlot, otherDayBookings, newPsy, newSessionType)) {
+                    showMessageModal(`This time slot (${newStartSlot}) conflicts with another ${isCouple ? '60-minute couple' : '45-minute'} booking for ${newPsy} on ${newDate}. Please choose another time.`);
                     return;
                 }
 
@@ -3545,7 +3619,7 @@
                 booking.psychologist = newPsy;
                 booking.sessionType = newSessionType;
                 booking.date = newDate;
-                booking.time = formatSessionTime(newStartSlot);
+                booking.time = formatSessionTime(newStartSlot, newSessionType);
                 booking.caseType = document.getElementById('edit-casetype').value;
                 const modeEl = document.getElementById('edit-mode');
                 booking.consultationMode = modeEl ? modeEl.value : (booking.consultationMode || 'Offline');
