@@ -353,6 +353,53 @@
                     <div id="booking-time-chips" class="flex flex-wrap gap-2">
                         <!-- Dynamic time chips -->
                     </div>
+
+                    <!-- Easy Select Time Action Box (Direct / Walk-in — 45 min Fixed Lock) -->
+                    <div class="mt-3 bg-[#F7F6F0] border border-gray-200 rounded-2xl p-3 space-y-2">
+                        <div class="flex items-center justify-between flex-wrap gap-1">
+                            <label class="text-xs font-bold text-[#235847] flex items-center gap-1">
+                                <span>⏱ Select Direct Time (45 min fixed lock)</span>
+                            </label>
+                            <div class="flex items-center gap-1">
+                                <button type="button" onclick="setQuickWalkinOffset(0)" class="px-2 py-0.5 bg-white hover:bg-[#E8F3EE] border border-gray-200 rounded-lg text-[10px] font-bold text-[#235847] transition" title="Select current clinic time">Now</button>
+                                <button type="button" onclick="setQuickWalkinOffset(5)" class="px-2 py-0.5 bg-white hover:bg-[#E8F3EE] border border-gray-200 rounded-lg text-[10px] font-bold text-[#235847] transition" title="Select +5 mins from now">+5m</button>
+                                <button type="button" onclick="setQuickWalkinOffset(10)" class="px-2 py-0.5 bg-white hover:bg-[#E8F3EE] border border-gray-200 rounded-lg text-[10px] font-bold text-[#235847] transition" title="Select +10 mins from now">+10m</button>
+                                <button type="button" onclick="setQuickWalkinOffset(15)" class="px-2 py-0.5 bg-white hover:bg-[#E8F3EE] border border-gray-200 rounded-lg text-[10px] font-bold text-[#235847] transition" title="Select +15 mins from now">+15m</button>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <select id="booking-select-hour" onchange="onDirectTimeSelectChange()" class="flex-1 bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                                <option value="10 AM">10 AM</option>
+                                <option value="11 AM">11 AM</option>
+                                <option value="12 PM">12 PM</option>
+                                <option value="1 PM">1 PM</option>
+                                <option value="2 PM">2 PM</option>
+                                <option value="3 PM">3 PM</option>
+                                <option value="4 PM">4 PM</option>
+                                <option value="5 PM">5 PM</option>
+                                <option value="6 PM">6 PM</option>
+                                <option value="7 PM">7 PM</option>
+                            </select>
+                            <span class="text-sm font-bold text-gray-500">:</span>
+                            <select id="booking-select-min" onchange="onDirectTimeSelectChange()" class="flex-1 bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                                <option value="00">00 min</option>
+                                <option value="05">05 min</option>
+                                <option value="10">10 min</option>
+                                <option value="15">15 min</option>
+                                <option value="20">20 min</option>
+                                <option value="25">25 min</option>
+                                <option value="30">30 min</option>
+                                <option value="35">35 min</option>
+                                <option value="40">40 min</option>
+                                <option value="45">45 min</option>
+                                <option value="50">50 min</option>
+                                <option value="55">55 min</option>
+                            </select>
+                        </div>
+                        <div id="booking-manual-preview" class="text-[11px] text-gray-500 leading-snug">
+                            Select Hour &amp; Minute above (45 min fixed lock after chosen time).
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Inputs -->
@@ -658,19 +705,36 @@
                         <input type="date" id="edit-date" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-sm outline-none">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">Start Time (45m)</label>
-                        <select id="edit-time" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-sm outline-none">
-                            <option value="10:00 AM">10:00 AM</option><option value="10:30 AM">10:30 AM</option>
-                            <option value="11:00 AM">11:00 AM</option><option value="11:30 AM">11:30 AM</option>
-                            <option value="12:00 PM">12:00 PM</option><option value="12:30 PM">12:30 PM</option>
-                            <option value="1:00 PM">1:00 PM</option><option value="1:30 PM">1:30 PM</option>
-                            <option value="2:00 PM">2:00 PM</option><option value="2:30 PM">2:30 PM</option>
-                            <option value="3:00 PM">3:00 PM</option><option value="3:30 PM">3:30 PM</option>
-                            <option value="4:00 PM">4:00 PM</option><option value="4:30 PM">4:30 PM</option>
-                            <option value="5:00 PM">5:00 PM</option><option value="5:30 PM">5:30 PM</option>
-                            <option value="6:00 PM">6:00 PM</option><option value="6:30 PM">6:30 PM</option>
-                            <option value="7:00 PM">7:00 PM</option><option value="7:30 PM">7:30 PM</option>
-                        </select>
+                        <label class="block font-semibold text-gray-500 mb-1">Start Time (45m fixed)</label>
+                        <div class="flex items-center gap-1">
+                            <select id="edit-select-hour" class="flex-1 bg-[#F7F6F0] rounded-xl p-2.5 text-xs font-bold text-gray-800 outline-none">
+                                <option value="10 AM">10 AM</option>
+                                <option value="11 AM">11 AM</option>
+                                <option value="12 PM">12 PM</option>
+                                <option value="1 PM">1 PM</option>
+                                <option value="2 PM">2 PM</option>
+                                <option value="3 PM">3 PM</option>
+                                <option value="4 PM">4 PM</option>
+                                <option value="5 PM">5 PM</option>
+                                <option value="6 PM">6 PM</option>
+                                <option value="7 PM">7 PM</option>
+                            </select>
+                            <span class="font-bold text-gray-400">:</span>
+                            <select id="edit-select-min" class="flex-1 bg-[#F7F6F0] rounded-xl p-2.5 text-xs font-bold text-gray-800 outline-none">
+                                <option value="00">00 min</option>
+                                <option value="05">05 min</option>
+                                <option value="10">10 min</option>
+                                <option value="15">15 min</option>
+                                <option value="20">20 min</option>
+                                <option value="25">25 min</option>
+                                <option value="30">30 min</option>
+                                <option value="35">35 min</option>
+                                <option value="40">40 min</option>
+                                <option value="45">45 min</option>
+                                <option value="50">50 min</option>
+                                <option value="55">55 min</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
@@ -1310,46 +1374,106 @@
             '6:00 PM', '6:30 PM', '7:00 PM', '7:30 PM'
         ];
 
-        // Helper: Convert time string (e.g. "10:00 AM", "6:30 PM–7:15 PM") to minutes from midnight
+        // Helper: Convert time string (e.g. "10:00 AM", "10.10 AM", "6:30 PM–7:15 PM") to minutes from midnight
         function timeToMinutes(timeStr) {
             if (!timeStr) return null;
-            const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+            const match = String(timeStr).match(/(\d{1,2})[:.](\d{1,2})\s*(AM|PM)/i);
             if (!match) return null;
             let hours = parseInt(match[1], 10);
             const minutes = parseInt(match[2], 10);
+            if (hours < 1 || hours > 12 || minutes < 0 || minutes > 59) return null;
             const meridiem = match[3].toUpperCase();
             if (meridiem === 'PM' && hours < 12) hours += 12;
             if (meridiem === 'AM' && hours === 12) hours = 0;
             return hours * 60 + minutes;
         }
 
-        // Helper: Format start slot to 45 min interval, e.g. "10:00 AM–10:45 AM"
-        function formatSessionTime(startSlotStr) {
-            const startMins = timeToMinutes(startSlotStr);
-            if (startMins === null) return `${startSlotStr}–45m`;
-            const endMins = startMins + 45;
-            let h = Math.floor(endMins / 60);
-            const m = endMins % 60;
+        // Helper: Convert minutes from midnight (e.g. 610) to formatted "10:10 AM"
+        function minutesToTimeStr(totalMins) {
+            let h = Math.floor(totalMins / 60) % 24;
+            const m = totalMins % 60;
             const meridiem = h >= 12 ? 'PM' : 'AM';
             if (h > 12) h -= 12;
             if (h === 0) h = 12;
-            const mStr = String(m).padStart(2, '0');
-            return `${startSlotStr}–${h}:${mStr} ${meridiem}`;
+            return `${h}:${String(m).padStart(2, '0')} ${meridiem}`;
         }
 
-        // Helper: Check if a 30-min slot is occupied by an existing 45-min booking
-        // Rule: A booking at time T locks ONLY the booked time (T) and the next 30 min (T + 30m).
-        // 11:00 AM (T + 60m) is NEVER locked by a 10:00 AM booking.
+        // Helper: Parse user-entered manual time (e.g. "10:10", "10.10", "10.05 am", "14:15") into "10:10 AM"
+        function parseManualTimeText(rawText, defaultMeridiem = 'AM') {
+            if (!rawText) return null;
+            const str = String(rawText).trim();
+            if (!str) return null;
+            const match = str.match(/^(\d{1,2})[:.](\d{1,2})(?:\s*(AM|PM))?$/i);
+            if (!match) return null;
+            let h = parseInt(match[1], 10);
+            const m = parseInt(match[2], 10);
+            if (isNaN(h) || isNaN(m) || m < 0 || m > 59) return null;
+            let mer = match[3] ? match[3].toUpperCase() : (defaultMeridiem || 'AM').toUpperCase();
+            if (h === 0) {
+                h = 12;
+                mer = 'AM';
+            } else if (h > 12 && h <= 23) {
+                h -= 12;
+                mer = 'PM';
+            } else if (h > 23 || h < 1) {
+                return null;
+            }
+            return `${h}:${String(m).padStart(2, '0')} ${mer}`;
+        }
+
+        // Helper: Format start slot to 45 min interval, e.g. "10:00 AM–10:45 AM" or "10:10 AM–10:55 AM"
+        function formatSessionTime(startSlotStr) {
+            const startMins = timeToMinutes(startSlotStr);
+            if (startMins === null) return `${startSlotStr}–45m`;
+            const normStart = minutesToTimeStr(startMins);
+            const endStr = minutesToTimeStr(startMins + 45);
+            return `${normStart}–${endStr}`;
+        }
+
+        // Helper: Return all 30-min schedule grid slots locked by a 45-min booking starting at startSlotStr
+        // Rule: 45 minutes fixed lock after chosen time ([startMins, startMins + 45]):
+        // - "10:00 AM" (600..645) -> ["10:00 AM", "10:30 AM"] (11:00 AM is free)
+        // - "10:10 AM" (610..655) -> ["10:30 AM"] (locks 10:30 AM; 11:00 AM is free)
+        // - "10:15 AM" (615..660) -> ["10:30 AM", "11:00 AM"] (locks both 10:30 AM & 11:00 AM)
+        function getLockedGridSlots(startSlotStr) {
+            const startMins = timeToMinutes(startSlotStr);
+            if (startMins === null) return [];
+            const endMins = startMins + 45;
+            const locked = timeSlotsList.filter(s => {
+                const sMins = timeToMinutes(s);
+                return sMins !== null && sMins >= startMins && sMins <= endMins;
+            });
+            if (locked.length === 0 && startMins > 1170) {
+                locked.push('7:30 PM');
+            }
+            return locked;
+        }
+
+        // Helper: Check if a 30-min grid slot (or selected start time) is occupied/locked by an existing 45-min booking
         function getOverlappingBooking(slotStr, dayBookings, psy) {
             const slotMins = timeToMinutes(slotStr);
             if (slotMins === null) return null;
+            const isGridSlot = timeSlotsList.includes(minutesToTimeStr(slotMins));
+            const candidateLockedSlots = getLockedGridSlots(slotStr);
+
             return dayBookings.find(b => {
                 if (psy && b.psychologist !== psy) return false;
                 if (b.status === 'cancelled') return false;
                 const bStart = timeToMinutes(b.time);
                 if (bStart === null) return false;
-                // Only the booked slot (bStart) and the immediately following 30-min slot (bStart + 30) are locked
-                return slotMins === bStart || slotMins === (bStart + 30);
+                const bEnd = bStart + 45;
+
+                // 1. Direct 45-min lock coverage: slotMins falls within [bStart, bStart + 45]
+                if (slotMins >= bStart && slotMins <= bEnd) return true;
+                if (bStart > 1170 && slotMins === 1170) return true;
+
+                // 2. If checking a non-grid direct start time (e.g. 10:10 AM or 10:15 AM), also conflict if any grid slot it locks is already booked
+                if (!isGridSlot) {
+                    if (bStart >= slotMins && bStart <= (slotMins + 45)) return true;
+                    const bLocked = getLockedGridSlots(b.time);
+                    if (candidateLockedSlots.some(s => bLocked.includes(s))) return true;
+                }
+                return false;
             });
         }
 
@@ -1455,7 +1579,9 @@
             if (dateStr > todayStr) return false;
             const slotMins = timeToMinutes(slotStr);
             if (slotMins === null) return false;
-            return nowMins > slotMins;
+            const isGridSlot = timeSlotsList.includes(minutesToTimeStr(slotMins));
+            // For manual walk-in times on today, allow a 10-minute grace buffer so immediate walk-ins can be booked smoothly
+            return isGridSlot ? (nowMins > slotMins) : (nowMins > slotMins + 10);
         }
 
         // Helper: Check if the entire day (or all slots on that day) has already finished
@@ -2110,9 +2236,12 @@
                     const booking = getOverlappingBooking(slot, dayBookings, psy);
                     
                     if (booking) {
+                        const bStartRaw = (booking.time || '').split('–')[0].trim().replace(/^0(\d:)/, '$1');
+                        const isManualStart = !timeSlotsList.includes(bStartRaw);
+                        const labelText = isManualStart ? `${booking.clientName} (${bStartRaw})` : booking.clientName;
                         col.innerHTML = `
                             <button onclick="showBookingDetail('${booking.id}')" class="w-full bg-[#EAE8E1] hover:bg-[#D5D0C8] text-gray-800 rounded-lg py-1.5 text-center font-semibold truncate px-1 text-xs transition active:scale-95" title="Tap for details / edit · ${booking.clientName} (${booking.time})">
-                                ${booking.clientName}
+                                ${labelText}
                             </button>
                         `;
                     } else if (slotPassed) {
@@ -2351,6 +2480,136 @@
             }
         }
 
+        // ── Easy Select Direct Time (45m Fixed Lock) Helpers ─────────────
+        function syncDirectTimeSelectUI(slotStr) {
+            const hourEl = document.getElementById('booking-select-hour');
+            const minEl  = document.getElementById('booking-select-min');
+            if (!hourEl || !minEl || !slotStr) return;
+            const mins = timeToMinutes(slotStr);
+            if (mins === null) return;
+            const snappedMins = Math.round(mins / 5) * 5;
+            const formatted = minutesToTimeStr(snappedMins); // e.g. "10:15 AM"
+            const match = formatted.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+            if (!match) return;
+            const hLabel = `${match[1]} ${match[3].toUpperCase()}`;
+            const mLabel = match[2];
+            if (Array.from(hourEl.options).some(o => o.value === hLabel)) {
+                hourEl.value = hLabel;
+            }
+            if (Array.from(minEl.options).some(o => o.value === mLabel)) {
+                minEl.value = mLabel;
+            }
+        }
+
+        function updateManualTimePreviewUI() {
+            const previewEl = document.getElementById('booking-manual-preview');
+            if (!previewEl) return;
+
+            const currentSlot = appState.selectedTimeSlot || '';
+            if (currentSlot) {
+                syncDirectTimeSelectUI(currentSlot);
+                const fullRange = formatSessionTime(currentSlot);
+                const lockedSlots = getLockedGridSlots(currentSlot);
+                const lockedText = lockedSlots.length > 0
+                    ? `Blocks <strong>${lockedSlots.join(', ')}</strong> on Team Schedule`
+                    : '45 min fixed slot';
+                const dayBookings = appState.bookings.filter(b => b.date === appState.selectedDateStr && b.psychologist === appState.selectedPsychologist && b.status !== 'cancelled');
+                const conflict = getOverlappingBooking(currentSlot, dayBookings, appState.selectedPsychologist);
+                if (conflict) {
+                    previewEl.innerHTML = `<span class="text-red-600 font-bold">⚠ Conflict: ${fullRange} overlaps with ${conflict.clientName} (${conflict.time}).</span>`;
+                } else {
+                    previewEl.innerHTML = `<span class="inline-block px-2.5 py-1 rounded-lg bg-[#E8F3EE] text-[#235847] font-bold">✓ Selected: ${fullRange} (45 min fixed) &middot; ${lockedText}</span>`;
+                }
+            } else {
+                previewEl.innerHTML = `Select Hour &amp; Minute above (45 min fixed lock after chosen time).`;
+            }
+        }
+
+        function onDirectTimeSelectChange() {
+            const hourEl = document.getElementById('booking-select-hour');
+            const minEl  = document.getElementById('booking-select-min');
+            if (!hourEl || !minEl) return;
+            const parts = (hourEl.value || '10 AM').split(' ');
+            const h = parts[0] || '10';
+            const mer = parts[1] || 'AM';
+            const m = minEl.value || '00';
+            const selectedStr = `${h}:${m} ${mer}`;
+            appState.selectedTimeSlot = selectedStr;
+            renderBookingTimeChipsOnly();
+            updateManualTimePreviewUI();
+        }
+
+        function setQuickWalkinOffset(offsetMins) {
+            const { nowMins } = getClinicNow();
+            const rawTarget = nowMins + (offsetMins || 0);
+            const snappedMins = Math.ceil(rawTarget / 5) * 5;
+            const clampedMins = Math.min(Math.max(snappedMins, 600), 1195); // 10:00 AM to 7:55 PM
+            const formatted = minutesToTimeStr(clampedMins);
+            appState.selectedTimeSlot = formatted;
+            syncDirectTimeSelectUI(formatted);
+            renderBookingTimeChipsOnly();
+            updateManualTimePreviewUI();
+        }
+
+        function renderBookingTimeChipsOnly() {
+            const chipsContainer = document.getElementById('booking-time-chips');
+            const statusLabel = document.getElementById('booking-time-status');
+            if (!chipsContainer || !statusLabel) return;
+            chipsContainer.innerHTML = '';
+
+            if (appState.selectedPsychologist && appState.selectedDateStr) {
+                statusLabel.style.display = 'none';
+                const dayBookings = appState.bookings.filter(b => b.date === appState.selectedDateStr && b.psychologist === appState.selectedPsychologist && b.status !== 'cancelled');
+                const isCustomSelected = appState.selectedTimeSlot && !timeSlotsList.includes(appState.selectedTimeSlot);
+                const previewLockedSlots = appState.selectedTimeSlot ? getLockedGridSlots(appState.selectedTimeSlot) : [];
+
+                // If currently selected standard slot conflicts or has passed, clear selection
+                if (appState.selectedTimeSlot && !isCustomSelected && (
+                    getOverlappingBooking(appState.selectedTimeSlot, dayBookings, appState.selectedPsychologist) ||
+                    isSlotTimePassed(appState.selectedDateStr, appState.selectedTimeSlot)
+                )) {
+                    appState.selectedTimeSlot = '';
+                }
+
+                timeSlotsList.forEach(slot => {
+                    const isTaken = !!getOverlappingBooking(slot, dayBookings, appState.selectedPsychologist);
+                    const isPassed = isSlotTimePassed(appState.selectedDateStr, slot);
+                    const isDisabled = isTaken || isPassed;
+                    const isSelected = appState.selectedTimeSlot === slot && !isDisabled;
+                    const willBeLocked = !isDisabled && !isSelected && previewLockedSlots.includes(slot);
+
+                    const chip = document.createElement('button');
+                    chip.type = 'button';
+                    chip.disabled = isDisabled;
+
+                    if (isDisabled) {
+                        chip.className = 'px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-400 cursor-not-allowed line-through';
+                        chip.title = isTaken ? 'Slot occupied (45 min session)' : 'Session time has already passed';
+                        chip.textContent = slot;
+                    } else if (isSelected) {
+                        chip.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#235847] text-white shadow-sm';
+                        chip.textContent = slot;
+                    } else if (willBeLocked) {
+                        chip.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-[#FFF2C2] text-[#7A5B00] border border-[#F3E5A5] shadow-sm';
+                        chip.title = `Will be locked by 45-min booking (${formatSessionTime(appState.selectedTimeSlot)})`;
+                        chip.textContent = `🔒 ${slot}`;
+                    } else {
+                        chip.className = 'px-3 py-1.5 rounded-lg text-xs font-medium bg-[#F7F6F0] text-gray-700 hover:bg-gray-200 transition';
+                        chip.textContent = slot;
+                    }
+
+                    chip.onclick = () => {
+                        appState.selectedTimeSlot = slot;
+                        syncDirectTimeSelectUI(slot);
+                        renderBookingForm();
+                    };
+                    chipsContainer.appendChild(chip);
+                });
+            } else {
+                statusLabel.style.display = 'block';
+            }
+        }
+
         function renderBookingForm() {
             const pastNotice = document.getElementById('book-session-past-notice');
             const formBody   = document.getElementById('book-session-form-body');
@@ -2379,52 +2638,8 @@
                 }
             });
 
-            const chipsContainer = document.getElementById('booking-time-chips');
-            const statusLabel = document.getElementById('booking-time-status');
-            chipsContainer.innerHTML = '';
-
-            if (appState.selectedPsychologist && appState.selectedDateStr) {
-                statusLabel.style.display = 'none';
-                
-                const dayBookings = appState.bookings.filter(b => b.date === appState.selectedDateStr && b.psychologist === appState.selectedPsychologist && b.status !== 'cancelled');
-
-                // If currently selected slot conflicts with an existing 45-min booking or has passed, clear selection
-                if (appState.selectedTimeSlot && (
-                    getOverlappingBooking(appState.selectedTimeSlot, dayBookings, appState.selectedPsychologist) ||
-                    isSlotTimePassed(appState.selectedDateStr, appState.selectedTimeSlot)
-                )) {
-                    appState.selectedTimeSlot = '';
-                }
-
-                timeSlotsList.forEach(slot => {
-                    const isTaken = !!getOverlappingBooking(slot, dayBookings, appState.selectedPsychologist);
-                    const isPassed = isSlotTimePassed(appState.selectedDateStr, slot);
-                    const isDisabled = isTaken || isPassed;
-                    const isSelected = appState.selectedTimeSlot === slot && !isDisabled;
-
-                    const chip = document.createElement('button');
-                    chip.type = 'button';
-                    chip.disabled = isDisabled;
-                    
-                    if (isDisabled) {
-                        chip.className = 'px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-400 cursor-not-allowed line-through';
-                        chip.title = isTaken ? 'Slot occupied (45 min session)' : 'Session time has already passed';
-                    } else if (isSelected) {
-                        chip.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#235847] text-white shadow-sm';
-                    } else {
-                        chip.className = 'px-3 py-1.5 rounded-lg text-xs font-medium bg-[#F7F6F0] text-gray-700 hover:bg-gray-200 transition';
-                    }
-
-                    chip.textContent = slot;
-                    chip.onclick = () => {
-                        appState.selectedTimeSlot = slot;
-                        renderBookingForm();
-                    };
-                    chipsContainer.appendChild(chip);
-                });
-            } else {
-                statusLabel.style.display = 'block';
-            }
+            renderBookingTimeChipsOnly();
+            updateManualTimePreviewUI();
         }
 
         function confirmBooking() {
@@ -2454,7 +2669,11 @@
             }
 
             if (!appState.selectedTimeSlot) {
-                showMessageModal("Please select an available time slot.");
+                onDirectTimeSelectChange();
+            }
+
+            if (!appState.selectedTimeSlot) {
+                showMessageModal("Please select a start time.");
                 return;
             }
 
@@ -2839,10 +3058,22 @@
             const dtEl = document.getElementById('edit-date');
             if (dtEl) dtEl.value = booking.date || appState.selectedDateStr;
 
-            const tmEl = document.getElementById('edit-time');
-            if (tmEl) {
-                const rawStart = (booking.time || '10:00 AM').split('–')[0].trim().replace(/^0(\d:)/, '$1');
-                tmEl.value = rawStart;
+            const hourEl = document.getElementById('edit-select-hour');
+            const minEl  = document.getElementById('edit-select-min');
+            if (hourEl && minEl) {
+                const rawStart = (booking.time || '10:00 AM').split('–')[0].trim();
+                const mins = timeToMinutes(rawStart);
+                if (mins !== null) {
+                    const snappedMins = Math.round(mins / 5) * 5;
+                    const formatted = minutesToTimeStr(snappedMins);
+                    const match = formatted.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+                    if (match) {
+                        const hLabel = `${match[1]} ${match[3].toUpperCase()}`;
+                        const mLabel = match[2];
+                        if (Array.from(hourEl.options).some(o => o.value === hLabel)) hourEl.value = hLabel;
+                        if (Array.from(minEl.options).some(o => o.value === mLabel)) minEl.value = mLabel;
+                    }
+                }
             }
 
             document.getElementById('edit-casetype').value = booking.caseType || 'Initial case';
@@ -2874,8 +3105,16 @@
                 const newSessionType = stEl ? stEl.value : (booking.sessionType || 'Individual');
                 const dtEl = document.getElementById('edit-date');
                 const newDate = (dtEl && dtEl.value) ? dtEl.value : booking.date;
-                const tmEl = document.getElementById('edit-time');
-                const newStartSlot = (tmEl && tmEl.value) ? tmEl.value : (booking.time || '10:00 AM').split('–')[0].trim();
+                const hourEl = document.getElementById('edit-select-hour');
+                const minEl  = document.getElementById('edit-select-min');
+                let newStartSlot = (booking.time || '10:00 AM').split('–')[0].trim();
+                if (hourEl && minEl) {
+                    const parts = (hourEl.value || '10 AM').split(' ');
+                    const h = parts[0] || '10';
+                    const mer = parts[1] || 'AM';
+                    const m = minEl.value || '00';
+                    newStartSlot = `${h}:${m} ${mer}`;
+                }
 
                 // Check 45-min slot conflict with other bookings on that date for that psychologist
                 const otherDayBookings = appState.bookings.filter(b => b.id !== id && b.date === newDate && b.psychologist === newPsy && b.status !== 'cancelled');
