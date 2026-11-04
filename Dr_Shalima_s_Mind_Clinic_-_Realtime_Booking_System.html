@@ -288,31 +288,34 @@
             </div>
 
             <!-- Team Schedule Matrix Header -->
-            <div class="grid grid-cols-4 gap-2 text-center mb-2 items-start">
+            <div class="grid grid-cols-[58px_1fr_1fr_1fr] gap-2 text-center mb-2 items-start">
                 <div></div>
                 <div>
-                    <div class="flex items-center justify-center gap-1 flex-wrap">
-                        <span class="font-bold text-gray-800 text-sm">Habla</span>
-                        <button id="habla-status-btn" type="button" onclick="togglePsychologistOfflineStatus('Habla')" class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold border bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 transition cursor-pointer" title="Click to toggle Active / Offline (Leave) for this date">
-                            ● Active
+                    <div class="flex items-center justify-center gap-1 whitespace-nowrap">
+                        <span class="font-bold text-gray-800 text-[13px] leading-tight">Habla</span>
+                        <button id="habla-status-btn" type="button" onclick="togglePsychologistOfflineStatus('Habla')" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] leading-none font-extrabold border bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm hover:bg-emerald-100 active:scale-95 transition cursor-pointer whitespace-nowrap" title="Click to toggle Active / Offline (Leave) for this date">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            <span>Active</span>
                         </button>
                     </div>
                     <div id="habla-free-count" class="text-xs text-gray-400 mt-0.5">20 free</div>
                 </div>
                 <div>
-                    <div class="flex items-center justify-center gap-1 flex-wrap">
-                        <span class="font-bold text-gray-800 text-sm">Varda</span>
-                        <button id="varda-status-btn" type="button" onclick="togglePsychologistOfflineStatus('Varda')" class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold border bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 transition cursor-pointer" title="Click to toggle Active / Offline (Leave) for this date">
-                            ● Active
+                    <div class="flex items-center justify-center gap-1 whitespace-nowrap">
+                        <span class="font-bold text-gray-800 text-[13px] leading-tight">Varda</span>
+                        <button id="varda-status-btn" type="button" onclick="togglePsychologistOfflineStatus('Varda')" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] leading-none font-extrabold border bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm hover:bg-emerald-100 active:scale-95 transition cursor-pointer whitespace-nowrap" title="Click to toggle Active / Offline (Leave) for this date">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            <span>Active</span>
                         </button>
                     </div>
                     <div id="varda-free-count" class="text-xs text-gray-400 mt-0.5">20 free</div>
                 </div>
                 <div>
-                    <div class="flex items-center justify-center gap-1 flex-wrap">
-                        <span class="font-bold text-gray-800 text-sm">Sahla</span>
-                        <button id="sahla-status-btn" type="button" onclick="togglePsychologistOfflineStatus('Sahla')" class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold border bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 transition cursor-pointer" title="Click to toggle Active / Offline (Leave) for this date">
-                            ● Active
+                    <div class="flex items-center justify-center gap-1 whitespace-nowrap">
+                        <span class="font-bold text-gray-800 text-[13px] leading-tight">Sahla</span>
+                        <button id="sahla-status-btn" type="button" onclick="togglePsychologistOfflineStatus('Sahla')" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] leading-none font-extrabold border bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm hover:bg-emerald-100 active:scale-95 transition cursor-pointer whitespace-nowrap" title="Click to toggle Active / Offline (Leave) for this date">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            <span>Active</span>
                         </button>
                     </div>
                     <div id="sahla-free-count" class="text-xs text-gray-400 mt-0.5">20 free</div>
@@ -2400,12 +2403,12 @@
                 const statusBtn = document.getElementById(`${psy.toLowerCase()}-status-btn`);
                 if (statusBtn) {
                     if (isOffline) {
-                        statusBtn.textContent = '○ Offline';
-                        statusBtn.className = 'inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold border bg-red-50 text-red-600 border-red-200 hover:bg-red-100 transition cursor-pointer';
+                        statusBtn.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span><span>Offline</span>`;
+                        statusBtn.className = 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] leading-none font-extrabold border bg-red-50 text-red-600 border-red-300 shadow-sm hover:bg-red-100 active:scale-95 transition cursor-pointer whitespace-nowrap';
                         statusBtn.title = `${psy} is marked Offline (On Leave) on this date. Click to switch back to Active.`;
                     } else {
-                        statusBtn.textContent = '● Active';
-                        statusBtn.className = 'inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold border bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 transition cursor-pointer';
+                        statusBtn.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>Active</span>`;
+                        statusBtn.className = 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] leading-none font-extrabold border bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm hover:bg-emerald-100 active:scale-95 transition cursor-pointer whitespace-nowrap';
                         statusBtn.title = `${psy} is Active on this date. Click to mark Offline (Leave).`;
                     }
                 }
@@ -2425,10 +2428,10 @@
 
             timeSlotsList.forEach(slot => {
                 const row = document.createElement('div');
-                row.className = 'grid grid-cols-4 gap-2 items-center text-xs py-1';
+                row.className = 'grid grid-cols-[58px_1fr_1fr_1fr] gap-2 items-center text-xs py-1';
 
                 const timeLabel = document.createElement('div');
-                timeLabel.className = 'font-semibold text-gray-700 text-right pr-2';
+                timeLabel.className = 'font-semibold text-gray-700 text-right pr-1 whitespace-nowrap text-[11px]';
                 timeLabel.textContent = slot;
                 row.appendChild(timeLabel);
 
