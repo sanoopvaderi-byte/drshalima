@@ -166,7 +166,7 @@
                     <div id="top-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 py-1 text-sm">
                         <button onclick="openSyncModal(); toggleMenu();" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-[#235847] font-semibold">Team Sync Settings</button>
                         <button onclick="exportJSON(); toggleMenu();" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700">🔒 Export Backup Data</button>
-                        <button onclick="importJSON()" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700">Import Data</button>
+                        <button onclick="importJSON(); toggleMenu();" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700">🔒 Import Data</button>
                         <button onclick="resetState(); toggleMenu();" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600 border-t border-gray-100">🔒 Reset / Erase Data</button>
                     </div>
                 </div>
@@ -3573,6 +3573,9 @@
                 } else if (action === 'export_json') {
                     titleEl.textContent = 'Export Backup Data';
                     subEl.textContent = 'Enter passcode to download the backup JSON file.';
+                } else if (action === 'import_json') {
+                    titleEl.textContent = 'Import Backup Data';
+                    subEl.textContent = 'Enter passcode to import a backup JSON file.';
                 } else if (action === 'reset_data') {
                     titleEl.textContent = 'Erase / Reset Passcode';
                     subEl.textContent = 'Enter clinic passcode to erase bookings by date or month.';
@@ -3663,6 +3666,8 @@
                     renderBackupSection();
                 } else if (action === 'export_json') {
                     doExportJSON();
+                } else if (action === 'import_json') {
+                    doImportJSON();
                 } else if (action === 'reset_data') {
                     openEraseDataModal();
                 } else {
@@ -4423,11 +4428,16 @@
         }
 
         function importJSON() {
+            openReportPasscodeModal('import_json');
+        }
+
+        function doImportJSON() {
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = '.json';
             input.onchange = e => {
                 const file = e.target.files[0];
+                if (!file) return;
                 const reader = new FileReader();
                 reader.readAsText(file,'UTF-8');
                 reader.onload = readerEvent => {
