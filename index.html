@@ -2362,7 +2362,9 @@
             }, 30);
         }
 
-        // Psychologist Active / Offline (Leave) Status Helpers
+        // Psychologist Active / Offline (Leave) Status Helpers (Protected by Passcode '6498')
+        let pendingTogglePsychologist = null;
+
         function isPsychologistOffline(psy, dateStr) {
             const dStr = dateStr || appState.selectedDateStr;
             if (!appState.psychologistOfflineByDate || !appState.psychologistOfflineByDate[dStr]) {
@@ -2372,6 +2374,12 @@
         }
 
         function togglePsychologistOfflineStatus(psy) {
+            pendingTogglePsychologist = psy;
+            openReportPasscodeModal('toggle_psychologist_status');
+        }
+
+        function doTogglePsychologistOfflineStatus(psy) {
+            if (!psy) return;
             const dStr = appState.selectedDateStr;
             if (!appState.psychologistOfflineByDate || typeof appState.psychologistOfflineByDate !== 'object') {
                 appState.psychologistOfflineByDate = {};
@@ -3497,6 +3505,13 @@
                 } else if (action === 'cancel_session') {
                     titleEl.textContent = 'Cancel Session Passcode';
                     subEl.textContent = 'Enter passcode (4-digit) to cancel this session.';
+                } else if (action === 'toggle_psychologist_status') {
+                    const psyName = pendingTogglePsychologist || 'Psychologist';
+                    const isOffline = isPsychologistOffline(psyName, appState.selectedDateStr);
+                    titleEl.textContent = isOffline ? `Activate ${psyName}` : `Set ${psyName} Offline`;
+                    subEl.textContent = isOffline
+                        ? `Enter passcode (4-digit) to mark ${psyName} as Active.`
+                        : `Enter passcode (4-digit) to mark ${psyName} as Offline (Leave).`;
                 } else if (action === 'backup') {
                     titleEl.textContent = 'Backup Passcode';
                     subEl.textContent = 'Enter passcode to open the clinic backup panel.';
@@ -3552,7 +3567,7 @@
             if (!input) return;
 
             const action = pendingPasscodeAction;
-            const requiredCode = (action === 'book_session' || action === 'edit_session' || action === 'cancel_session')
+            const requiredCode = (action === 'book_session' || action === 'edit_session' || action === 'cancel_session' || action === 'toggle_psychologist_status')
                 ? SESSION_PASSCODE
                 : REPORT_PASSCODE;
 
@@ -3577,6 +3592,11 @@
                 } else if (action === 'cancel_session') {
                     if (pendingCancelId) {
                         doRequestCancelBooking(pendingCancelId);
+                    }
+                } else if (action === 'toggle_psychologist_status') {
+                    if (pendingTogglePsychologist) {
+                        doTogglePsychologistOfflineStatus(pendingTogglePsychologist);
+                        pendingTogglePsychologist = null;
                     }
                 } else if (action === 'backup') {
                     const bBody = document.getElementById('backup-card-body');
