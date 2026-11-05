@@ -730,7 +730,7 @@
                         <input type="date" id="edit-date" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-sm outline-none">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-500 mb-1">Start Time (45m fixed)</label>
+                        <label id="edit-start-time-label" class="block font-semibold text-gray-500 mb-1">Start Time</label>
                         <div class="flex items-center gap-1">
                             <select id="edit-select-hour" class="flex-1 bg-[#F7F6F0] rounded-xl p-2.5 text-xs font-bold text-gray-800 outline-none">
                                 <option value="10 AM">10 AM</option>
@@ -1645,6 +1645,11 @@
                             // Ensure demo booking b3 does not block 11:00 AM on Nov 1
                             if (b.id === 'b3' && b.time && b.time.includes('11:00 AM')) {
                                 b.time = '12:00 PM–12:45 PM';
+                            }
+                            // Normalize Couples session duration to 60 minutes
+                            if (isCoupleSessionType(b.sessionType) && b.time) {
+                                const sPart = b.time.split(/–|-/)[0].trim();
+                                b.time = formatSessionTime(sPart, 'Couples');
                             }
                         });
                     }
@@ -2698,20 +2703,20 @@
             const panel = document.getElementById('booking-detail-panel');
             const content = document.getElementById('booking-detail-content');
 
-            // Parse start time and compute end time
-            const startStr = booking.time.split('–')[0].trim();
+            // Parse start time and compute end time based on session type (60 min couple, 45 min individual)
+            const isCouple = isCoupleSessionType(booking.sessionType);
+            const durationMins = isCouple ? 60 : 45;
+            const timeRange = (booking.time || '').split(/–|-/);
+            const startStr = timeRange[0].trim();
             const startMins = timeToMinutes(startStr);
             let endStr = '';
             if (startMins !== null) {
-                const endMins = startMins + 45;
-                let h = Math.floor(endMins / 60);
-                const m = endMins % 60;
-                const meridiem = h >= 12 ? 'PM' : 'AM';
-                if (h > 12) h -= 12;
-                if (h === 0) h = 12;
-                endStr = `${h}:${String(m).padStart(2,'0')} ${meridiem}`;
+                endStr = minutesToTimeStr(startMins + durationMins);
+                booking.time = `${startStr}–${endStr}`;
+            } else if (timeRange.length > 1 && timeRange[1].trim()) {
+                endStr = timeRange[1].trim();
             } else {
-                endStr = booking.time.includes('–') ? booking.time.split('–')[1].trim() : '—';
+                endStr = '—';
             }
 
             const isInitialCase = booking.caseType === 'Initial case';
@@ -2764,7 +2769,7 @@
                     </div>
                     <div class="bg-white rounded-xl p-2.5">
                         <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mb-0.5">Session Ends</p>
-                        <p class="text-sm font-bold text-gray-800">${endStr} <span class="text-[10px] text-gray-400 font-normal">(45 min)</span></p>
+                        <p class="text-sm font-bold text-gray-800">${endStr} <span class="text-[10px] text-gray-400 font-normal">(${durationMins} min)</span></p>
                     </div>
                     <div class="bg-white rounded-xl p-2.5">
                         <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mb-0.5">Case Type</p>
@@ -2934,7 +2939,12 @@
         }
 
         function onEditSessionTypeChange() {
-            // Re-render when session type changes in edit modal
+            const stEl = document.getElementById('edit-sessiontype');
+            const lblEl = document.getElementById('edit-start-time-label');
+            if (stEl && lblEl) {
+                const isC = isCoupleSessionType(stEl.value);
+                lblEl.textContent = `Start Time (${isC ? '60m session' : '45m fixed'})`;
+            }
         }
 
         function updateManualTimePreviewUI() {
@@ -3543,6 +3553,7 @@
             if (stEl) {
                 const isC = isCoupleSessionType(booking.sessionType);
                 stEl.value = isC ? 'Couples' : 'Individual';
+                onEditSessionTypeChange();
             }
 
             const dtEl = document.getElementById('edit-date');
@@ -4180,9 +4191,8 @@
                     const startMins = timeToMinutes(startStr);
                     let endStr = b.time.includes('–') ? b.time.split('–')[1].trim() : '';
                     if (!endStr && startMins !== null) {
-                        const em = startMins + 45; let h = Math.floor(em/60); const m = em%60;
-                        const mer = h >= 12 ? 'PM' : 'AM'; if (h > 12) h -= 12; if (h === 0) h = 12;
-                        endStr = `${h}:${String(m).padStart(2,'0')} ${mer}`;
+                        const dur = getSessionDuration(b.sessionType, b.time);
+                        endStr = minutesToTimeStr(startMins + dur);
                     }
                     const dotColor = psyColors[b.psychologist] || '#235847';
                     const isInit   = b.caseType === 'Initial case';
