@@ -590,6 +590,9 @@
                                     <div>
                                         <label class="block text-xs font-semibold text-gray-600 mb-1">Consultation Date</label>
                                         <input type="date" id="shalima-consult-date" onchange="onShalimaConsultDateChange(this.value)" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                                        <p id="shalima-past-date-warning" class="hidden text-[11px] font-bold text-amber-700 mt-1 flex items-center gap-1">
+                                            <span>🔒 Previous date — passcode "4425" required to save</span>
+                                        </p>
                                     </div>
                                     <div>
                                         <div class="flex items-center justify-between mb-1.5">
@@ -735,9 +738,10 @@
 
                                 <!-- Legend -->
                                 <div class="flex items-center justify-between text-[11px] text-gray-500 pt-1 border-t border-gray-200/60 flex-wrap gap-2">
-                                    <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-3 flex-wrap">
                                         <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#235847]"></span> Consulted</span>
                                         <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#D97706]"></span> Review Due</span>
+                                        <span class="flex items-center gap-1 text-gray-600 font-medium"><span class="text-xs">🔒</span> Previous Days (Locked: Passcode 4425)</span>
                                     </div>
                                     <span class="text-[10px] text-gray-400">Tap date to view booked person details</span>
                                 </div>
@@ -4076,6 +4080,15 @@
                 if (action === 'shalima_cases') {
                     titleEl.textContent = "Dr. Shalima's Case History Passcode";
                     subEl.textContent = 'Enter passcode (6498) to open consulted case records & calendar.';
+                } else if (action === 'past_date_shalima_edit') {
+                    titleEl.textContent = 'Edit Previous Day Record (Locked)';
+                    subEl.textContent = 'Enter passcode (4425) to edit this past patient record.';
+                } else if (action === 'past_date_shalima_add') {
+                    titleEl.textContent = 'Add Previous Day Record (Locked)';
+                    subEl.textContent = 'Enter passcode (4425) to add a record on a previous date.';
+                } else if (action === 'past_date_shalima_save') {
+                    titleEl.textContent = 'Previous Date Locked';
+                    subEl.textContent = 'Enter passcode (4425) to save a patient record on a past date.';
                 } else if (action === 'edit_shalima_case') {
                     titleEl.textContent = 'Edit Patient Record';
                     subEl.textContent = 'Enter passcode (6498) to edit this doctor patient record.';
@@ -4159,13 +4172,53 @@
             if (!input) return;
 
             const action = pendingPasscodeAction;
-            const requiredCode = (action === 'shalima_cases' || action === 'book_session' || action === 'edit_session' || action === 'cancel_session' || action === 'cancel_shalima_case' || action === 'edit_shalima_case' || action === 'delete_shalima_case' || action === 'toggle_psychologist_status')
-                ? SESSION_PASSCODE
-                : REPORT_PASSCODE;
+            const entered = input.value.trim();
+            const isPastShalimaAction = (action === 'past_date_shalima_edit' || action === 'past_date_shalima_add' || action === 'past_date_shalima_save');
+            
+            let isMatch = false;
+            if (isPastShalimaAction) {
+                isMatch = (entered === '4425' || entered === 'Mindclinic@4425');
+            } else if (action === 'shalima_cases' || action === 'book_session' || action === 'edit_session' || action === 'cancel_session' || action === 'cancel_shalima_case' || action === 'edit_shalima_case' || action === 'delete_shalima_case' || action === 'toggle_psychologist_status') {
+                isMatch = (entered === SESSION_PASSCODE);
+            } else {
+                isMatch = (entered === REPORT_PASSCODE);
+            }
 
-            if (input.value.trim() === requiredCode) {
+            if (isMatch) {
                 closeReportPasscodeModal();
-                if (action === 'shalima_cases') {
+                if (action === 'past_date_shalima_edit') {
+                    if (pendingEditShalimaCaseId) {
+                        const cid = pendingEditShalimaCaseId;
+                        pendingEditShalimaCaseId = null;
+                        const cItem = (appState && Array.isArray(appState.shalimaCases)) ? appState.shalimaCases.find(c => c.id === cid) : null;
+                        if (cItem) {
+                            shalimaAuthorizedPastDate = cItem.consultDate;
+                        }
+                        doEditShalimaCase(cid);
+                    }
+                } else if (action === 'past_date_shalima_add') {
+                    const dStr = pendingShalimaPastDate;
+                    pendingShalimaPastDate = null;
+                    shalimaAuthorizedPastDate = dStr;
+                    switchShalimaView('form');
+                    const dInput = document.getElementById('shalima-consult-date');
+                    if (dInput) {
+                        dInput.value = dStr;
+                        onShalimaConsultDateChange(dStr);
+                    }
+                    const nInput = document.getElementById('shalima-patient-name');
+                    const cCard = document.getElementById('shalima-cases-card');
+                    if (cCard) {
+                        cCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                    if (nInput) {
+                        setTimeout(() => nInput.focus(), 300);
+                    }
+                } else if (action === 'past_date_shalima_save') {
+                    shalimaAuthorizedPastDate = pendingShalimaPastDate;
+                    pendingShalimaPastDate = null;
+                    saveShalimaCase();
+                } else if (action === 'shalima_cases') {
                     const sBody = document.getElementById('shalima-cases-card-body');
                     const sArrow = document.getElementById('shalima-cases-heading-arrow');
                     const sHint = document.getElementById('shalima-cases-heading-hint');
@@ -5245,6 +5298,9 @@
         let currentShalimaCaseType = 'Initial';
         let pendingEditShalimaCaseId = null;
         let pendingShalimaDateFocus = null;
+        let pendingShalimaPastDate = null;
+        let shalimaAuthorizedPastDate = null;
+        const SHALIMA_PAST_PASSCODE = '4425';
 
         function toggleShalimaCasesSection() {
             const body = document.getElementById('shalima-cases-card-body');
@@ -5451,6 +5507,16 @@
             const daysInput = document.getElementById('shalima-review-days');
             const days = parseInt(daysInput ? daysInput.value : 2) || 2;
             onShalimaReviewDaysChange(days);
+
+            const warnEl = document.getElementById('shalima-past-date-warning');
+            const todayStr = getClinicNow().todayStr;
+            if (warnEl) {
+                if (consultVal && consultVal < todayStr) {
+                    warnEl.classList.remove('hidden');
+                } else {
+                    warnEl.classList.add('hidden');
+                }
+            }
         }
 
         function onShalimaReviewDaysChange(val) {
@@ -5524,7 +5590,7 @@
             const dateInput = document.getElementById('shalima-consult-date');
             if (dateInput && !dateInput.value) {
                 const now = getClinicNow();
-                dateInput.value = (appState && appState.selectedDateStr) ? appState.selectedDateStr : now.todayStr;
+                dateInput.value = (appState && appState.selectedDateStr && appState.selectedDateStr >= now.todayStr) ? appState.selectedDateStr : now.todayStr;
             }
 
             // Restore persistent toggle preferences across new patient bookings
@@ -5590,6 +5656,10 @@
             if (titleEl) titleEl.textContent = 'New Patient Record';
             if (editBadge) editBadge.classList.add('hidden');
             if (saveBtn) saveBtn.innerHTML = '<span>💾 Save Patient Record</span>';
+
+            shalimaAuthorizedPastDate = null;
+            const warnEl = document.getElementById('shalima-past-date-warning');
+            if (warnEl) warnEl.classList.add('hidden');
         }
 
         function saveShalimaCase() {
@@ -5626,6 +5696,15 @@
 
             const caseType = (typeInput ? typeInput.value : 'Initial') || 'Initial';
             const consultDate = (dateInput && dateInput.value) ? dateInput.value : getClinicNow().todayStr;
+            const todayStr = getClinicNow().todayStr;
+            const isPast = (consultDate && consultDate < todayStr);
+
+            if (isPast && shalimaAuthorizedPastDate !== consultDate) {
+                pendingShalimaPastDate = consultDate;
+                openReportPasscodeModal('past_date_shalima_save');
+                return;
+            }
+
             const consultTime = isShalimaTimeEnabled
                 ? ((timeInput ? timeInput.value : '').trim() || new Date().toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit' }))
                 : '';
@@ -5701,9 +5780,17 @@
             const caseItem = appState.shalimaCases.find(c => c.id === caseId);
             if (!caseItem) return;
 
-            // Prompt passcode 6498 whenever editing a doctor patient record
             pendingEditShalimaCaseId = caseId;
-            openReportPasscodeModal('edit_shalima_case');
+            const todayStr = getClinicNow().todayStr;
+            const isPast = (caseItem.consultDate && caseItem.consultDate < todayStr);
+
+            if (isPast) {
+                // Previous days locked with passcode 4425
+                openReportPasscodeModal('past_date_shalima_edit');
+            } else {
+                // Today or future days prompt passcode 6498
+                openReportPasscodeModal('edit_shalima_case');
+            }
         }
 
         function doEditShalimaCase(caseId) {
@@ -6571,7 +6658,8 @@ Dr. Shalima's Mind Clinic`;
                 const dayCell = document.createElement('div');
                 dayCell.onclick = () => selectShalimaCalDate(dayStr);
 
-                let borderClass = 'border border-gray-100 bg-white hover:bg-gray-50';
+                const isPast = (dayStr < todayStr);
+                let borderClass = isPast ? 'border border-gray-200/70 bg-gray-50/70 hover:bg-gray-100/70' : 'border border-gray-100 bg-white hover:bg-gray-50';
                 if (isSelected) {
                     borderClass = 'border-2 border-[#235847] bg-[#E8F3EE] shadow-xs';
                 } else if (isToday) {
@@ -6605,7 +6693,10 @@ Dr. Shalima's Mind Clinic`;
 
                 dayCell.innerHTML = `
                     <div class="w-full flex items-center justify-between px-1">
-                        <span class="text-xs font-bold ${isToday ? 'text-[#235847] font-extrabold' : 'text-gray-800'}">${day}</span>
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs font-bold ${isToday ? 'text-[#235847] font-extrabold' : (isPast ? 'text-gray-500' : 'text-gray-800')}">${day}</span>
+                            ${isPast ? '<span class="text-[9px] text-gray-400 select-none" title="Previous date locked (Passcode: 4425)">🔒</span>' : ''}
+                        </div>
                         ${isToday ? '<span class="w-1.5 h-1.5 rounded-full bg-[#235847]"></span>' : ''}
                     </div>
                     ${badgeHtml}
@@ -6646,6 +6737,8 @@ Dr. Shalima's Mind Clinic`;
             const cancelledItems = dayItems.filter(item => item.case.status === 'cancelled');
             const dateNewCount = activeItems.filter(item => (item.case.caseType || '').toLowerCase().includes('initial') || item.case.caseType === 'Initial').length;
             const dateFollowupCount = activeItems.filter(item => (item.case.caseType || '').toLowerCase().includes('follow') || item.case.caseType === 'Follow-up').length;
+            const todayStr = getClinicNow().todayStr;
+            const isPast = (dayStr < todayStr);
 
             if (dayItems.length === 0) {
                 container.innerHTML = `
@@ -6653,6 +6746,7 @@ Dr. Shalima's Mind Clinic`;
                         <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-gray-100">
                             <div class="flex items-center gap-1.5 flex-wrap">
                                 <span class="text-sm font-bold text-gray-900">📅 ${formattedDate}</span>
+                                ${isPast ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200" title="Previous date is locked (Passcode: 4425)">🔒 Previous Day (Locked)</span>' : ''}
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#E8F3EE] text-[#235847]">
                                     Total: <strong>0</strong>
                                 </span>
@@ -6664,16 +6758,16 @@ Dr. Shalima's Mind Clinic`;
                                 </span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <button type="button" onclick="setShalimaConsultDateAndFocus('${dayStr}')" class="text-xs font-bold text-[#235847] hover:underline flex items-center gap-1">
-                                    <span>➕ Record Patient on ${dayStr}</span>
+                                <button type="button" onclick="setShalimaConsultDateAndFocus('${dayStr}')" class="text-xs font-bold text-[#235847] hover:underline flex items-center gap-1" title="${isPast ? 'Passcode 4425 required to add on past date' : 'Add new patient record'}">
+                                    <span>${isPast ? '🔒 ➕ Add Record (4425)' : '➕ Add Record'}</span>
                                 </button>
                             </div>
                         </div>
                         <div class="py-6 text-center space-y-2 border border-dashed border-gray-200 rounded-xl bg-[#FAF8F3]/50">
                             <div class="text-gray-400 text-2xl">📅</div>
                             <p class="text-xs text-gray-500">No client consultations or review appointments on this date.</p>
-                            <button type="button" onclick="setShalimaConsultDateAndFocus('${dayStr}')" class="px-3.5 py-1.5 bg-[#235847] hover:bg-[#1B4739] text-white text-xs font-bold rounded-xl transition inline-flex items-center gap-1.5 shadow-xs">
-                                <span>➕ Record Patient on ${dayStr}</span>
+                            <button type="button" onclick="setShalimaConsultDateAndFocus('${dayStr}')" class="px-3.5 py-1.5 bg-[#235847] hover:bg-[#1B4739] text-white text-xs font-bold rounded-xl transition inline-flex items-center gap-1.5 shadow-xs" title="${isPast ? 'Passcode 4425 required to add on past date' : 'Record patient on this date'}">
+                                <span>${isPast ? '🔒 ➕ Record Patient on ' + dayStr + ' (Passcode: 4425)' : '➕ Record Patient on ' + dayStr}</span>
                             </button>
                         </div>
                     </div>
@@ -6707,10 +6801,13 @@ Dr. Shalima's Mind Clinic`;
 
                 const timePart = (c.consultTime && c.consultTime.trim() !== '') ? `⏰ ${escapeHtmlShalima(c.consultTime)}` : 'Time: Date only';
 
+                const editBtnText = isPast ? '🔒 ✏️ Edit' : '✏️ Edit';
+                const editBtnTitle = isPast ? 'Edit this past record (Passcode: 4425 required)' : 'Edit this record';
+
                 const actionBtns = isCancelled
                     ? `
-                        <button type="button" onclick="editShalimaCase('${c.id}')" class="px-2.5 py-1 bg-[#F7F6F0] hover:bg-[#EAE8E1] text-gray-700 text-xs font-semibold rounded-lg transition active:scale-95" title="Edit this record">
-                            ✏️ Edit
+                        <button type="button" onclick="editShalimaCase('${c.id}')" class="px-2.5 py-1 bg-[#F7F6F0] hover:bg-[#EAE8E1] text-gray-700 text-xs font-semibold rounded-lg transition active:scale-95 inline-flex items-center gap-1" title="${editBtnTitle}">
+                            ${editBtnText}
                         </button>
                         <button type="button" onclick="requestRestoreShalimaCase('${c.id}')" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg border border-emerald-200 transition active:scale-95" title="Reactivate this patient booking">
                             ↺ Restore
@@ -6720,8 +6817,8 @@ Dr. Shalima's Mind Clinic`;
                         </button>
                     `
                     : `
-                        <button type="button" onclick="editShalimaCase('${c.id}')" class="px-2.5 py-1 bg-[#F7F6F0] hover:bg-[#EAE8E1] text-gray-700 text-xs font-semibold rounded-lg transition active:scale-95" title="Edit this record">
-                            ✏️ Edit
+                        <button type="button" onclick="editShalimaCase('${c.id}')" class="px-2.5 py-1 bg-[#F7F6F0] hover:bg-[#EAE8E1] text-gray-700 text-xs font-semibold rounded-lg transition active:scale-95 inline-flex items-center gap-1" title="${editBtnTitle}">
+                            ${editBtnText}
                         </button>
                         <button type="button" onclick="requestCancelShalimaCase('${c.id}')" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg border border-red-200 transition active:scale-95" title="Cancel this patient booking (Passcode 6498 required)">
                             ❌ Cancel
@@ -6775,6 +6872,7 @@ Dr. Shalima's Mind Clinic`;
                     <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-gray-100">
                         <div class="flex items-center gap-1.5 flex-wrap">
                             <span class="text-sm font-bold text-gray-900">📅 ${formattedDate}</span>
+                            ${isPast ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200" title="Previous date is locked (Passcode: 4425)">🔒 Previous Day (Locked)</span>' : ''}
                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#E8F3EE] text-[#235847] border border-[#235847]/20" title="Active patients on this date">
                                 Total: <strong class="font-extrabold">${activeItems.length}</strong>
                             </span>
@@ -6796,8 +6894,8 @@ Dr. Shalima's Mind Clinic`;
                             <button type="button" onclick="exportShalimaDayPDF('${dayStr}')" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-[#235847] hover:bg-[#1B4739] text-white transition inline-flex items-center gap-1 shadow-2xs active:scale-95" title="Download Day PDF report">
                                 <span>📄 Date PDF</span>
                             </button>
-                            <button type="button" onclick="setShalimaConsultDateAndFocus('${dayStr}')" class="text-xs font-bold text-[#235847] hover:underline flex items-center gap-1 pl-1">
-                                <span>➕ Add Record</span>
+                            <button type="button" onclick="setShalimaConsultDateAndFocus('${dayStr}')" class="text-xs font-bold text-[#235847] hover:underline flex items-center gap-1 pl-1" title="${isPast ? 'Passcode 4425 required to add on past date' : 'Add new patient record'}">
+                                <span>${isPast ? '🔒 ➕ Add Record (4425)' : '➕ Add Record'}</span>
                             </button>
                         </div>
                     </div>
@@ -6813,12 +6911,23 @@ Dr. Shalima's Mind Clinic`;
         }
 
         function setShalimaConsultDateAndFocus(dateStr) {
+            const todayStr = getClinicNow().todayStr;
+            const isPast = (dateStr && dateStr < todayStr);
+
+            if (isPast && shalimaAuthorizedPastDate !== dateStr) {
+                pendingShalimaPastDate = dateStr;
+                openReportPasscodeModal('past_date_shalima_add');
+                return;
+            }
+
             const body = document.getElementById('shalima-cases-card-body');
             if (body && body.classList.contains('hidden')) {
                 pendingShalimaDateFocus = dateStr;
                 openReportPasscodeModal('shalima_cases');
                 return;
             }
+
+            switchShalimaView('form');
             const dateInput = document.getElementById('shalima-consult-date');
             if (dateInput) {
                 dateInput.value = dateStr;
