@@ -656,36 +656,105 @@
                     </div>
                 </div>
 
-                <!-- Saved Cases Records Section ("saving formate") -->
+                <!-- Saved Cases & Calendar Views (Swipeable Carousel) -->
                 <div class="space-y-3 pt-2">
                     <div class="flex items-center justify-between flex-wrap gap-2">
-                        <div class="flex items-center gap-1.5">
-                            <h3 class="text-sm font-bold text-gray-900">Saved Case Records</h3>
-                            <span id="shalima-cases-filtered-count" class="text-xs text-gray-500 font-medium">(0)</span>
+                        <!-- Navigation Tabs (List vs Calendar) -->
+                        <div class="inline-flex p-1 bg-[#F7F6F0] rounded-2xl border border-gray-200">
+                            <button type="button" id="shalima-view-tab-list" onclick="switchShalimaView('list')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#235847] text-white shadow-xs">
+                                <span>📋 Case Records</span>
+                                <span id="shalima-cases-tab-count" class="px-1.5 py-0.2 bg-white/20 text-white rounded-full text-[10px]">0</span>
+                            </button>
+                            <button type="button" id="shalima-view-tab-calendar" onclick="switchShalimaView('calendar')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-gray-600 hover:text-gray-900">
+                                <span>📅 Date &amp; Calendar View</span>
+                                <span id="shalima-calendar-tab-badge" class="px-1.5 py-0.2 bg-[#235847]/10 text-[#235847] rounded-full text-[10px] hidden">0</span>
+                            </button>
                         </div>
-                        <div class="flex items-center gap-1.5">
-                            <button type="button" onclick="exportShalimaCasesExcel()" class="px-2.5 py-1 bg-[#E8F3EE] hover:bg-[#D4E8DF] text-[#235847] font-semibold text-xs rounded-lg transition flex items-center gap-1" title="Download Excel sheet of all case histories">
+
+                        <!-- Tip & Export Excel -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] text-gray-400 font-medium flex items-center gap-1 select-none">
+                                <span>👈 Swipe 👉</span>
+                            </span>
+                            <button type="button" onclick="exportShalimaCasesExcel()" class="px-2.5 py-1.5 bg-[#E8F3EE] hover:bg-[#D4E8DF] text-[#235847] font-semibold text-xs rounded-xl transition flex items-center gap-1" title="Download Excel sheet of all case histories">
                                 📊 Export Excel
                             </button>
                         </div>
                     </div>
 
-                    <!-- Search & Filter Bar -->
-                    <div class="flex items-center gap-2">
-                        <div class="relative flex-1">
-                            <input type="text" id="shalima-cases-search" oninput="renderShalimaCasesList()" placeholder="Search by name, mobile, location, notes..." class="w-full bg-[#F7F6F0] border border-gray-200 rounded-xl pl-8 pr-3 py-2 text-xs text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
-                            <span class="absolute left-2.5 top-2 text-gray-400 text-xs">🔍</span>
+                    <!-- Swipeable Carousel Container -->
+                    <div id="shalima-swipe-container" class="relative overflow-hidden rounded-2xl">
+                        <div id="shalima-swipe-track" class="flex transition-transform duration-300 ease-out" style="transform: translateX(0%);">
+                            
+                            <!-- SLIDE 1: Saved Case Records List View -->
+                            <div class="w-full flex-shrink-0 space-y-3 pr-0.5">
+                                <!-- Search & Filter Bar -->
+                                <div class="flex items-center gap-2">
+                                    <div class="relative flex-1">
+                                        <input type="text" id="shalima-cases-search" oninput="renderShalimaCasesList()" placeholder="Search by name, mobile, location, notes..." class="w-full bg-[#F7F6F0] border border-gray-200 rounded-xl pl-8 pr-3 py-2 text-xs text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                                        <span class="absolute left-2.5 top-2 text-gray-400 text-xs">🔍</span>
+                                    </div>
+                                    <select id="shalima-cases-filter-type" onchange="renderShalimaCasesList()" class="bg-[#F7F6F0] border border-gray-200 rounded-xl px-2.5 py-2 text-xs font-semibold text-gray-700 outline-none">
+                                        <option value="all">All Cases</option>
+                                        <option value="Initial">Initial</option>
+                                        <option value="Follow-up">Follow-up</option>
+                                    </select>
+                                </div>
+
+                                <!-- Dynamic List of Saved Cases -->
+                                <div id="shalima-cases-list" class="space-y-3 max-h-96 overflow-y-auto pr-1">
+                                    <!-- Populated by JavaScript -->
+                                </div>
+                            </div>
+
+                            <!-- SLIDE 2: Calendar & Date-wise Booked Person View -->
+                            <div class="w-full flex-shrink-0 space-y-3 pl-0.5">
+                                <!-- Calendar Card Header: Month/Year Nav & Quick Controls -->
+                                <div class="bg-[#F7F6F0] rounded-2xl p-3 border border-gray-200 space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-2">
+                                            <h4 id="shalima-cal-month-year" class="text-sm sm:text-base font-bold text-gray-900">November 2026</h4>
+                                            <button type="button" onclick="setShalimaCalToday()" class="px-2 py-0.5 text-[11px] font-bold text-[#235847] bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-2xs">Today</button>
+                                        </div>
+                                        <div class="flex items-center space-x-1">
+                                            <button type="button" onclick="changeShalimaCalMonth(-1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-700 text-xs hover:bg-gray-100 font-bold transition">◀</button>
+                                            <button type="button" onclick="changeShalimaCalMonth(1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-700 text-xs hover:bg-gray-100 font-bold transition">▶</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Days of week -->
+                                    <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">
+                                        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                                    </div>
+
+                                    <!-- Days Grid -->
+                                    <div id="shalima-cal-days-grid" class="grid grid-cols-7 gap-1">
+                                        <!-- Populated by JavaScript -->
+                                    </div>
+
+                                    <!-- Legend -->
+                                    <div class="flex items-center justify-between text-[11px] text-gray-500 pt-1 border-t border-gray-200/60 flex-wrap gap-2">
+                                        <div class="flex items-center gap-3">
+                                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#235847]"></span> Consulted</span>
+                                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#D97706]"></span> Review Due</span>
+                                        </div>
+                                        <span class="text-[10px] text-gray-400">Tap date to view booked person details</span>
+                                    </div>
+                                </div>
+
+                                <!-- Date-wise Booked Person Details Box (Populated when date is tapped) -->
+                                <div id="shalima-cal-selected-day-container" class="space-y-2">
+                                    <!-- Populated by renderShalimaDayDetails() -->
+                                </div>
+                            </div>
+
                         </div>
-                        <select id="shalima-cases-filter-type" onchange="renderShalimaCasesList()" class="bg-[#F7F6F0] border border-gray-200 rounded-xl px-2.5 py-2 text-xs font-semibold text-gray-700 outline-none">
-                            <option value="all">All Cases</option>
-                            <option value="Initial">Initial</option>
-                            <option value="Follow-up">Follow-up</option>
-                        </select>
                     </div>
 
-                    <!-- Dynamic List of Saved Cases -->
-                    <div id="shalima-cases-list" class="space-y-3 max-h-96 overflow-y-auto pr-1">
-                        <!-- Populated by JavaScript -->
+                    <!-- Slide dots indicator (for mobile swipe awareness) -->
+                    <div class="flex items-center justify-center space-x-1.5 pt-1">
+                        <button type="button" onclick="switchShalimaView('list')" id="shalima-dot-list" class="w-2 h-2 rounded-full bg-[#235847] transition-all" title="List View"></button>
+                        <button type="button" onclick="switchShalimaView('calendar')" id="shalima-dot-calendar" class="w-2 h-2 rounded-full bg-gray-300 hover:bg-gray-400 transition-all" title="Calendar View"></button>
                     </div>
                 </div>
             </div>
@@ -5370,6 +5439,8 @@
             }
             setShalimaReviewState(true);
             onShalimaReviewDaysChange(2);
+            initShalimaCalState();
+            initShalimaSwipeListeners();
         }
 
         function resetShalimaCaseForm() {
@@ -5663,17 +5734,382 @@ Dr. Shalima's Mind Clinic`;
                 .replace(/'/g, '&#039;');
         }
 
+        let currentShalimaView = 'list'; // 'list' | 'calendar'
+        let shalimaCalYear = null;
+        let shalimaCalMonth = null;
+        let shalimaCalSelectedDate = null;
+
+        function initShalimaCalState() {
+            if (shalimaCalYear === null || shalimaCalMonth === null) {
+                const now = getClinicNow();
+                const parts = (now.todayStr || '').split('-');
+                if (parts.length === 3) {
+                    shalimaCalYear = parseInt(parts[0]);
+                    shalimaCalMonth = parseInt(parts[1]) - 1;
+                    shalimaCalSelectedDate = now.todayStr;
+                } else {
+                    const d = new Date();
+                    shalimaCalYear = d.getFullYear();
+                    shalimaCalMonth = d.getMonth();
+                    shalimaCalSelectedDate = getClinicNow().todayStr;
+                }
+            }
+        }
+
+        function switchShalimaView(view) {
+            currentShalimaView = view;
+            const track = document.getElementById('shalima-swipe-track');
+            const tabList = document.getElementById('shalima-view-tab-list');
+            const tabCal = document.getElementById('shalima-view-tab-calendar');
+            const dotList = document.getElementById('shalima-dot-list');
+            const dotCal = document.getElementById('shalima-dot-calendar');
+
+            if (view === 'calendar') {
+                if (track) track.style.transform = 'translateX(-100%)';
+                if (tabList) {
+                    tabList.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-gray-600 hover:text-gray-900';
+                }
+                if (tabCal) {
+                    tabCal.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#235847] text-white shadow-xs';
+                }
+                if (dotList) dotList.className = 'w-2 h-2 rounded-full bg-gray-300 hover:bg-gray-400 transition-all';
+                if (dotCal) dotCal.className = 'w-2 h-2 rounded-full bg-[#235847] transition-all';
+                
+                initShalimaCalState();
+                renderShalimaCalendar();
+                if (!shalimaCalSelectedDate) {
+                    shalimaCalSelectedDate = getClinicNow().todayStr;
+                }
+                renderShalimaDayDetails(shalimaCalSelectedDate);
+            } else {
+                if (track) track.style.transform = 'translateX(0%)';
+                if (tabList) {
+                    tabList.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#235847] text-white shadow-xs';
+                }
+                if (tabCal) {
+                    tabCal.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-gray-600 hover:text-gray-900';
+                }
+                if (dotList) dotList.className = 'w-2 h-2 rounded-full bg-[#235847] transition-all';
+                if (dotCal) dotCal.className = 'w-2 h-2 rounded-full bg-gray-300 hover:bg-gray-400 transition-all';
+            }
+        }
+
+        function initShalimaSwipeListeners() {
+            const container = document.getElementById('shalima-swipe-container');
+            if (!container || container._swipeInitialized) return;
+            container._swipeInitialized = true;
+
+            let startX = 0;
+            let startY = 0;
+
+            container.addEventListener('touchstart', (e) => {
+                if (e.touches && e.touches.length === 1) {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                }
+            }, { passive: true });
+
+            container.addEventListener('touchend', (e) => {
+                if (e.changedTouches && e.changedTouches.length === 1) {
+                    const endX = e.changedTouches[0].clientX;
+                    const endY = e.changedTouches[0].clientY;
+                    const diffX = endX - startX;
+                    const diffY = endY - startY;
+
+                    // Prominent horizontal swipe check (> 38px and horizontal > vertical * 1.3)
+                    if (Math.abs(diffX) > 38 && Math.abs(diffX) > Math.abs(diffY) * 1.3) {
+                        if (diffX < 0) {
+                            // Swiped left -> open calendar view
+                            switchShalimaView('calendar');
+                        } else {
+                            // Swiped right -> open list view
+                            switchShalimaView('list');
+                        }
+                    }
+                }
+            }, { passive: true });
+        }
+
+        function changeShalimaCalMonth(delta) {
+            initShalimaCalState();
+            shalimaCalMonth += delta;
+            if (shalimaCalMonth < 0) {
+                shalimaCalMonth = 11;
+                shalimaCalYear--;
+            } else if (shalimaCalMonth > 11) {
+                shalimaCalMonth = 0;
+                shalimaCalYear++;
+            }
+            renderShalimaCalendar();
+            renderShalimaDayDetails(shalimaCalSelectedDate);
+        }
+
+        function setShalimaCalToday() {
+            const now = getClinicNow();
+            const parts = now.todayStr.split('-');
+            shalimaCalYear = parseInt(parts[0]);
+            shalimaCalMonth = parseInt(parts[1]) - 1;
+            shalimaCalSelectedDate = now.todayStr;
+            renderShalimaCalendar();
+            renderShalimaDayDetails(shalimaCalSelectedDate);
+        }
+
+        function selectShalimaCalDate(dayStr) {
+            shalimaCalSelectedDate = dayStr;
+            renderShalimaCalendar();
+            renderShalimaDayDetails(dayStr);
+        }
+
+        function renderShalimaCalendar() {
+            initShalimaCalState();
+            const titleEl = document.getElementById('shalima-cal-month-year');
+            const grid = document.getElementById('shalima-cal-days-grid');
+            if (!grid) return;
+
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            if (titleEl) {
+                titleEl.textContent = `${monthNames[shalimaCalMonth]} ${shalimaCalYear}`;
+            }
+
+            grid.innerHTML = '';
+
+            const firstDay = new Date(shalimaCalYear, shalimaCalMonth, 1).getDay();
+            const daysInMonth = new Date(shalimaCalYear, shalimaCalMonth + 1, 0).getDate();
+
+            // Leading blank slots
+            for (let i = 0; i < firstDay; i++) {
+                const blank = document.createElement('div');
+                blank.className = 'h-13 sm:h-16 rounded-xl bg-transparent';
+                grid.appendChild(blank);
+            }
+
+            const allCases = (appState && Array.isArray(appState.shalimaCases)) ? appState.shalimaCases : [];
+            const todayStr = getClinicNow().todayStr;
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayStr = `${shalimaCalYear}-${String(shalimaCalMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isSelected = (dayStr === shalimaCalSelectedDate);
+                const isToday = (dayStr === todayStr);
+
+                // Find cases on this date
+                const consultCases = allCases.filter(c => c.consultDate === dayStr);
+                const reviewCases = allCases.filter(c => c.reviewDate === dayStr);
+                const totalCases = consultCases.length + reviewCases.length;
+
+                const dayCell = document.createElement('div');
+                dayCell.onclick = () => selectShalimaCalDate(dayStr);
+
+                let borderClass = 'border border-gray-100 bg-white hover:bg-gray-50';
+                if (isSelected) {
+                    borderClass = 'border-2 border-[#235847] bg-[#E8F3EE] shadow-xs';
+                } else if (isToday) {
+                    borderClass = 'border border-[#235847]/40 bg-[#FAF8F3]';
+                }
+
+                dayCell.className = `h-13 sm:h-16 rounded-xl p-1 flex flex-col justify-between items-center cursor-pointer transition select-none ${borderClass}`;
+
+                let badgeHtml = '';
+                if (totalCases > 0) {
+                    badgeHtml = `
+                        <div class="w-full flex flex-col items-center gap-0.5">
+                            <div class="flex items-center gap-0.5 justify-center">
+                                ${consultCases.length > 0 ? `<span class="w-1.5 h-1.5 rounded-full bg-[#235847]" title="${consultCases.length} Consulted"></span>` : ''}
+                                ${reviewCases.length > 0 ? `<span class="w-1.5 h-1.5 rounded-full bg-[#D97706]" title="${reviewCases.length} Review Due"></span>` : ''}
+                            </div>
+                            <span class="px-1.5 py-0.2 rounded-full text-[9px] font-extrabold ${isSelected ? 'bg-[#235847] text-white' : 'bg-[#E8F3EE] text-[#235847]'} leading-tight">
+                                ${totalCases} booked
+                            </span>
+                        </div>
+                    `;
+                }
+
+                dayCell.innerHTML = `
+                    <div class="w-full flex items-center justify-between px-1">
+                        <span class="text-xs font-bold ${isToday ? 'text-[#235847] font-extrabold' : 'text-gray-800'}">${day}</span>
+                        ${isToday ? '<span class="w-1.5 h-1.5 rounded-full bg-[#235847]"></span>' : ''}
+                    </div>
+                    ${badgeHtml}
+                `;
+
+                grid.appendChild(dayCell);
+            }
+        }
+
+        function renderShalimaDayDetails(dayStr) {
+            const container = document.getElementById('shalima-cal-selected-day-container');
+            if (!container) return;
+
+            if (!dayStr) {
+                dayStr = getClinicNow().todayStr;
+            }
+
+            const allCases = (appState && Array.isArray(appState.shalimaCases)) ? appState.shalimaCases : [];
+            const consultCases = allCases.filter(c => c.consultDate === dayStr);
+            const reviewCases = allCases.filter(c => c.reviewDate === dayStr);
+
+            const combinedMap = new Map();
+            consultCases.forEach(c => {
+                combinedMap.set(c.id, { case: c, isConsult: true, isReview: false });
+            });
+            reviewCases.forEach(c => {
+                if (combinedMap.has(c.id)) {
+                    combinedMap.get(c.id).isReview = true;
+                } else {
+                    combinedMap.set(c.id, { case: c, isConsult: false, isReview: true });
+                }
+            });
+
+            const dayItems = Array.from(combinedMap.values());
+            const formattedDate = formatReviewDateDisplay(dayStr);
+
+            if (dayItems.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-2xl p-4 border border-dashed border-gray-300 text-center space-y-2">
+                        <div class="text-gray-400 text-2xl">📅</div>
+                        <div class="text-xs font-bold text-gray-800">${formattedDate}</div>
+                        <p class="text-[11px] text-gray-500">No client consultations or review appointments on this date.</p>
+                        <button type="button" onclick="setShalimaConsultDateAndFocus('${dayStr}')" class="px-3.5 py-1.5 bg-[#235847] hover:bg-[#1B4739] text-white text-xs font-bold rounded-xl transition inline-flex items-center gap-1.5 shadow-xs">
+                            <span>➕ Record Patient on ${dayStr}</span>
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            let cardsHtml = '';
+            dayItems.forEach(item => {
+                const c = item.case;
+                const cleanPhone = (c.phone || '').replace(/[^0-9]/g, '');
+                const isInitial = (c.caseType === 'Initial');
+                const badgeClass = isInitial
+                    ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                    : 'bg-purple-100 text-purple-800 border-purple-200';
+
+                let roleTag = '';
+                if (item.isConsult && item.isReview) {
+                    roleTag = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E8F3EE] text-[#235847] border border-[#235847]/30">Consultation &amp; Review</span>`;
+                } else if (item.isConsult) {
+                    roleTag = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E8F3EE] text-[#235847]">📅 Consulted</span>`;
+                } else {
+                    roleTag = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">🔔 Follow-up Review</span>`;
+                }
+
+                const timePart = (c.consultTime && c.consultTime.trim() !== '') ? `⏰ ${escapeHtmlShalima(c.consultTime)}` : 'Time: Date only';
+
+                cardsHtml += `
+                    <div class="bg-white border border-gray-200 rounded-2xl p-3.5 space-y-2.5 card-shadow hover:border-[#235847]/40 transition text-left">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-sm font-bold text-gray-900">${escapeHtmlShalima(c.patientName)}</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${badgeClass}">
+                                        ${escapeHtmlShalima(c.caseType)}
+                                    </span>
+                                    ${roleTag}
+                                </div>
+                                <div class="text-[11px] text-gray-500 font-medium flex items-center gap-1.5 mt-1 flex-wrap">
+                                    <span class="text-gray-800 font-semibold">${timePart}</span>
+                                    <span>&bull;</span>
+                                    <span>📍 ${escapeHtmlShalima(c.location)}</span>
+                                    ${item.isReview && c.reviewDays ? `<span>&bull;</span><span class="text-amber-700 font-bold">Review after ${c.reviewDays} days</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 flex-shrink-0">
+                                <button onclick="editShalimaCase('${c.id}')" class="px-2.5 py-1 bg-[#F7F6F0] hover:bg-[#EAE8E1] text-gray-700 text-xs font-semibold rounded-lg transition active:scale-95" title="Edit this record">
+                                    ✏️ Edit
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Contact & Action Bar -->
+                        <div class="flex items-center justify-between text-xs bg-[#FAF8F3] px-3 py-1.5 rounded-xl border border-gray-100 flex-wrap gap-2">
+                            <span class="font-medium text-gray-700">📞 ${escapeHtmlShalima(c.phone)}</span>
+                            <div class="flex items-center gap-1.5">
+                                <a href="https://wa.me/${cleanPhone}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2.5 py-0.5 rounded-md transition" title="Chat on WhatsApp">
+                                    <span>💬 WhatsApp</span>
+                                </a>
+                                <a href="tel:${cleanPhone}" class="inline-flex items-center gap-1 text-[11px] font-bold text-gray-700 bg-white hover:bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-md transition" title="Call patient">
+                                    <span>📞 Call</span>
+                                </a>
+                                <button type="button" onclick="copyShalimaCaseSummary('${c.id}')" class="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-600 bg-white hover:bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-md transition" title="Copy patient summary">
+                                    <span>📋 Copy</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = `
+                <div class="bg-white rounded-2xl p-3 border border-gray-200 space-y-2.5">
+                    <div class="flex items-center justify-between flex-wrap gap-2 pb-1 border-b border-gray-100">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-sm font-bold text-gray-900">📅 ${formattedDate}</span>
+                            <span class="px-2 py-0.5 bg-[#E8F3EE] text-[#235847] text-[10px] font-extrabold rounded-full">
+                                ${dayItems.length} Patient${dayItems.length === 1 ? '' : 's'} Booked
+                            </span>
+                        </div>
+                        <button type="button" onclick="setShalimaConsultDateAndFocus('${dayStr}')" class="text-xs font-bold text-[#235847] hover:underline flex items-center gap-1">
+                            <span>➕ Add Record</span>
+                        </button>
+                    </div>
+                    <div class="space-y-2">
+                        ${cardsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        function setShalimaConsultDateAndFocus(dateStr) {
+            const body = document.getElementById('shalima-cases-card-body');
+            if (body && body.classList.contains('hidden')) {
+                toggleShalimaCasesSection();
+            }
+            const dateInput = document.getElementById('shalima-consult-date');
+            if (dateInput) {
+                dateInput.value = dateStr;
+                onShalimaConsultDateChange(dateStr);
+            }
+            const nameInput = document.getElementById('shalima-patient-name');
+            const card = document.getElementById('shalima-cases-card');
+            if (card) {
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            if (nameInput) {
+                setTimeout(() => nameInput.focus(), 300);
+            }
+        }
+
         function renderShalimaCasesList() {
             const listContainer = document.getElementById('shalima-cases-list');
             const countBadge = document.getElementById('shalima-cases-count-badge');
+            const tabCountBadge = document.getElementById('shalima-cases-tab-count');
             const filteredCountEl = document.getElementById('shalima-cases-filtered-count');
             if (!listContainer) return;
+
+            initShalimaSwipeListeners();
 
             const allCases = (appState && Array.isArray(appState.shalimaCases)) ? appState.shalimaCases : [];
             const totalCount = allCases.length;
 
             if (countBadge) {
                 countBadge.textContent = `${totalCount} patient${totalCount === 1 ? '' : 's'}`;
+            }
+            if (tabCountBadge) {
+                tabCountBadge.textContent = totalCount;
+            }
+
+            const calTabBadge = document.getElementById('shalima-calendar-tab-badge');
+            if (calTabBadge) {
+                initShalimaCalState();
+                const mPrefix = `${shalimaCalYear}-${String(shalimaCalMonth + 1).padStart(2, '0')}`;
+                const thisMonthCount = allCases.filter(c => (c.consultDate && c.consultDate.startsWith(mPrefix)) || (c.reviewDate && c.reviewDate.startsWith(mPrefix))).length;
+                if (thisMonthCount > 0) {
+                    calTabBadge.textContent = `${thisMonthCount} this mo`;
+                    calTabBadge.classList.remove('hidden');
+                } else {
+                    calTabBadge.classList.add('hidden');
+                }
             }
 
             const searchInput = document.getElementById('shalima-cases-search');
@@ -5718,100 +6154,106 @@ Dr. Shalima's Mind Clinic`;
                         </div>
                     `;
                 }
-                return;
+            } else {
+                listContainer.innerHTML = '';
+
+                filtered.forEach(c => {
+                    const cleanPhone = (c.phone || '').replace(/[^0-9]/g, '');
+                    const isInitial = (c.caseType === 'Initial');
+                    const badgeClass = isInitial
+                        ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                        : 'bg-purple-100 text-purple-800 border-purple-200';
+
+                    let dateFormatted = c.consultDate || 'N/A';
+                    try {
+                        if (c.consultDate) {
+                            const parts = c.consultDate.split('-');
+                            if (parts.length === 3) {
+                                const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                                dateFormatted = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+                            }
+                        }
+                    } catch (e) {}
+
+                    const revDateFormatted = formatReviewDateDisplay(c.reviewDate);
+                    const timeHtml = (c.consultTime && c.consultTime.trim() !== '')
+                        ? `<span>&bull;</span><span>⏰ ${escapeHtmlShalima(c.consultTime)}</span>`
+                        : '';
+
+                    const cardEl = document.createElement('div');
+                    cardEl.className = 'bg-white border border-gray-200 rounded-2xl p-3.5 space-y-2.5 card-shadow hover:border-[#235847]/40 transition text-left';
+                    cardEl.innerHTML = `
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-sm font-bold text-gray-900 truncate">${escapeHtmlShalima(c.patientName)}</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${badgeClass}">
+                                        ${escapeHtmlShalima(c.caseType)}
+                                    </span>
+                                </div>
+                                <div class="text-[11px] text-gray-500 font-medium flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                    <span>📅 Consulted: ${dateFormatted}</span>
+                                    ${timeHtml}
+                                    <span>&bull;</span>
+                                    <span class="text-gray-800 font-semibold">📍 ${escapeHtmlShalima(c.location)}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 flex-shrink-0">
+                                <button onclick="editShalimaCase('${c.id}')" class="px-2.5 py-1 bg-[#F7F6F0] hover:bg-[#EAE8E1] text-gray-700 text-xs font-semibold rounded-lg transition active:scale-95" title="Edit this record">
+                                    ✏️ Edit
+                                </button>
+                                <button onclick="deleteShalimaCase('${c.id}')" class="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg transition active:scale-95" title="Delete record">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Contact Bar -->
+                        <div class="flex items-center justify-between text-xs bg-[#FAF8F3] px-3 py-1.5 rounded-xl border border-gray-100 flex-wrap gap-2">
+                            <span class="font-medium text-gray-700">📞 ${escapeHtmlShalima(c.phone)}</span>
+                            <div class="flex items-center gap-1.5">
+                                <a href="https://wa.me/${cleanPhone}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2.5 py-0.5 rounded-md transition" title="Chat on WhatsApp">
+                                    <span>💬 WhatsApp</span>
+                                </a>
+                                <a href="tel:${cleanPhone}" class="inline-flex items-center gap-1 text-[11px] font-bold text-gray-700 bg-white hover:bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-md transition" title="Call patient">
+                                    <span>📞 Call</span>
+                                </a>
+                                <button type="button" onclick="copyShalimaCaseSummary('${c.id}')" class="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-600 bg-white hover:bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-md transition" title="Copy patient summary">
+                                    <span>📋 Copy</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Review Schedule Display Box -->
+                        ${(c.reviewDate && c.reviewDate.trim() !== '') ? `
+                        <div class="bg-[#F7F6F0] rounded-xl px-3 py-2 border border-gray-200 flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-1.5 font-bold text-gray-800">
+                                <span>🔔 Next Review:</span>
+                                <span class="text-[#235847]">${c.reviewDays ? `After ${c.reviewDays} day${c.reviewDays == 1 ? '' : 's'} · ` : ''}${formatReviewDateDisplay(c.reviewDate)}</span>
+                            </div>
+                            <span class="text-[10px] font-semibold text-gray-400">Doctor Review</span>
+                        </div>
+                        ` : `
+                        <div class="bg-[#FAF8F3] rounded-xl px-3 py-1.5 border border-dashed border-gray-200 flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-1.5 font-medium text-gray-500">
+                                <span>🔔 Next Review:</span>
+                                <span class="text-gray-400 italic">No review scheduled (Completed)</span>
+                            </div>
+                            <span class="text-[10px] font-semibold text-gray-400">Doctor Review</span>
+                        </div>
+                        `}
+                    `;
+
+                    listContainer.appendChild(cardEl);
+                });
             }
 
-            listContainer.innerHTML = '';
-
-            filtered.forEach(c => {
-                const cleanPhone = (c.phone || '').replace(/[^0-9]/g, '');
-                const isInitial = (c.caseType === 'Initial');
-                const badgeClass = isInitial
-                    ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
-                    : 'bg-purple-100 text-purple-800 border-purple-200';
-
-                let dateFormatted = c.consultDate || 'N/A';
-                try {
-                    if (c.consultDate) {
-                        const parts = c.consultDate.split('-');
-                        if (parts.length === 3) {
-                            const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-                            dateFormatted = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-                        }
-                    }
-                } catch (e) {}
-
-                const revDateFormatted = formatReviewDateDisplay(c.reviewDate);
-                const timeHtml = (c.consultTime && c.consultTime.trim() !== '')
-                    ? `<span>&bull;</span><span>⏰ ${escapeHtmlShalima(c.consultTime)}</span>`
-                    : '';
-
-                const cardEl = document.createElement('div');
-                cardEl.className = 'bg-white border border-gray-200 rounded-2xl p-3.5 space-y-2.5 card-shadow hover:border-[#235847]/40 transition text-left';
-                cardEl.innerHTML = `
-                    <div class="flex items-start justify-between gap-2">
-                        <div class="min-w-0">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span class="text-sm font-bold text-gray-900 truncate">${escapeHtmlShalima(c.patientName)}</span>
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${badgeClass}">
-                                    ${escapeHtmlShalima(c.caseType)}
-                                </span>
-                            </div>
-                            <div class="text-[11px] text-gray-500 font-medium flex items-center gap-1.5 mt-0.5 flex-wrap">
-                                <span>📅 Consulted: ${dateFormatted}</span>
-                                ${timeHtml}
-                                <span>&bull;</span>
-                                <span class="text-gray-800 font-semibold">📍 ${escapeHtmlShalima(c.location)}</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-1 flex-shrink-0">
-                            <button onclick="editShalimaCase('${c.id}')" class="px-2.5 py-1 bg-[#F7F6F0] hover:bg-[#EAE8E1] text-gray-700 text-xs font-semibold rounded-lg transition active:scale-95" title="Edit this record">
-                                ✏️ Edit
-                            </button>
-                            <button onclick="deleteShalimaCase('${c.id}')" class="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg transition active:scale-95" title="Delete record">
-                                🗑️
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Contact Bar -->
-                    <div class="flex items-center justify-between text-xs bg-[#FAF8F3] px-3 py-1.5 rounded-xl border border-gray-100 flex-wrap gap-2">
-                        <span class="font-medium text-gray-700">📞 ${escapeHtmlShalima(c.phone)}</span>
-                        <div class="flex items-center gap-1.5">
-                            <a href="https://wa.me/${cleanPhone}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2.5 py-0.5 rounded-md transition" title="Chat on WhatsApp">
-                                <span>💬 WhatsApp</span>
-                            </a>
-                            <a href="tel:${cleanPhone}" class="inline-flex items-center gap-1 text-[11px] font-bold text-gray-700 bg-white hover:bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-md transition" title="Call patient">
-                                <span>📞 Call</span>
-                            </a>
-                            <button type="button" onclick="copyShalimaCaseSummary('${c.id}')" class="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-600 bg-white hover:bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-md transition" title="Copy patient summary">
-                                <span>📋 Copy</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Review Schedule Display Box -->
-                    ${(c.reviewDate && c.reviewDate.trim() !== '') ? `
-                    <div class="bg-[#F7F6F0] rounded-xl px-3 py-2 border border-gray-200 flex items-center justify-between text-xs">
-                        <div class="flex items-center gap-1.5 font-bold text-gray-800">
-                            <span>🔔 Next Review:</span>
-                            <span class="text-[#235847]">${c.reviewDays ? `After ${c.reviewDays} day${c.reviewDays == 1 ? '' : 's'} · ` : ''}${formatReviewDateDisplay(c.reviewDate)}</span>
-                        </div>
-                        <span class="text-[10px] font-semibold text-gray-400">Doctor Review</span>
-                    </div>
-                    ` : `
-                    <div class="bg-[#FAF8F3] rounded-xl px-3 py-1.5 border border-dashed border-gray-200 flex items-center justify-between text-xs">
-                        <div class="flex items-center gap-1.5 font-medium text-gray-500">
-                            <span>🔔 Next Review:</span>
-                            <span class="text-gray-400 italic">No review scheduled (Completed)</span>
-                        </div>
-                        <span class="text-[10px] font-semibold text-gray-400">Doctor Review</span>
-                    </div>
-                    `}
-                `;
-
-                listContainer.appendChild(cardEl);
-            });
+            // Also keep Calendar and Day Details in sync
+            renderShalimaCalendar();
+            if (!shalimaCalSelectedDate) {
+                shalimaCalSelectedDate = getClinicNow().todayStr;
+            }
+            renderShalimaDayDetails(shalimaCalSelectedDate);
         }
 
         // Custom Modal Alert replacement (no alert())
