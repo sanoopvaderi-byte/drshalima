@@ -4047,6 +4047,12 @@
                 if (action === 'shalima_cases') {
                     titleEl.textContent = "Dr. Shalima's Case History Passcode";
                     subEl.textContent = 'Enter passcode (6498) to open consulted case records & calendar.';
+                } else if (action === 'cancel_shalima_case') {
+                    titleEl.textContent = 'Cancel Patient Booking';
+                    subEl.textContent = 'Enter passcode (6498) to cancel this doctor patient booking.';
+                } else if (action === 'delete_shalima_case') {
+                    titleEl.textContent = 'Delete Patient Record';
+                    subEl.textContent = 'Enter passcode (6498) to permanently delete this record.';
                 } else if (action === 'book_session') {
                     titleEl.textContent = 'Book a Session Passcode';
                     subEl.textContent = 'Enter passcode (4-digit) to add a new session.';
@@ -4121,7 +4127,7 @@
             if (!input) return;
 
             const action = pendingPasscodeAction;
-            const requiredCode = (action === 'shalima_cases' || action === 'book_session' || action === 'edit_session' || action === 'cancel_session' || action === 'toggle_psychologist_status')
+            const requiredCode = (action === 'shalima_cases' || action === 'book_session' || action === 'edit_session' || action === 'cancel_session' || action === 'cancel_shalima_case' || action === 'delete_shalima_case' || action === 'toggle_psychologist_status')
                 ? SESSION_PASSCODE
                 : REPORT_PASSCODE;
 
@@ -4168,6 +4174,18 @@
                 } else if (action === 'cancel_session') {
                     if (pendingCancelId) {
                         doRequestCancelBooking(pendingCancelId);
+                    }
+                } else if (action === 'cancel_shalima_case') {
+                    if (pendingCancelShalimaCaseId) {
+                        const cid = pendingCancelShalimaCaseId;
+                        pendingCancelShalimaCaseId = null;
+                        doCancelShalimaCase(cid);
+                    }
+                } else if (action === 'delete_shalima_case') {
+                    if (pendingCancelShalimaCaseId) {
+                        const cid = pendingCancelShalimaCaseId;
+                        pendingCancelShalimaCaseId = null;
+                        doDeleteShalimaCase(cid);
                     }
                 } else if (action === 'toggle_psychologist_status') {
                     if (pendingTogglePsychologist) {
@@ -5703,7 +5721,100 @@
             }
         }
 
+        let pendingCancelShalimaCaseId = null;
+
+        function requestCancelShalimaCase(caseId) {
+            if (!appState || !Array.isArray(appState.shalimaCases)) return;
+            const c = appState.shalimaCases.find(item => item.id === caseId);
+            if (!c) return;
+
+            pendingCancelShalimaCaseId = caseId;
+            openReportPasscodeModal('cancel_shalima_case');
+        }
+
+        function doCancelShalimaCase(caseId) {
+            if (!appState || !Array.isArray(appState.shalimaCases)) return;
+            const c = appState.shalimaCases.find(item => item.id === caseId);
+            if (!c) return;
+
+            c.status = 'cancelled';
+            c.cancelledAt = Date.now();
+            c.updatedAt = Date.now();
+
+            const editingId = (document.getElementById('shalima-case-id') || {}).value;
+            if (editingId === caseId) {
+                resetShalimaCaseForm();
+            }
+
+            saveToStorage();
+            renderAll();
+            renderShalimaCalendar();
+            if (shalimaCalSelectedDate) {
+                renderShalimaDayDetails(shalimaCalSelectedDate);
+            }
+            showMessageModal(`Patient booking for "${c.patientName}" has been cancelled.`);
+        }
+
+        function requestRestoreShalimaCase(caseId) {
+            if (!appState || !Array.isArray(appState.shalimaCases)) return;
+            const c = appState.shalimaCases.find(item => item.id === caseId);
+            if (!c) return;
+
+            c.status = 'active';
+            delete c.cancelledAt;
+            c.updatedAt = Date.now();
+
+            saveToStorage();
+            renderAll();
+            renderShalimaCalendar();
+            if (shalimaCalSelectedDate) {
+                renderShalimaDayDetails(shalimaCalSelectedDate);
+            }
+            showMessageModal(`Patient record for "${c.patientName}" has been restored to Active.`);
+        }
+
+        function requestDeleteShalimaCase(caseId) {
+            if (!appState || !Array.isArray(appState.shalimaCases)) return;
+            const c = appState.shalimaCases.find(item => item.id === caseId);
+            if (!c) return;
+
+            pendingCancelShalimaCaseId = caseId;
+            openReportPasscodeModal('delete_shalima_case');
+        }
+
+        function doDeleteShalimaCase(caseId) {
+            if (!appState || !Array.isArray(appState.shalimaCases)) return;
+            const c = appState.shalimaCases.find(item => item.id === caseId);
+            const pName = c ? c.patientName : 'Patient';
+
+            if (!Array.isArray(appState.deletedShalimaCaseIds)) {
+                appState.deletedShalimaCaseIds = [];
+            }
+            if (!appState.deletedShalimaCaseIds.includes(caseId)) {
+                appState.deletedShalimaCaseIds.push(caseId);
+            }
+
+            appState.shalimaCases = appState.shalimaCases.filter(item => item.id !== caseId);
+
+            const editingId = (document.getElementById('shalima-case-id') || {}).value;
+            if (editingId === caseId) {
+                resetShalimaCaseForm();
+            }
+
+            saveToStorage();
+            renderAll();
+            renderShalimaCalendar();
+            if (shalimaCalSelectedDate) {
+                renderShalimaDayDetails(shalimaCalSelectedDate);
+            }
+            showMessageModal(`Patient record for "${pName}" was permanently deleted.`);
+        }
+
         function deleteShalimaCase(caseId) {
+            requestDeleteShalimaCase(caseId);
+        }
+
+        function _unused_legacy_deleteShalimaCase(caseId) {
             if (!appState || !Array.isArray(appState.shalimaCases)) return;
             const caseItem = appState.shalimaCases.find(c => c.id === caseId);
             if (!caseItem) return;
@@ -5967,10 +6078,11 @@ Dr. Shalima's Mind Clinic`;
                 const isSelected = (dayStr === shalimaCalSelectedDate);
                 const isToday = (dayStr === todayStr);
 
-                // Find cases on this date
-                const consultCases = allCases.filter(c => c.consultDate === dayStr);
-                const reviewCases = allCases.filter(c => c.reviewDate === dayStr);
+                // Find cases on this date (active vs cancelled)
+                const consultCases = allCases.filter(c => c.consultDate === dayStr && c.status !== 'cancelled');
+                const reviewCases = allCases.filter(c => c.reviewDate === dayStr && c.status !== 'cancelled');
                 const totalCases = consultCases.length + reviewCases.length;
+                const cancelledCases = allCases.filter(c => (c.consultDate === dayStr || c.reviewDate === dayStr) && c.status === 'cancelled');
 
                 const dayCell = document.createElement('div');
                 dayCell.onclick = () => selectShalimaCalDate(dayStr);
@@ -5994,6 +6106,14 @@ Dr. Shalima's Mind Clinic`;
                             </div>
                             <span class="px-1.5 py-0.2 rounded-full text-[9px] font-extrabold ${isSelected ? 'bg-[#235847] text-white' : 'bg-[#E8F3EE] text-[#235847]'} leading-tight">
                                 ${totalCases} booked
+                            </span>
+                        </div>
+                    `;
+                } else if (cancelledCases.length > 0) {
+                    badgeHtml = `
+                        <div class="w-full flex flex-col items-center gap-0.5">
+                            <span class="px-1.5 py-0.2 rounded-full text-[9px] font-extrabold ${isSelected ? 'bg-red-600 text-white' : 'bg-red-50 text-red-600 border border-red-200'} leading-tight">
+                                ${cancelledCases.length} cancelled
                             </span>
                         </div>
                     `;
@@ -6052,9 +6172,13 @@ Dr. Shalima's Mind Clinic`;
                 return;
             }
 
+            const activeItems = dayItems.filter(item => item.case.status !== 'cancelled');
+            const cancelledItems = dayItems.filter(item => item.case.status === 'cancelled');
+
             let cardsHtml = '';
             dayItems.forEach(item => {
                 const c = item.case;
+                const isCancelled = (c.status === 'cancelled');
                 const cleanPhone = (c.phone || '').replace(/[^0-9]/g, '');
                 const isInitial = (c.caseType === 'Initial');
                 const badgeClass = isInitial
@@ -6062,7 +6186,9 @@ Dr. Shalima's Mind Clinic`;
                     : 'bg-purple-100 text-purple-800 border-purple-200';
 
                 let roleTag = '';
-                if (item.isConsult && item.isReview) {
+                if (isCancelled) {
+                    roleTag = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">❌ Cancelled</span>`;
+                } else if (item.isConsult && item.isReview) {
                     roleTag = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E8F3EE] text-[#235847] border border-[#235847]/30">Consultation &amp; Review</span>`;
                 } else if (item.isConsult) {
                     roleTag = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E8F3EE] text-[#235847]">📅 Consulted</span>`;
@@ -6072,12 +6198,33 @@ Dr. Shalima's Mind Clinic`;
 
                 const timePart = (c.consultTime && c.consultTime.trim() !== '') ? `⏰ ${escapeHtmlShalima(c.consultTime)}` : 'Time: Date only';
 
+                const actionBtns = isCancelled
+                    ? `
+                        <button type="button" onclick="editShalimaCase('${c.id}')" class="px-2.5 py-1 bg-[#F7F6F0] hover:bg-[#EAE8E1] text-gray-700 text-xs font-semibold rounded-lg transition active:scale-95" title="Edit this record">
+                            ✏️ Edit
+                        </button>
+                        <button type="button" onclick="requestRestoreShalimaCase('${c.id}')" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg border border-emerald-200 transition active:scale-95" title="Reactivate this patient booking">
+                            ↺ Restore
+                        </button>
+                        <button type="button" onclick="requestDeleteShalimaCase('${c.id}')" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg border border-red-200 transition active:scale-95" title="Delete record permanently (Passcode 6498 required)">
+                            🗑️ Delete
+                        </button>
+                    `
+                    : `
+                        <button type="button" onclick="editShalimaCase('${c.id}')" class="px-2.5 py-1 bg-[#F7F6F0] hover:bg-[#EAE8E1] text-gray-700 text-xs font-semibold rounded-lg transition active:scale-95" title="Edit this record">
+                            ✏️ Edit
+                        </button>
+                        <button type="button" onclick="requestCancelShalimaCase('${c.id}')" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg border border-red-200 transition active:scale-95" title="Cancel this patient booking (Passcode 6498 required)">
+                            ❌ Cancel
+                        </button>
+                    `;
+
                 cardsHtml += `
-                    <div class="bg-white border border-gray-200 rounded-2xl p-3.5 space-y-2.5 card-shadow hover:border-[#235847]/40 transition text-left">
+                    <div class="bg-white border ${isCancelled ? 'border-red-200 bg-red-50/20' : 'border-gray-200'} rounded-2xl p-3.5 space-y-2.5 card-shadow hover:border-[#235847]/40 transition text-left">
                         <div class="flex items-start justify-between gap-2">
                             <div class="min-w-0">
                                 <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="text-sm font-bold text-gray-900">${escapeHtmlShalima(c.patientName)}</span>
+                                    <span class="text-sm font-bold ${isCancelled ? 'text-gray-400 line-through' : 'text-gray-900'}">${escapeHtmlShalima(c.patientName)}</span>
                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${badgeClass}">
                                         ${escapeHtmlShalima(c.caseType)}
                                     </span>
@@ -6090,10 +6237,8 @@ Dr. Shalima's Mind Clinic`;
                                     ${item.isReview && c.reviewDays ? `<span>&bull;</span><span class="text-amber-700 font-bold">Review after ${c.reviewDays} days</span>` : ''}
                                 </div>
                             </div>
-                            <div class="flex items-center gap-1 flex-shrink-0">
-                                <button onclick="editShalimaCase('${c.id}')" class="px-2.5 py-1 bg-[#F7F6F0] hover:bg-[#EAE8E1] text-gray-700 text-xs font-semibold rounded-lg transition active:scale-95" title="Edit this record">
-                                    ✏️ Edit
-                                </button>
+                            <div class="flex items-center gap-1.5 flex-shrink-0 flex-wrap justify-end">
+                                ${actionBtns}
                             </div>
                         </div>
 
@@ -6116,13 +6261,18 @@ Dr. Shalima's Mind Clinic`;
                 `;
             });
 
+            let badgeSummary = `${activeItems.length} Patient${activeItems.length === 1 ? '' : 's'} Booked`;
+            if (cancelledItems.length > 0) {
+                badgeSummary += ` • ${cancelledItems.length} Cancelled`;
+            }
+
             container.innerHTML = `
                 <div class="bg-white rounded-2xl p-3 border border-gray-200 space-y-2.5">
                     <div class="flex items-center justify-between flex-wrap gap-2 pb-1 border-b border-gray-100">
                         <div class="flex items-center gap-1.5">
                             <span class="text-sm font-bold text-gray-900">📅 ${formattedDate}</span>
-                            <span class="px-2 py-0.5 bg-[#E8F3EE] text-[#235847] text-[10px] font-extrabold rounded-full">
-                                ${dayItems.length} Patient${dayItems.length === 1 ? '' : 's'} Booked
+                            <span class="px-2 py-0.5 ${cancelledItems.length > 0 && activeItems.length === 0 ? 'bg-red-100 text-red-700' : 'bg-[#E8F3EE] text-[#235847]'} text-[10px] font-extrabold rounded-full">
+                                ${badgeSummary}
                             </span>
                         </div>
                         <button type="button" onclick="setShalimaConsultDateAndFocus('${dayStr}')" class="text-xs font-bold text-[#235847] hover:underline flex items-center gap-1">
