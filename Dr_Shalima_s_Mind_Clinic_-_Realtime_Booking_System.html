@@ -274,53 +274,53 @@
         </div>
 
         <!-- CARD 2: Team Schedule -->
-        <div id="team-schedule-card" class="bg-white rounded-3xl p-3 sm:p-5 card-shadow scroll-mt-20 overflow-hidden w-full max-w-full">
-            <h2 class="text-base sm:text-lg font-bold text-gray-900 mb-2 sm:mb-3">Team schedule</h2>
+        <div id="team-schedule-card" class="bg-white rounded-3xl p-5 card-shadow scroll-mt-20 overflow-hidden w-full max-w-full">
+            <h2 class="text-lg font-bold text-gray-900 mb-3">Team schedule</h2>
             
-            <div class="flex items-center space-x-1.5 sm:space-x-2 mb-3 sm:mb-4 flex-wrap">
-                <button onclick="changeSelectedDate(-1)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#EAE8E1] hover:bg-gray-300 flex items-center justify-center text-gray-700 font-bold transition">&lsaquo;</button>
-                <button onclick="changeSelectedDate(1)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#EAE8E1] hover:bg-gray-300 flex items-center justify-center text-gray-700 font-bold transition">&rsaquo;</button>
-                <button onclick="selectToday()" class="px-2.5 sm:px-3.5 py-1 sm:py-1.5 bg-[#235847] text-white text-xs font-semibold rounded-lg hover:bg-[#1B4739] transition">Today</button>
-                <span id="schedule-date-title" class="font-bold text-gray-800 text-xs sm:text-sm ml-1 truncate">Monday, 2 November</span>
+            <div class="flex items-center space-x-2 mb-4">
+                <button onclick="changeSelectedDate(-1)" class="w-8 h-8 rounded-lg bg-[#EAE8E1] hover:bg-gray-300 flex items-center justify-center text-gray-700 font-bold transition">&lsaquo;</button>
+                <button onclick="changeSelectedDate(1)" class="w-8 h-8 rounded-lg bg-[#EAE8E1] hover:bg-gray-300 flex items-center justify-center text-gray-700 font-bold transition">&rsaquo;</button>
+                <button onclick="selectToday()" class="px-3.5 py-1.5 bg-[#235847] text-white text-xs font-semibold rounded-lg hover:bg-[#1B4739] transition">Today</button>
+                <span id="schedule-date-title" class="font-bold text-gray-800 text-sm ml-1 truncate">Monday, 2 November</span>
             </div>
 
             <!-- Team Schedule Matrix Header -->
-            <div class="grid grid-cols-[46px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] sm:grid-cols-[56px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-1 sm:gap-2 text-center mb-2 items-start w-full">
+            <div class="grid grid-cols-[58px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-2 text-center mb-2 items-start w-full">
                 <div></div>
-                <div class="min-w-0 px-0.5">
-                    <div onclick="togglePsychologistOfflineStatus('Habla')" class="flex flex-col sm:inline-flex sm:flex-row items-center justify-center gap-0.5 sm:gap-1 cursor-pointer select-none" title="Click to toggle Active / Offline (Passcode: 6498)">
-                        <span class="font-bold text-gray-800 text-xs sm:text-[13px] leading-tight truncate">Habla</span>
-                        <button id="habla-status-btn" type="button" class="relative z-10 inline-flex items-center gap-0.5 sm:gap-1 px-1 sm:px-1.5 py-0.5 rounded-full text-[8.5px] sm:text-[9.5px] leading-none font-extrabold border bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm hover:bg-emerald-100 active:scale-95 transition cursor-pointer whitespace-nowrap">
+                <div class="min-w-0">
+                    <div onclick="togglePsychologistOfflineStatus('Habla')" class="inline-flex items-center justify-center gap-1 whitespace-nowrap cursor-pointer select-none" title="Click to toggle Active / Offline (Passcode: 6498)">
+                        <span class="font-bold text-gray-800 text-xs sm:text-[13px] leading-tight">Habla</span>
+                        <button id="habla-status-btn" type="button" class="relative z-10 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] sm:text-[9.5px] leading-none font-extrabold border bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm hover:bg-emerald-100 active:scale-95 transition cursor-pointer whitespace-nowrap">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                             <span>Active</span>
                         </button>
                     </div>
-                    <div id="habla-free-count" class="text-[10px] sm:text-xs text-gray-400 mt-0.5">20 free</div>
+                    <div id="habla-free-count" class="text-xs text-gray-400 mt-0.5">20 free</div>
                 </div>
-                <div class="min-w-0 px-0.5">
-                    <div onclick="togglePsychologistOfflineStatus('Varda')" class="flex flex-col sm:inline-flex sm:flex-row items-center justify-center gap-0.5 sm:gap-1 cursor-pointer select-none" title="Click to toggle Active / Offline (Passcode: 6498)">
-                        <span class="font-bold text-gray-800 text-xs sm:text-[13px] leading-tight truncate">Varda</span>
-                        <button id="varda-status-btn" type="button" class="relative z-10 inline-flex items-center gap-0.5 sm:gap-1 px-1 sm:px-1.5 py-0.5 rounded-full text-[8.5px] sm:text-[9.5px] leading-none font-extrabold border bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm hover:bg-emerald-100 active:scale-95 transition cursor-pointer whitespace-nowrap">
+                <div class="min-w-0">
+                    <div onclick="togglePsychologistOfflineStatus('Varda')" class="inline-flex items-center justify-center gap-1 whitespace-nowrap cursor-pointer select-none" title="Click to toggle Active / Offline (Passcode: 6498)">
+                        <span class="font-bold text-gray-800 text-xs sm:text-[13px] leading-tight">Varda</span>
+                        <button id="varda-status-btn" type="button" class="relative z-10 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] sm:text-[9.5px] leading-none font-extrabold border bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm hover:bg-emerald-100 active:scale-95 transition cursor-pointer whitespace-nowrap">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                             <span>Active</span>
                         </button>
                     </div>
-                    <div id="varda-free-count" class="text-[10px] sm:text-xs text-gray-400 mt-0.5">20 free</div>
+                    <div id="varda-free-count" class="text-xs text-gray-400 mt-0.5">20 free</div>
                 </div>
-                <div class="min-w-0 px-0.5">
-                    <div onclick="togglePsychologistOfflineStatus('Sahla')" class="flex flex-col sm:inline-flex sm:flex-row items-center justify-center gap-0.5 sm:gap-1 cursor-pointer select-none" title="Click to toggle Active / Offline (Passcode: 6498)">
-                        <span class="font-bold text-gray-800 text-xs sm:text-[13px] leading-tight truncate">Sahla</span>
-                        <button id="sahla-status-btn" type="button" class="relative z-10 inline-flex items-center gap-0.5 sm:gap-1 px-1 sm:px-1.5 py-0.5 rounded-full text-[8.5px] sm:text-[9.5px] leading-none font-extrabold border bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm hover:bg-emerald-100 active:scale-95 transition cursor-pointer whitespace-nowrap">
+                <div class="min-w-0">
+                    <div onclick="togglePsychologistOfflineStatus('Sahla')" class="inline-flex items-center justify-center gap-1 whitespace-nowrap cursor-pointer select-none" title="Click to toggle Active / Offline (Passcode: 6498)">
+                        <span class="font-bold text-gray-800 text-xs sm:text-[13px] leading-tight">Sahla</span>
+                        <button id="sahla-status-btn" type="button" class="relative z-10 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] sm:text-[9.5px] leading-none font-extrabold border bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm hover:bg-emerald-100 active:scale-95 transition cursor-pointer whitespace-nowrap">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                             <span>Active</span>
                         </button>
                     </div>
-                    <div id="sahla-free-count" class="text-[10px] sm:text-xs text-gray-400 mt-0.5">20 free</div>
+                    <div id="sahla-free-count" class="text-xs text-gray-400 mt-0.5">20 free</div>
                 </div>
             </div>
 
             <!-- Time Slots Grid -->
-            <div id="team-schedule-slots" class="space-y-1 sm:space-y-1.5 max-h-96 overflow-y-auto overflow-x-hidden pr-0.5 sm:pr-1 w-full">
+            <div id="team-schedule-slots" class="space-y-2 max-h-96 overflow-y-auto overflow-x-hidden pr-1 w-full">
                 <!-- Slots generated via JavaScript -->
             </div>
 
@@ -2638,10 +2638,10 @@
 
             timeSlotsList.forEach(slot => {
                 const row = document.createElement('div');
-                row.className = 'grid grid-cols-[46px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] sm:grid-cols-[56px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-1 sm:gap-2 items-center text-xs py-0.5 sm:py-1 w-full';
+                row.className = 'grid grid-cols-[58px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-2 items-center text-xs py-1 w-full';
 
                 const timeLabel = document.createElement('div');
-                timeLabel.className = 'font-semibold text-gray-700 text-right pr-0.5 sm:pr-1 whitespace-nowrap text-[9.5px] sm:text-[11px] truncate select-none';
+                timeLabel.className = 'font-semibold text-gray-700 text-right pr-1 whitespace-nowrap text-[11px] select-none';
                 timeLabel.textContent = slot;
                 row.appendChild(timeLabel);
 
@@ -2660,25 +2660,25 @@
                         const isManualStart = !timeSlotsList.includes(bStartRaw);
                         const labelText = isManualStart ? `${booking.clientName} (${bStartRaw})` : booking.clientName;
                         col.innerHTML = `
-                            <button onclick="showBookingDetail('${booking.id}')" class="w-full max-w-full block bg-[#EAE8E1] hover:bg-[#D5D0C8] text-gray-800 rounded-lg py-1.5 text-center font-semibold truncate overflow-hidden px-1 text-[10.5px] sm:text-xs transition active:scale-95 leading-tight" title="Tap for details / edit · ${booking.clientName} (${booking.time})">
+                            <button onclick="showBookingDetail('${booking.id}')" class="w-full max-w-full block bg-[#EAE8E1] hover:bg-[#D5D0C8] text-gray-800 rounded-lg py-1.5 text-center font-semibold truncate overflow-hidden px-1 text-xs transition active:scale-95 leading-tight" title="Tap for details / edit · ${booking.clientName} (${booking.time})">
                                 ${labelText}
                             </button>
                         `;
                     } else if (isOffline) {
                         col.innerHTML = `
-                            <button type="button" onclick="togglePsychologistOfflineStatus('${psy}')" class="w-full max-w-full block bg-red-50/70 hover:bg-red-100/80 text-red-500 border border-red-200 font-semibold rounded-lg py-1.5 text-center text-[10px] sm:text-[11px] transition cursor-pointer truncate overflow-hidden px-0.5 leading-tight" title="${psy} is Offline (On Leave). Click to Activate with Passcode 6498">
+                            <button type="button" onclick="togglePsychologistOfflineStatus('${psy}')" class="w-full max-w-full block bg-red-50/70 hover:bg-red-100/80 text-red-500 border border-red-200 font-semibold rounded-lg py-1.5 text-center text-[11px] transition cursor-pointer truncate overflow-hidden px-0.5 leading-tight" title="${psy} is Offline (On Leave). Click to Activate with Passcode 6498">
                                 Offline
                             </button>
                         `;
                     } else if (slotPassed) {
                         col.innerHTML = `
-                            <div class="w-full max-w-full block bg-gray-100 text-gray-400 font-medium rounded-lg py-1.5 text-center text-[10px] sm:text-[11px] cursor-not-allowed select-none truncate overflow-hidden px-0.5 leading-tight" title="Session time has already passed">
+                            <div class="w-full max-w-full block bg-gray-100 text-gray-400 font-medium rounded-lg py-1.5 text-center text-[11px] cursor-not-allowed select-none truncate overflow-hidden px-0.5 leading-tight" title="Session time has already passed">
                                 Finished
                             </div>
                         `;
                     } else {
                         col.innerHTML = `
-                            <button onclick="quickSelectSlot('${psy}', '${slot}')" class="w-full max-w-full block bg-[#E8F3EE] text-[#235847] hover:bg-[#D4E8DF] font-medium rounded-lg py-1.5 text-center transition truncate overflow-hidden px-0.5 sm:px-1 text-[10.5px] sm:text-xs leading-tight">
+                            <button onclick="quickSelectSlot('${psy}', '${slot}')" class="w-full max-w-full block bg-[#E8F3EE] text-[#235847] hover:bg-[#D4E8DF] font-medium rounded-lg py-1.5 text-center transition truncate overflow-hidden px-1 text-xs leading-tight">
                                 Available
                             </button>
                         `;
