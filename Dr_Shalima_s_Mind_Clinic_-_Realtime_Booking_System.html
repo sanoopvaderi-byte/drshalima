@@ -204,21 +204,21 @@
         <!-- 10-Minute Pre-Session Notification Popup (Above Calendar Area) -->
         <div id="upcoming-session-notifications" class="hidden space-y-2.5"></div>
 
-        <!-- Front Desk: Sessions & Reminders (Placed Above Calendar Area) -->
+        <!-- Front Desk: Sessions & Reminders (Placed Above Calendar Area - Minimized by Default) -->
         <div class="bg-white rounded-3xl p-5 card-shadow">
             <div class="flex items-center justify-between">
                 <button type="button" onclick="toggleFrontDeskSection()" class="flex items-center space-x-2 text-left group focus:outline-none">
-                    <span id="frontdesk-heading-arrow" class="text-sm text-[#235847] font-bold transition-transform">▼</span>
+                    <span id="frontdesk-heading-arrow" class="text-sm text-[#235847] font-bold transition-transform">▶</span>
                     <h2 class="text-lg font-bold text-gray-900 group-hover:text-[#235847] transition">Front desk: sessions &amp; reminders</h2>
                     <span id="frontdesk-active-badge" class="px-2 py-0.5 bg-[#E8F3EE] text-[#235847] text-[11px] font-bold rounded-full">0</span>
                 </button>
-                <button type="button" id="frontdesk-minimize-btn" onclick="toggleFrontDeskSection()" class="px-3 py-1 bg-[#F7F6F0] hover:bg-[#EAE8E1] text-gray-700 text-xs font-semibold rounded-full transition flex items-center gap-1" title="Minimize or expand Front desk section">
-                    <span id="frontdesk-minimize-icon">−</span>
-                    <span id="frontdesk-minimize-text">Minimize</span>
+                <button type="button" id="frontdesk-minimize-btn" onclick="toggleFrontDeskSection()" class="px-3 py-1.5 bg-[#E8F3EE] hover:bg-[#d8ece2] text-[#235847] text-xs font-bold rounded-full transition flex items-center gap-1 shadow-2xs active:scale-95" title="Click to open Front desk sessions & reminders">
+                    <span id="frontdesk-minimize-icon">+</span>
+                    <span id="frontdesk-minimize-text">Open</span>
                 </button>
             </div>
             
-            <div id="frontdesk-card-body" class="mt-3">
+            <div id="frontdesk-card-body" class="hidden mt-3">
                 <div class="mb-4">
                     <label class="block text-xs font-medium text-gray-500 mb-1">Clinic WhatsApp (for client requests)</label>
                     <div class="flex space-x-2">
@@ -3614,17 +3614,26 @@
             const arrow = document.getElementById('frontdesk-heading-arrow');
             const icon = document.getElementById('frontdesk-minimize-icon');
             const text = document.getElementById('frontdesk-minimize-text');
+            const btn = document.getElementById('frontdesk-minimize-btn');
             if (!body) return;
             if (body.classList.contains('hidden')) {
                 body.classList.remove('hidden');
                 if (arrow) arrow.textContent = '▼';
                 if (icon) icon.textContent = '−';
                 if (text) text.textContent = 'Minimize';
+                if (btn) {
+                    btn.className = 'px-3 py-1.5 bg-[#F7F6F0] hover:bg-[#EAE8E1] text-gray-700 text-xs font-semibold rounded-full transition flex items-center gap-1 shadow-2xs active:scale-95';
+                    btn.title = 'Click to minimize Front desk section';
+                }
             } else {
                 body.classList.add('hidden');
                 if (arrow) arrow.textContent = '▶';
                 if (icon) icon.textContent = '+';
                 if (text) text.textContent = 'Open';
+                if (btn) {
+                    btn.className = 'px-3 py-1.5 bg-[#E8F3EE] hover:bg-[#d8ece2] text-[#235847] text-xs font-bold rounded-full transition flex items-center gap-1 shadow-2xs active:scale-95';
+                    btn.title = 'Click to open Front desk sessions & reminders';
+                }
             }
         }
 
