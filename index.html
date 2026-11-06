@@ -784,8 +784,18 @@
                     Back up now (Excel + PDF)
                 </button>
 
+                <!-- Full Site Data Backup & Restore (Includes All Doctor Consulted Patient Records) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-gray-100 mb-3">
+                    <button type="button" onclick="exportJSON()" class="py-2.5 px-3 bg-[#E8F3EE] hover:bg-[#d5e9df] text-[#235847] font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-2xs active:scale-95" title="Export complete site data including Dr. Shalima consulted case history">
+                        <span>📥 Export All Data (JSON)</span>
+                    </button>
+                    <button type="button" onclick="importJSON()" class="py-2.5 px-3 bg-[#FAF8F3] hover:bg-[#F2EFE9] text-gray-800 font-bold text-xs rounded-xl border border-gray-200 transition flex items-center justify-center gap-1.5 shadow-2xs active:scale-95" title="Import and restore all site data including Dr. Shalima consulted case history">
+                        <span>📤 Import &amp; Restore Data (JSON)</span>
+                    </button>
+                </div>
+
                 <p class="text-xs text-gray-500 leading-relaxed">
-                    Backups are downloaded to this device. Includes full clinic sessions and Dr. Shalima patient records (Excel &amp; PDF). The page cannot make them by itself while it is closed, so it reminds staff when a backup is more than a day old.
+                    Backups are downloaded to this device. Includes full clinic sessions and Dr. Shalima patient records (Excel, PDF &amp; JSON). The page cannot make them by itself while it is closed, so it reminds staff when a backup is more than a day old.
                 </p>
             </div>
         </div>
@@ -2764,6 +2774,11 @@
             renderDailyReport();
             checkUpcomingSessionNotifications(true);
             renderShalimaCasesList();
+            renderShalimaCalendar();
+            renderShalimaMonthSummary();
+            if (typeof shalimaCalSelectedDate !== 'undefined' && shalimaCalSelectedDate) {
+                renderShalimaDayDetails(shalimaCalSelectedDate);
+            }
         };
 
         // Live Clock Component
@@ -4180,6 +4195,8 @@
                 isMatch = (entered === '4425' || entered === 'Mindclinic@4425');
             } else if (action === 'shalima_cases' || action === 'book_session' || action === 'edit_session' || action === 'cancel_session' || action === 'cancel_shalima_case' || action === 'edit_shalima_case' || action === 'delete_shalima_case' || action === 'toggle_psychologist_status') {
                 isMatch = (entered === SESSION_PASSCODE);
+            } else if (action === 'export_json' || action === 'import_json') {
+                isMatch = (entered === REPORT_PASSCODE || entered === '4425' || entered === SESSION_PASSCODE);
             } else {
                 isMatch = (entered === REPORT_PASSCODE);
             }
@@ -5062,13 +5079,47 @@
         }
 
         function doExportJSON() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            if (!appState || typeof appState !== 'object') {
+                showMessageModal("No clinic data available to export.");
+                return;
+            }
+
+            // Ensure doctor consulted case history arrays exist
+            if (!Array.isArray(appState.shalimaCases)) {
+                appState.shalimaCases = [];
+            }
+            if (!Array.isArray(appState.deletedShalimaCaseIds)) {
+                appState.deletedShalimaCaseIds = [];
+            }
+            if (!Array.isArray(appState.bookings)) {
+                appState.bookings = [];
+            }
+
+            // Capture complete site bundle with metadata and preferences
+            const exportPayload = {
+                clinicName: "Dr. Shalima's Mind Clinic",
+                exportVersion: "2.0",
+                exportedAt: new Date().toISOString(),
+                exportedTimestamp: Date.now(),
+                totalClinicBookings: appState.bookings.length,
+                totalDoctorPatientRecords: appState.shalimaCases.length,
+                shalimaPreferences: {
+                    timeEnabled: (typeof isShalimaTimeEnabled !== 'undefined') ? isShalimaTimeEnabled : true,
+                    reviewEnabled: (typeof isShalimaReviewEnabled !== 'undefined') ? isShalimaReviewEnabled : true
+                },
+                ...appState
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportPayload, null, 2));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `clinic_data_backup_${Date.now()}.json`);
+            const todayStr = getClinicNow().todayStr;
+            downloadAnchor.setAttribute("download", `dr_shalima_clinic_full_backup_${todayStr}.json`);
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
+
+            showMessageModal(`Full backup exported successfully!\n• ${appState.bookings.length} Clinic Sessions\n• ${appState.shalimaCases.length} Doctor Patient Records`);
         }
 
         function importJSON() {
@@ -5078,24 +5129,79 @@
         function doImportJSON() {
             const input = document.createElement('input');
             input.type = 'file';
-            input.accept = '.json';
+            input.accept = '.json,application/json';
             input.onchange = e => {
                 const file = e.target.files[0];
                 if (!file) return;
                 const reader = new FileReader();
-                reader.readAsText(file,'UTF-8');
+                reader.readAsText(file, 'UTF-8');
                 reader.onload = readerEvent => {
                     try {
                         const content = JSON.parse(readerEvent.target.result);
-                        appState = content;
+                        if (!content || typeof content !== 'object') {
+                            showMessageModal("Invalid backup JSON file.");
+                            return;
+                        }
+
+                        // Restore Clinic Bookings
+                        let restoredBookingsCount = 0;
+                        if (Array.isArray(content.bookings)) {
+                            appState.bookings = content.bookings;
+                            restoredBookingsCount = content.bookings.length;
+                        }
+
+                        // Restore Dr. Shalima Consulted Patient Records
+                        let restoredShalimaCount = 0;
+                        if (Array.isArray(content.shalimaCases)) {
+                            appState.shalimaCases = content.shalimaCases;
+                            restoredShalimaCount = content.shalimaCases.length;
+                        } else if (Array.isArray(content)) {
+                            // If user imported a raw array of doctor cases
+                            if (content.length > 0 && (content[0].patientName || content[0].consultDate)) {
+                                appState.shalimaCases = content;
+                                restoredShalimaCount = content.length;
+                            }
+                        }
+
+                        if (Array.isArray(content.deletedShalimaCaseIds)) {
+                            appState.deletedShalimaCaseIds = content.deletedShalimaCaseIds;
+                        }
+                        if (content.psychologistOfflineByDate && typeof content.psychologistOfflineByDate === 'object') {
+                            appState.psychologistOfflineByDate = content.psychologistOfflineByDate;
+                        }
+
+                        // Restore Shalima Preferences if present
+                        if (content.shalimaPreferences) {
+                            if (content.shalimaPreferences.timeEnabled !== undefined) {
+                                localStorage.setItem('shalima_pref_time_enabled', content.shalimaPreferences.timeEnabled ? 'true' : 'false');
+                                setShalimaTimeState(content.shalimaPreferences.timeEnabled, false);
+                            }
+                            if (content.shalimaPreferences.reviewEnabled !== undefined) {
+                                localStorage.setItem('shalima_pref_review_enabled', content.shalimaPreferences.reviewEnabled ? 'true' : 'false');
+                                setShalimaReviewState(content.shalimaPreferences.reviewEnabled, false);
+                            }
+                        }
+
+                        // Update backup timestamp
+                        appState.lastBackupTimestamp = content.lastBackupTimestamp || Date.now();
+
                         saveToStorage();
                         renderAll();
-                        showMessageModal("Data imported successfully!");
+                        renderShalimaCalendar();
+                        renderShalimaMonthSummary();
+                        if (typeof shalimaCalSelectedDate !== 'undefined' && shalimaCalSelectedDate) {
+                            renderShalimaDayDetails(shalimaCalSelectedDate);
+                        }
+                        initShalimaCasesCard();
+                        updateShalimaContainerHeight();
+
+                        showMessageModal(`All data restored successfully!\n• ${restoredBookingsCount} Clinic Session Bookings\n• ${restoredShalimaCount} Dr. Shalima Consulted Patient Records`);
                     } catch(err) {
-                        showMessageModal("Invalid JSON file.");
+                        console.error("Import error:", err);
+                        showMessageModal("Error parsing backup JSON file. Please ensure it is a valid backup file.");
                     }
-                }
-            }
+                };
+            };
             input.click();
         }
 
