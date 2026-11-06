@@ -5238,10 +5238,21 @@
             }
         }
 
-        let isShalimaTimeEnabled = true;
+        let isShalimaTimeEnabled = (function() {
+            try {
+                const saved = localStorage.getItem('shalima_pref_time_enabled');
+                if (saved !== null) return saved === 'true';
+            } catch(e) {}
+            return true;
+        })();
 
-        function setShalimaTimeState(enabled) {
+        function setShalimaTimeState(enabled, savePref = true) {
             isShalimaTimeEnabled = !!enabled;
+            if (savePref) {
+                try {
+                    localStorage.setItem('shalima_pref_time_enabled', isShalimaTimeEnabled ? 'true' : 'false');
+                } catch(e) {}
+            }
             const btn = document.getElementById('shalima-time-toggle-btn');
             const thumb = document.getElementById('shalima-time-toggle-thumb');
             const label = document.getElementById('shalima-time-toggle-label');
@@ -5262,7 +5273,8 @@
                 if (nowBtn) nowBtn.classList.remove('hidden');
 
                 if (timeInput && !timeInput.value.trim()) {
-                    setShalimaTimeNow();
+                    const now = new Date();
+                    timeInput.value = now.toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit' });
                 }
             } else {
                 if (btn) btn.className = 'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-gray-300';
@@ -5278,7 +5290,7 @@
         }
 
         function toggleShalimaTime() {
-            setShalimaTimeState(!isShalimaTimeEnabled);
+            setShalimaTimeState(!isShalimaTimeEnabled, true);
         }
 
         function setShalimaTimeNow() {
@@ -5286,7 +5298,7 @@
             const timeStr = now.toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit' });
             const input = document.getElementById('shalima-consult-time');
             if (input) input.value = timeStr;
-            setShalimaTimeState(true);
+            setShalimaTimeState(true, true);
         }
 
         function addDaysToDateStr(baseDateStr, daysToAdd) {
@@ -5332,10 +5344,21 @@
             return dateStr;
         }
 
-        let isShalimaReviewEnabled = true;
+        let isShalimaReviewEnabled = (function() {
+            try {
+                const saved = localStorage.getItem('shalima_pref_review_enabled');
+                if (saved !== null) return saved === 'true';
+            } catch(e) {}
+            return true;
+        })();
 
-        function setShalimaReviewState(enabled) {
+        function setShalimaReviewState(enabled, savePref = true) {
             isShalimaReviewEnabled = !!enabled;
+            if (savePref) {
+                try {
+                    localStorage.setItem('shalima_pref_review_enabled', isShalimaReviewEnabled ? 'true' : 'false');
+                } catch(e) {}
+            }
             const btn = document.getElementById('shalima-review-toggle-btn');
             const thumb = document.getElementById('shalima-review-toggle-thumb');
             const label = document.getElementById('shalima-review-toggle-label');
@@ -5354,6 +5377,7 @@
                 if (offWrap) offWrap.classList.add('hidden');
                 const daysInput = document.getElementById('shalima-review-days');
                 const days = parseInt(daysInput ? daysInput.value : 2) || 2;
+                if (daysInput && !daysInput.value) daysInput.value = '2';
                 onShalimaReviewDaysChange(days);
             } else {
                 if (btn) btn.className = 'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-gray-300';
@@ -5372,7 +5396,7 @@
         }
 
         function toggleShalimaReview() {
-            setShalimaReviewState(!isShalimaReviewEnabled);
+            setShalimaReviewState(!isShalimaReviewEnabled, true);
         }
 
         function onShalimaConsultDateChange(consultVal) {
@@ -5454,13 +5478,39 @@
                 const now = getClinicNow();
                 dateInput.value = (appState && appState.selectedDateStr) ? appState.selectedDateStr : now.todayStr;
             }
-            setShalimaTimeState(true);
+
+            // Restore persistent toggle preferences across new patient bookings
+            let prefTime = true;
+            try {
+                const savedTime = localStorage.getItem('shalima_pref_time_enabled');
+                if (savedTime !== null) prefTime = (savedTime === 'true');
+            } catch(e) {}
+            setShalimaTimeState(prefTime, false);
             const timeInput = document.getElementById('shalima-consult-time');
-            if (timeInput && !timeInput.value) {
-                setShalimaTimeNow();
+            if (prefTime) {
+                if (timeInput && !timeInput.value.trim()) {
+                    const now = new Date();
+                    timeInput.value = now.toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit' });
+                }
+            } else {
+                if (timeInput) timeInput.value = '';
             }
-            setShalimaReviewState(true);
-            onShalimaReviewDaysChange(2);
+
+            let prefReview = true;
+            try {
+                const savedReview = localStorage.getItem('shalima_pref_review_enabled');
+                if (savedReview !== null) prefReview = (savedReview === 'true');
+            } catch(e) {}
+            setShalimaReviewState(prefReview, false);
+            if (prefReview) {
+                onShalimaReviewDaysChange(2);
+            } else {
+                const daysInput = document.getElementById('shalima-review-days');
+                const followupInput = document.getElementById('shalima-next-followup');
+                if (daysInput) daysInput.value = '';
+                if (followupInput) followupInput.value = '';
+            }
+
             initShalimaCalState();
             initShalimaSwipeListeners();
         }
@@ -5470,6 +5520,7 @@
             const nameInput = document.getElementById('shalima-patient-name');
             const phoneInput = document.getElementById('shalima-patient-phone');
             const locInput = document.getElementById('shalima-patient-location');
+            const timeInput = document.getElementById('shalima-consult-time');
             const daysInput = document.getElementById('shalima-review-days');
             const followupInput = document.getElementById('shalima-next-followup');
             const titleEl = document.getElementById('shalima-form-mode-title');
@@ -5480,6 +5531,7 @@
             if (nameInput) nameInput.value = '';
             if (phoneInput) phoneInput.value = '';
             if (locInput) locInput.value = '';
+            if (timeInput) timeInput.value = '';
             if (daysInput) daysInput.value = '2';
             if (followupInput) followupInput.value = '';
 
@@ -5625,20 +5677,20 @@
             if (locInput) locInput.value = caseItem.location || '';
             if (dateInput) dateInput.value = caseItem.consultDate || '';
             if (caseItem.consultTime && caseItem.consultTime.trim() !== '') {
-                setShalimaTimeState(true);
+                setShalimaTimeState(true, false);
                 if (timeInput) timeInput.value = caseItem.consultTime;
             } else {
-                setShalimaTimeState(false);
+                setShalimaTimeState(false, false);
                 if (timeInput) timeInput.value = '';
             }
 
             if (caseItem.reviewDate && caseItem.reviewDate.trim() !== '') {
-                setShalimaReviewState(true);
+                setShalimaReviewState(true, false);
                 if (daysInput) daysInput.value = caseItem.reviewDays || '';
                 if (followupInput) followupInput.value = caseItem.reviewDate || '';
                 onShalimaReviewDateManualChange(caseItem.reviewDate);
             } else {
-                setShalimaReviewState(false);
+                setShalimaReviewState(false, false);
                 if (daysInput) daysInput.value = '';
                 if (followupInput) followupInput.value = '';
             }
