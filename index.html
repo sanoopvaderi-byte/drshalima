@@ -505,254 +505,245 @@
                 </div>
             </button>
 
-            <div id="shalima-cases-card-body" class="hidden space-y-4">
-                <!-- Case Entry / Updation Form -->
-                <div class="bg-[#F7F6F0] rounded-2xl p-4 space-y-3.5 border border-gray-100">
-                    <div class="flex items-center justify-between">
-                        <span id="shalima-form-mode-title" class="text-xs font-bold uppercase tracking-wider text-[#235847]">New Case History Record</span>
-                        <span id="shalima-form-edit-indicator" class="hidden px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Editing Mode</span>
-                    </div>
-
-                    <input type="hidden" id="shalima-case-id" value="">
-
-                    <!-- Row 1: Patient Name & Mobile -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Patient Name *</label>
-                            <input type="text" id="shalima-patient-name" placeholder="Patient Full Name" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Mobile / WhatsApp Number *</label>
-                            <input type="text" id="shalima-patient-phone" placeholder="91XXXXXXXXXX" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
-                        </div>
-                    </div>
-
-                    <!-- Row 2: Case Type & Location -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Case Type *</label>
-                            <div class="grid grid-cols-2 gap-2">
-                                <button type="button" id="shalima-type-initial" onclick="selectShalimaCaseType('Initial')" class="py-2 text-xs font-bold rounded-xl border border-[#235847] bg-[#E8F3EE] text-[#235847] transition">
-                                    Initial
-                                </button>
-                                <button type="button" id="shalima-type-followup" onclick="selectShalimaCaseType('Follow-up')" class="py-2 text-xs font-bold rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition">
-                                    Follow-up
-                                </button>
-                            </div>
-                            <input type="hidden" id="shalima-case-type" value="Initial">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Patient Location *</label>
-                            <input type="text" id="shalima-patient-location" placeholder="City / District / Place (e.g. Kozhikode, Dubai)" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
-                        </div>
-                    </div>
-
-                    <!-- Row 3: Consultation Date & Time with ON/OFF Toggle -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Consultation Date</label>
-                            <input type="date" id="shalima-consult-date" onchange="onShalimaConsultDateChange(this.value)" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
-                        </div>
-                        <div>
-                            <div class="flex items-center justify-between mb-1.5">
-                                <div class="flex items-center space-x-2">
-                                    <label class="text-xs font-semibold text-gray-600">Consultation Time</label>
-                                    <!-- Toggle Switch (ON / OFF) -->
-                                    <div class="inline-flex items-center space-x-1 cursor-pointer" onclick="toggleShalimaTime()" title="Click to toggle Consultation Time ON or OFF">
-                                        <button type="button" id="shalima-time-toggle-btn" class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-[#235847]" role="switch" aria-checked="true">
-                                            <span id="shalima-time-toggle-thumb" class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-4"></span>
-                                        </button>
-                                        <span id="shalima-time-toggle-label" class="text-[10px] font-extrabold text-[#235847] select-none uppercase tracking-wider">ON</span>
-                                    </div>
-                                </div>
-                                <button type="button" id="shalima-time-now-btn" onclick="setShalimaTimeNow()" class="text-[10px] font-bold text-[#235847] hover:underline">Set Current Time</button>
-                            </div>
-                            
-                            <!-- When Time is ON -->
-                            <div id="shalima-time-input-wrap">
-                                <input type="text" id="shalima-consult-time" placeholder="e.g. 11:30 AM" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
-                            </div>
-
-                            <!-- When Time is OFF -->
-                            <div id="shalima-time-off-wrap" class="hidden bg-[#FAF8F3] border border-dashed border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-400 italic flex items-center justify-between">
-                                <span>Time disabled (Date only)</span>
-                                <button type="button" onclick="setShalimaTimeState(true)" class="text-[10px] font-bold text-[#235847] not-italic hover:underline">Turn ON</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Next Review / Follow-up Scheduling Section -->
-                    <div class="bg-white border border-gray-200 rounded-2xl p-3.5 space-y-3">
-                        <div class="flex items-center justify-between flex-wrap gap-2">
-                            <div class="flex items-center space-x-2">
-                                <label class="text-xs font-bold text-gray-800 flex items-center gap-1.5 select-none">
-                                    <span>🔔 Next Review Schedule</span>
-                                </label>
-                                <!-- Toggle Switch (ON / OFF) -->
-                                <div class="inline-flex items-center space-x-1 cursor-pointer" onclick="toggleShalimaReview()" title="Click to toggle Next Review Schedule ON or OFF">
-                                    <button type="button" id="shalima-review-toggle-btn" class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-[#235847]" role="switch" aria-checked="true">
-                                        <span id="shalima-review-toggle-thumb" class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-4"></span>
-                                    </button>
-                                    <span id="shalima-review-toggle-label" class="text-[10px] font-extrabold text-[#235847] select-none uppercase tracking-wider">ON</span>
-                                </div>
-                            </div>
-                            <span id="shalima-calculated-date-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E8F3EE] text-[#235847]">
-                                Default: +2 days
-                            </span>
-                        </div>
-
-                        <!-- 1. When Review is ON: Manually Mention Days or Quick Buttons -->
-                        <div id="shalima-review-content-wrap" class="space-y-2">
-                            <div class="flex items-center gap-2">
-                                <div class="flex-1">
-                                    <label class="block text-[11px] font-semibold text-gray-500 mb-1">Next review after (number of days):</label>
-                                    <input type="number" id="shalima-review-days" min="1" max="365" value="2" oninput="onShalimaReviewDaysChange(this.value)" placeholder="e.g. 2" class="w-full bg-[#F7F6F0] border border-gray-200 rounded-xl px-3 py-2 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-[#235847] outline-none">
-                                </div>
-                                <div class="flex-1">
-                                    <label class="block text-[11px] font-semibold text-gray-500 mb-1">Or pick review date directly:</label>
-                                    <input type="date" id="shalima-next-followup" onchange="onShalimaReviewDateManualChange(this.value)" class="w-full bg-[#F7F6F0] border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:ring-2 focus:ring-[#235847] outline-none">
-                                </div>
-                            </div>
-
-                            <!-- Quick Day Chips -->
-                            <div class="flex items-center gap-1.5 flex-wrap">
-                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mr-0.5">Quick days:</span>
-                                <button type="button" onclick="setShalimaReviewDays(1)" class="px-2 py-1 bg-[#F7F6F0] hover:bg-[#E8F3EE] hover:text-[#235847] text-gray-700 text-[11px] font-bold rounded-lg border border-gray-200 transition">+1 day</button>
-                                <button type="button" onclick="setShalimaReviewDays(2)" class="px-2 py-1 bg-[#E8F3EE] text-[#235847] text-[11px] font-bold rounded-lg border border-[#235847] transition">+2 days</button>
-                                <button type="button" onclick="setShalimaReviewDays(3)" class="px-2 py-1 bg-[#F7F6F0] hover:bg-[#E8F3EE] hover:text-[#235847] text-gray-700 text-[11px] font-bold rounded-lg border border-gray-200 transition">+3 days</button>
-                                <button type="button" onclick="setShalimaReviewDays(5)" class="px-2 py-1 bg-[#F7F6F0] hover:bg-[#E8F3EE] hover:text-[#235847] text-gray-700 text-[11px] font-bold rounded-lg border border-gray-200 transition">+5 days</button>
-                                <button type="button" onclick="setShalimaReviewDays(7)" class="px-2 py-1 bg-[#F7F6F0] hover:bg-[#E8F3EE] hover:text-[#235847] text-gray-700 text-[11px] font-bold rounded-lg border border-gray-200 transition">+7 days</button>
-                                <button type="button" onclick="setShalimaReviewDays(14)" class="px-2 py-1 bg-[#F7F6F0] hover:bg-[#E8F3EE] hover:text-[#235847] text-gray-700 text-[11px] font-bold rounded-lg border border-gray-200 transition">+14 days</button>
-                                <button type="button" onclick="setShalimaReviewDays(30)" class="px-2 py-1 bg-[#F7F6F0] hover:bg-[#E8F3EE] hover:text-[#235847] text-gray-700 text-[11px] font-bold rounded-lg border border-gray-200 transition">+30 days</button>
-                            </div>
-
-                            <!-- Target Date Preview Banner -->
-                            <div class="bg-[#F7F6F0] rounded-xl px-3 py-2 flex items-center justify-between text-xs">
-                                <span class="text-gray-600 font-medium">Calculated Target Review:</span>
-                                <span id="shalima-calculated-date-text" class="font-bold text-[#235847]">...</span>
-                            </div>
-                        </div>
-
-                        <!-- 2. When Review is OFF -->
-                        <div id="shalima-review-off-wrap" class="hidden bg-[#FAF8F3] border border-dashed border-gray-300 rounded-xl px-3 py-2.5 text-xs text-gray-500 italic flex items-center justify-between">
-                            <div class="flex items-center gap-1.5">
-                                <span>⚪ No next review scheduled (Single consultation / Case completed)</span>
-                            </div>
-                            <button type="button" onclick="setShalimaReviewState(true)" class="text-[10px] font-bold text-[#235847] not-italic hover:underline ml-2">Turn ON</button>
-                        </div>
-                    </div>
-
-                    <!-- Form Action Buttons -->
-                    <div class="flex items-center gap-2 pt-1">
-                        <button type="button" id="btn-save-shalima-case" onclick="saveShalimaCase()" class="flex-1 py-3 bg-[#235847] hover:bg-[#1B4739] text-white font-semibold text-xs sm:text-sm rounded-xl transition shadow-sm active:scale-[0.99] flex items-center justify-center gap-1.5">
-                            <span>💾 Save Patient Record</span>
+                        <div id="shalima-cases-card-body" class="hidden space-y-3">
+                <!-- Top Header & Navigation Bar (Swipe Header: New Record vs Calendar) -->
+                <div class="flex items-center justify-between flex-wrap gap-2 pb-1 border-b border-gray-100">
+                    <!-- Navigation Tabs -->
+                    <div class="inline-flex p-1 bg-[#F7F6F0] rounded-2xl border border-gray-200">
+                        <button type="button" id="shalima-view-tab-form" onclick="switchShalimaView('form')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#235847] text-white shadow-xs">
+                            <span>📝 New Case Record</span>
                         </button>
-                        <button type="button" id="btn-cancel-shalima-case" onclick="resetShalimaCaseForm()" class="px-4 py-3 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-semibold text-xs rounded-xl transition">
-                            Clear
+                        <button type="button" id="shalima-view-tab-calendar" onclick="switchShalimaView('calendar')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-gray-600 hover:text-gray-900">
+                            <span>📅 Calendar Details</span>
+                            <span id="shalima-calendar-tab-badge" class="px-1.5 py-0.2 bg-[#235847]/10 text-[#235847] rounded-full text-[10px] hidden">0</span>
+                        </button>
+                    </div>
+
+                    <!-- Swipe Tip & Export Excel -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] text-gray-400 font-medium flex items-center gap-1 select-none">
+                            <span>👈 Swipe 👉</span>
+                        </span>
+                        <button type="button" onclick="exportShalimaCasesExcel()" class="px-2.5 py-1.5 bg-[#E8F3EE] hover:bg-[#D4E8DF] text-[#235847] font-semibold text-xs rounded-xl transition flex items-center gap-1" title="Download Excel sheet of all case histories">
+                            📊 Export Excel
                         </button>
                     </div>
                 </div>
 
-                <!-- Saved Cases & Calendar Views (Swipeable Carousel) -->
-                <div class="space-y-3 pt-2">
-                    <div class="flex items-center justify-between flex-wrap gap-2">
-                        <!-- Navigation Tabs (List vs Calendar) -->
-                        <div class="inline-flex p-1 bg-[#F7F6F0] rounded-2xl border border-gray-200">
-                            <button type="button" id="shalima-view-tab-list" onclick="switchShalimaView('list')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#235847] text-white shadow-xs">
-                                <span>📋 Case Records</span>
-                                <span id="shalima-cases-tab-count" class="px-1.5 py-0.2 bg-white/20 text-white rounded-full text-[10px]">0</span>
-                            </button>
-                            <button type="button" id="shalima-view-tab-calendar" onclick="switchShalimaView('calendar')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-gray-600 hover:text-gray-900">
-                                <span>📅 Date &amp; Calendar View</span>
-                                <span id="shalima-calendar-tab-badge" class="px-1.5 py-0.2 bg-[#235847]/10 text-[#235847] rounded-full text-[10px] hidden">0</span>
-                            </button>
-                        </div>
-
-                        <!-- Tip & Export Excel -->
-                        <div class="flex items-center gap-2">
-                            <span class="text-[11px] text-gray-400 font-medium flex items-center gap-1 select-none">
-                                <span>👈 Swipe 👉</span>
-                            </span>
-                            <button type="button" onclick="exportShalimaCasesExcel()" class="px-2.5 py-1.5 bg-[#E8F3EE] hover:bg-[#D4E8DF] text-[#235847] font-semibold text-xs rounded-xl transition flex items-center gap-1" title="Download Excel sheet of all case histories">
-                                📊 Export Excel
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Swipeable Carousel Container -->
-                    <div id="shalima-swipe-container" class="relative overflow-hidden rounded-2xl">
-                        <div id="shalima-swipe-track" class="flex transition-transform duration-300 ease-out" style="transform: translateX(0%);">
-                            
-                            <!-- SLIDE 1: Saved Case Records List View -->
-                            <div class="w-full flex-shrink-0 space-y-3 pr-0.5">
-                                <!-- Search & Filter Bar -->
-                                <div class="flex items-center gap-2">
-                                    <div class="relative flex-1">
-                                        <input type="text" id="shalima-cases-search" oninput="renderShalimaCasesList()" placeholder="Search by name, mobile, location, notes..." class="w-full bg-[#F7F6F0] border border-gray-200 rounded-xl pl-8 pr-3 py-2 text-xs text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
-                                        <span class="absolute left-2.5 top-2 text-gray-400 text-xs">🔍</span>
+                <!-- Swipeable Container: Slide 1 = New Case History Record, Slide 2 = Calendar Details -->
+                <div id="shalima-swipe-container" class="relative overflow-hidden rounded-2xl">
+                    <div id="shalima-swipe-track" class="flex transition-transform duration-300 ease-out" style="transform: translateX(0%);">
+                        
+                        <!-- SLIDE 1: New Case History Record Form -->
+                        <div class="w-full flex-shrink-0 pr-0.5">
+                            <div class="bg-[#F7F6F0] rounded-2xl p-4 space-y-3.5 border border-gray-100">
+                                <div class="flex items-center justify-between">
+                                    <span id="shalima-form-mode-title" class="text-xs font-bold uppercase tracking-wider text-[#235847]">New Case History Record</span>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" onclick="switchShalimaView('calendar')" class="text-[11px] font-semibold text-[#235847] hover:underline flex items-center gap-1">
+                                            <span>📅 View Calendar</span>
+                                            <span>→</span>
+                                        </button>
+                                        <span id="shalima-form-edit-indicator" class="hidden px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Editing Mode</span>
                                     </div>
-                                    <select id="shalima-cases-filter-type" onchange="renderShalimaCasesList()" class="bg-[#F7F6F0] border border-gray-200 rounded-xl px-2.5 py-2 text-xs font-semibold text-gray-700 outline-none">
-                                        <option value="all">All Cases</option>
-                                        <option value="Initial">Initial</option>
-                                        <option value="Follow-up">Follow-up</option>
-                                    </select>
                                 </div>
 
-                                <!-- Dynamic List of Saved Cases -->
-                                <div id="shalima-cases-list" class="space-y-3 max-h-96 overflow-y-auto pr-1">
+                                <input type="hidden" id="shalima-case-id" value="">
+
+                                <!-- Row 1: Patient Name & Mobile -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-600 mb-1">Patient Name *</label>
+                                        <input type="text" id="shalima-patient-name" placeholder="Patient Full Name" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-600 mb-1">Mobile / WhatsApp Number *</label>
+                                        <input type="text" id="shalima-patient-phone" placeholder="91XXXXXXXXXX" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                                    </div>
+                                </div>
+
+                                <!-- Row 2: Case Type & Location -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-600 mb-1">Case Type *</label>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <button type="button" id="shalima-type-initial" onclick="selectShalimaCaseType('Initial')" class="py-2 text-xs font-bold rounded-xl border border-[#235847] bg-[#E8F3EE] text-[#235847] transition">
+                                                Initial
+                                            </button>
+                                            <button type="button" id="shalima-type-followup" onclick="selectShalimaCaseType('Follow-up')" class="py-2 text-xs font-bold rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition">
+                                                Follow-up
+                                            </button>
+                                        </div>
+                                        <input type="hidden" id="shalima-case-type" value="Initial">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-600 mb-1">Patient Location *</label>
+                                        <input type="text" id="shalima-patient-location" placeholder="City / District / Place (e.g. Kozhikode, Dubai)" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                                    </div>
+                                </div>
+
+                                <!-- Row 3: Consultation Date & Time with ON/OFF Toggle -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-600 mb-1">Consultation Date</label>
+                                        <input type="date" id="shalima-consult-date" onchange="onShalimaConsultDateChange(this.value)" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1.5">
+                                            <div class="flex items-center space-x-2">
+                                                <label class="text-xs font-semibold text-gray-600">Consultation Time</label>
+                                                <!-- Toggle Switch (ON / OFF) -->
+                                                <div class="inline-flex items-center space-x-1 cursor-pointer" onclick="toggleShalimaTime()" title="Click to toggle Consultation Time ON or OFF">
+                                                    <button type="button" id="shalima-time-toggle-btn" class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-[#235847]" role="switch" aria-checked="true">
+                                                        <span id="shalima-time-toggle-thumb" class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-4"></span>
+                                                    </button>
+                                                    <span id="shalima-time-toggle-label" class="text-[10px] font-extrabold text-[#235847] select-none uppercase tracking-wider">ON</span>
+                                                </div>
+                                            </div>
+                                            <button type="button" id="shalima-time-now-btn" onclick="setShalimaTimeNow()" class="text-[10px] font-bold text-[#235847] hover:underline">Set Current Time</button>
+                                        </div>
+                                        
+                                        <!-- When Time is ON -->
+                                        <div id="shalima-time-input-wrap">
+                                            <input type="text" id="shalima-consult-time" placeholder="e.g. 11:30 AM" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                                        </div>
+
+                                        <!-- When Time is OFF -->
+                                        <div id="shalima-time-off-wrap" class="hidden bg-[#FAF8F3] border border-dashed border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-400 italic flex items-center justify-between">
+                                            <span>Time disabled (Date only)</span>
+                                            <button type="button" onclick="setShalimaTimeState(true)" class="text-[10px] font-bold text-[#235847] not-italic hover:underline">Turn ON</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Next Review / Follow-up Scheduling Section -->
+                                <div class="bg-white border border-gray-200 rounded-2xl p-3.5 space-y-3">
+                                    <div class="flex items-center justify-between flex-wrap gap-2">
+                                        <div class="flex items-center space-x-2">
+                                            <label class="text-xs font-bold text-gray-800 flex items-center gap-1.5 select-none">
+                                                <span>🔔 Next Review Schedule</span>
+                                            </label>
+                                            <!-- Toggle Switch (ON / OFF) -->
+                                            <div class="inline-flex items-center space-x-1 cursor-pointer" onclick="toggleShalimaReview()" title="Click to toggle Next Review Schedule ON or OFF">
+                                                <button type="button" id="shalima-review-toggle-btn" class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-[#235847]" role="switch" aria-checked="true">
+                                                    <span id="shalima-review-toggle-thumb" class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-4"></span>
+                                                </button>
+                                                <span id="shalima-review-toggle-label" class="text-[10px] font-extrabold text-[#235847] select-none uppercase tracking-wider">ON</span>
+                                            </div>
+                                        </div>
+                                        <span id="shalima-calculated-date-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E8F3EE] text-[#235847]">
+                                            Default: +2 days
+                                        </span>
+                                    </div>
+
+                                    <!-- 1. When Review is ON: Manually Mention Days or Quick Buttons -->
+                                    <div id="shalima-review-content-wrap" class="space-y-2">
+                                        <div class="flex items-center gap-2">
+                                            <div class="flex-1">
+                                                <label class="block text-[11px] font-semibold text-gray-500 mb-1">Next review after (number of days):</label>
+                                                <input type="number" id="shalima-review-days" min="1" max="365" value="2" oninput="onShalimaReviewDaysChange(this.value)" placeholder="e.g. 2" class="w-full bg-[#F7F6F0] border border-gray-200 rounded-xl px-3 py-2 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-[#235847] outline-none">
+                                            </div>
+                                            <div class="flex-1">
+                                                <label class="block text-[11px] font-semibold text-gray-500 mb-1">Or pick review date directly:</label>
+                                                <input type="date" id="shalima-next-followup" onchange="onShalimaReviewDateManualChange(this.value)" class="w-full bg-[#F7F6F0] border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:ring-2 focus:ring-[#235847] outline-none">
+                                            </div>
+                                        </div>
+
+                                        <!-- Quick Day Chips -->
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mr-0.5">Quick days:</span>
+                                            <button type="button" onclick="setShalimaReviewDays(1)" class="px-2 py-1 bg-[#F7F6F0] hover:bg-[#E8F3EE] hover:text-[#235847] text-gray-700 text-[11px] font-bold rounded-lg border border-gray-200 transition">+1 day</button>
+                                            <button type="button" onclick="setShalimaReviewDays(2)" class="px-2 py-1 bg-[#E8F3EE] text-[#235847] text-[11px] font-bold rounded-lg border border-[#235847] transition">+2 days</button>
+                                            <button type="button" onclick="setShalimaReviewDays(3)" class="px-2 py-1 bg-[#F7F6F0] hover:bg-[#E8F3EE] hover:text-[#235847] text-gray-700 text-[11px] font-bold rounded-lg border border-gray-200 transition">+3 days</button>
+                                            <button type="button" onclick="setShalimaReviewDays(5)" class="px-2 py-1 bg-[#F7F6F0] hover:bg-[#E8F3EE] hover:text-[#235847] text-gray-700 text-[11px] font-bold rounded-lg border border-gray-200 transition">+5 days</button>
+                                            <button type="button" onclick="setShalimaReviewDays(7)" class="px-2 py-1 bg-[#F7F6F0] hover:bg-[#E8F3EE] hover:text-[#235847] text-gray-700 text-[11px] font-bold rounded-lg border border-gray-200 transition">+7 days</button>
+                                            <button type="button" onclick="setShalimaReviewDays(14)" class="px-2 py-1 bg-[#F7F6F0] hover:bg-[#E8F3EE] hover:text-[#235847] text-gray-700 text-[11px] font-bold rounded-lg border border-gray-200 transition">+14 days</button>
+                                            <button type="button" onclick="setShalimaReviewDays(30)" class="px-2 py-1 bg-[#F7F6F0] hover:bg-[#E8F3EE] hover:text-[#235847] text-gray-700 text-[11px] font-bold rounded-lg border border-gray-200 transition">+30 days</button>
+                                        </div>
+
+                                        <!-- Target Date Preview Banner -->
+                                        <div class="bg-[#F7F6F0] rounded-xl px-3 py-2 flex items-center justify-between text-xs">
+                                            <span class="text-gray-600 font-medium">Calculated Target Review:</span>
+                                            <span id="shalima-calculated-date-text" class="font-bold text-[#235847]">...</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- 2. When Review is OFF -->
+                                    <div id="shalima-review-off-wrap" class="hidden bg-[#FAF8F3] border border-dashed border-gray-300 rounded-xl px-3 py-2.5 text-xs text-gray-500 italic flex items-center justify-between">
+                                        <div class="flex items-center gap-1.5">
+                                            <span>⚪ No next review scheduled (Single consultation / Case completed)</span>
+                                        </div>
+                                        <button type="button" onclick="setShalimaReviewState(true)" class="text-[10px] font-bold text-[#235847] not-italic hover:underline ml-2">Turn ON</button>
+                                    </div>
+                                </div>
+
+                                <!-- Form Action Buttons -->
+                                <div class="flex items-center gap-2 pt-1">
+                                    <button type="button" id="btn-save-shalima-case" onclick="saveShalimaCase()" class="flex-1 py-3 bg-[#235847] hover:bg-[#1B4739] text-white font-semibold text-xs sm:text-sm rounded-xl transition shadow-sm active:scale-[0.99] flex items-center justify-center gap-1.5">
+                                        <span>💾 Save Patient Record</span>
+                                    </button>
+                                    <button type="button" id="btn-cancel-shalima-case" onclick="resetShalimaCaseForm()" class="px-4 py-3 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-semibold text-xs rounded-xl transition">
+                                        Clear
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SLIDE 2: Calendar & Date-wise Booked Person View -->
+                        <div class="w-full flex-shrink-0 pl-0.5 space-y-3">
+                            <div class="flex items-center justify-between px-1">
+                                <span class="text-xs font-bold uppercase tracking-wider text-[#235847]">Calendar &amp; Scheduled Bookings</span>
+                                <button type="button" onclick="switchShalimaView('form')" class="text-[11px] font-semibold text-[#235847] hover:underline flex items-center gap-1">
+                                    <span>← Back to Case Form</span>
+                                </button>
+                            </div>
+
+                            <!-- Calendar Card Header: Month/Year Nav & Quick Controls -->
+                            <div class="bg-[#F7F6F0] rounded-2xl p-3 border border-gray-200 space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <h4 id="shalima-cal-month-year" class="text-sm sm:text-base font-bold text-gray-900">November 2026</h4>
+                                        <button type="button" onclick="setShalimaCalToday()" class="px-2 py-0.5 text-[11px] font-bold text-[#235847] bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-2xs">Today</button>
+                                    </div>
+                                    <div class="flex items-center space-x-1">
+                                        <button type="button" onclick="changeShalimaCalMonth(-1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-700 text-xs hover:bg-gray-100 font-bold transition">◀</button>
+                                        <button type="button" onclick="changeShalimaCalMonth(1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-700 text-xs hover:bg-gray-100 font-bold transition">▶</button>
+                                    </div>
+                                </div>
+
+                                <!-- Days of week -->
+                                <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">
+                                    <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                                </div>
+
+                                <!-- Days Grid -->
+                                <div id="shalima-cal-days-grid" class="grid grid-cols-7 gap-1">
                                     <!-- Populated by JavaScript -->
                                 </div>
-                            </div>
 
-                            <!-- SLIDE 2: Calendar & Date-wise Booked Person View -->
-                            <div class="w-full flex-shrink-0 space-y-3 pl-0.5">
-                                <!-- Calendar Card Header: Month/Year Nav & Quick Controls -->
-                                <div class="bg-[#F7F6F0] rounded-2xl p-3 border border-gray-200 space-y-3">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center space-x-2">
-                                            <h4 id="shalima-cal-month-year" class="text-sm sm:text-base font-bold text-gray-900">November 2026</h4>
-                                            <button type="button" onclick="setShalimaCalToday()" class="px-2 py-0.5 text-[11px] font-bold text-[#235847] bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-2xs">Today</button>
-                                        </div>
-                                        <div class="flex items-center space-x-1">
-                                            <button type="button" onclick="changeShalimaCalMonth(-1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-700 text-xs hover:bg-gray-100 font-bold transition">◀</button>
-                                            <button type="button" onclick="changeShalimaCalMonth(1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-700 text-xs hover:bg-gray-100 font-bold transition">▶</button>
-                                        </div>
+                                <!-- Legend -->
+                                <div class="flex items-center justify-between text-[11px] text-gray-500 pt-1 border-t border-gray-200/60 flex-wrap gap-2">
+                                    <div class="flex items-center gap-3">
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#235847]"></span> Consulted</span>
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#D97706]"></span> Review Due</span>
                                     </div>
-
-                                    <!-- Days of week -->
-                                    <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">
-                                        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
-                                    </div>
-
-                                    <!-- Days Grid -->
-                                    <div id="shalima-cal-days-grid" class="grid grid-cols-7 gap-1">
-                                        <!-- Populated by JavaScript -->
-                                    </div>
-
-                                    <!-- Legend -->
-                                    <div class="flex items-center justify-between text-[11px] text-gray-500 pt-1 border-t border-gray-200/60 flex-wrap gap-2">
-                                        <div class="flex items-center gap-3">
-                                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#235847]"></span> Consulted</span>
-                                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#D97706]"></span> Review Due</span>
-                                        </div>
-                                        <span class="text-[10px] text-gray-400">Tap date to view booked person details</span>
-                                    </div>
-                                </div>
-
-                                <!-- Date-wise Booked Person Details Box (Populated when date is tapped) -->
-                                <div id="shalima-cal-selected-day-container" class="space-y-2">
-                                    <!-- Populated by renderShalimaDayDetails() -->
+                                    <span class="text-[10px] text-gray-400">Tap date to view booked person details</span>
                                 </div>
                             </div>
 
+                            <!-- Date-wise Booked Person Details Box (Populated when date is tapped) -->
+                            <div id="shalima-cal-selected-day-container" class="space-y-2">
+                                <!-- Populated by renderShalimaDayDetails() -->
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Slide dots indicator (for mobile swipe awareness) -->
-                    <div class="flex items-center justify-center space-x-1.5 pt-1">
-                        <button type="button" onclick="switchShalimaView('list')" id="shalima-dot-list" class="w-2 h-2 rounded-full bg-[#235847] transition-all" title="List View"></button>
-                        <button type="button" onclick="switchShalimaView('calendar')" id="shalima-dot-calendar" class="w-2 h-2 rounded-full bg-gray-300 hover:bg-gray-400 transition-all" title="Calendar View"></button>
                     </div>
+                </div>
+
+                <!-- Slide dots indicator -->
+                <div class="flex items-center justify-center space-x-1.5 pt-1">
+                    <button type="button" onclick="switchShalimaView('form')" id="shalima-dot-form" class="w-2 h-2 rounded-full bg-[#235847] transition-all" title="New Case Record"></button>
+                    <button type="button" onclick="switchShalimaView('calendar')" id="shalima-dot-calendar" class="w-2 h-2 rounded-full bg-gray-300 hover:bg-gray-400 transition-all" title="Calendar View"></button>
                 </div>
             </div>
         </div>
@@ -2188,7 +2179,7 @@
 
             const activationTag = 'clinic_mobile_push_active_' + Date.now();
             const activationTitle = "📲 Dr. Shalima's Mind Clinic — Mobile Alerts Active";
-            const activationBody = "Real-time phone notifications are enabled:\n• Instant alert when a new counselling session is booked\n• Automatic reminder 10 minutes before each scheduled session";
+            const activationBody = "Real-time phone notifications are enabled:\r\n• Instant alert when a new counselling session is booked\r\n• Automatic reminder 10 minutes before each scheduled session";
 
             const fireActivationPush = () => {
                 sendSystemBrowserNotification(activationTitle, activationBody, activationTag, true);
@@ -2270,11 +2261,11 @@
             const topic = getMobilePushTopic();
             const testTag = 'clinic_test_phone_' + Date.now();
             const testTitle = "🔔 Test Notification — Dr. Shalima's Mind Clinic";
-            const testBody = "✅ Live phone notifications are working perfectly!\n• New booking alerts: Active\n• 10-minute session reminders: Active";
+            const testBody = "✅ Live phone notifications are working perfectly!\r\n• New booking alerts: Active\r\n• 10-minute session reminders: Active";
 
             sendSystemBrowserNotification(testTitle, testBody, testTag, true);
             sendMobileCloudPush(testTitle, testBody, testTag, true);
-            showMessageModal(`📲 Test notification sent to your phone (Channel: "${topic}")!\n\n• If your clinic browser is active, it sounds immediately.\n• For 24/7 locked-screen alerts, ensure your phone is subscribed to:\nhttps://ntfy.sh/${topic}`);
+            showMessageModal(`📲 Test notification sent to your phone (Channel: "${topic}")!\r\n\r\n• If your clinic browser is active, it sounds immediately.\r\n• For 24/7 locked-screen alerts, ensure your phone is subscribed to:\r\nhttps://ntfy.sh/${topic}`);
         }
 
         // Push real-time notification directly to mobile phones via ntfy.sh (works even when mobile browser is closed)
@@ -2409,15 +2400,15 @@
             if (isNewBooking) {
                 notifTitle = `📅 New Counselling Session Booked — Dr. Shalima's Mind Clinic`;
                 const followupLine = followupBooking
-                    ? `\nFollow-up Scheduled: ${followupBooking.date} (${followupBooking.time})`
+                    ? `\r\nFollow-up Scheduled: ${followupBooking.date} (${followupBooking.time})`
                     : '';
-                notifBody = `Client: ${booking.clientName} (${booking.phone})\nPsychologist: ${booking.psychologist}\nDate & Time: ${booking.date} | ${booking.time}\nSession: ${caseSummary}${followupLine}`;
+                notifBody = `Client: ${booking.clientName} (${booking.phone})\r\nPsychologist: ${booking.psychologist}\r\nDate & Time: ${booking.date} | ${booking.time}\r\nSession: ${caseSummary}${followupLine}`;
             } else {
                 const timeStatus = minsLeft > 0
                     ? `Starting in ${minsLeft} Min${minsLeft === 1 ? '' : 's'}`
                     : 'Starting Now';
                 notifTitle = `⏰ Upcoming Counselling Session (${timeStatus}) — Dr. Shalima's Mind Clinic`;
-                notifBody = `Client: ${booking.clientName} (${booking.phone})\nPsychologist: ${booking.psychologist}\nScheduled Time: ${booking.time} (${booking.date})\nSession: ${caseSummary}`;
+                notifBody = `Client: ${booking.clientName} (${booking.phone})\r\nPsychologist: ${booking.psychologist}\r\nScheduled Time: ${booking.time} (${booking.date})\r\nSession: ${caseSummary}`;
             }
 
             sendSystemBrowserNotification(notifTitle, notifBody, notifTag);
@@ -3559,10 +3550,10 @@
                 const modeText = newBooking.consultationMode || 'Offline';
                 const caseSummary = `${newBooking.caseType} • ${newBooking.sessionType} (${modeText}${channelText ? ' • ' + channelText : ''})`;
                 const followupLine = createdFollowupBooking
-                    ? `\nFollow-up Scheduled: ${createdFollowupBooking.date} (${createdFollowupBooking.time})`
+                    ? `\r\nFollow-up Scheduled: ${createdFollowupBooking.date} (${createdFollowupBooking.time})`
                     : '';
                 const notifTitle = `📅 New Counselling Session Booked — Dr. Shalima's Mind Clinic`;
-                const notifBody = `Client: ${newBooking.clientName} (${newBooking.phone})\nPsychologist: ${newBooking.psychologist}\nDate & Time: ${newBooking.date} | ${newBooking.time}\nSession: ${caseSummary}${followupLine}`;
+                const notifBody = `Client: ${newBooking.clientName} (${newBooking.phone})\r\nPsychologist: ${newBooking.psychologist}\r\nDate & Time: ${newBooking.date} | ${newBooking.time}\r\nSession: ${caseSummary}${followupLine}`;
                 sendMobileCloudPush(notifTitle, notifBody, 'clinic_new_booking_' + newBooking.id, true);
             }
 
@@ -5642,8 +5633,8 @@
             resetShalimaCaseForm();
 
             const reviewMsg = reviewDate
-                ? `\nNext review scheduled for ${formatReviewDateDisplay(reviewDate)}.`
-                : '\nNext review: Not scheduled (Case completed).';
+                ? `\r\nNext review scheduled for ${formatReviewDateDisplay(reviewDate)}.`
+                : '\r\nNext review: Not scheduled (Case completed).';
             showMessageModal(`Doctor patient record for "${patientName}" saved successfully!${reviewMsg}`);
         }
 
@@ -5651,6 +5642,8 @@
             if (!appState || !Array.isArray(appState.shalimaCases)) return;
             const caseItem = appState.shalimaCases.find(c => c.id === caseId);
             if (!caseItem) return;
+
+            switchShalimaView('form');
 
             const body = document.getElementById('shalima-cases-card-body');
             if (body && body.classList.contains('hidden')) {
@@ -5810,7 +5803,7 @@ Dr. Shalima's Mind Clinic`;
                 .replace(/'/g, '&#039;');
         }
 
-        let currentShalimaView = 'list'; // 'list' | 'calendar'
+        let currentShalimaView = 'form'; // 'form' | 'calendar'
         let shalimaCalYear = null;
         let shalimaCalMonth = null;
         let shalimaCalSelectedDate = null;
@@ -5833,22 +5826,22 @@ Dr. Shalima's Mind Clinic`;
         }
 
         function switchShalimaView(view) {
-            currentShalimaView = view;
+            currentShalimaView = (view === 'calendar') ? 'calendar' : 'form';
             const track = document.getElementById('shalima-swipe-track');
-            const tabList = document.getElementById('shalima-view-tab-list');
+            const tabForm = document.getElementById('shalima-view-tab-form');
             const tabCal = document.getElementById('shalima-view-tab-calendar');
-            const dotList = document.getElementById('shalima-dot-list');
+            const dotForm = document.getElementById('shalima-dot-form');
             const dotCal = document.getElementById('shalima-dot-calendar');
 
-            if (view === 'calendar') {
+            if (currentShalimaView === 'calendar') {
                 if (track) track.style.transform = 'translateX(-100%)';
-                if (tabList) {
-                    tabList.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-gray-600 hover:text-gray-900';
+                if (tabForm) {
+                    tabForm.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-gray-600 hover:text-gray-900';
                 }
                 if (tabCal) {
                     tabCal.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#235847] text-white shadow-xs';
                 }
-                if (dotList) dotList.className = 'w-2 h-2 rounded-full bg-gray-300 hover:bg-gray-400 transition-all';
+                if (dotForm) dotForm.className = 'w-2 h-2 rounded-full bg-gray-300 hover:bg-gray-400 transition-all';
                 if (dotCal) dotCal.className = 'w-2 h-2 rounded-full bg-[#235847] transition-all';
                 
                 initShalimaCalState();
@@ -5859,13 +5852,13 @@ Dr. Shalima's Mind Clinic`;
                 renderShalimaDayDetails(shalimaCalSelectedDate);
             } else {
                 if (track) track.style.transform = 'translateX(0%)';
-                if (tabList) {
-                    tabList.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#235847] text-white shadow-xs';
+                if (tabForm) {
+                    tabForm.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#235847] text-white shadow-xs';
                 }
                 if (tabCal) {
                     tabCal.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-gray-600 hover:text-gray-900';
                 }
-                if (dotList) dotList.className = 'w-2 h-2 rounded-full bg-[#235847] transition-all';
+                if (dotForm) dotForm.className = 'w-2 h-2 rounded-full bg-[#235847] transition-all';
                 if (dotCal) dotCal.className = 'w-2 h-2 rounded-full bg-gray-300 hover:bg-gray-400 transition-all';
             }
         }
@@ -5879,6 +5872,12 @@ Dr. Shalima's Mind Clinic`;
             let startY = 0;
 
             container.addEventListener('touchstart', (e) => {
+                const target = e.target;
+                if (target && (target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON' || target.closest('button'))) {
+                    startX = 0;
+                    startY = 0;
+                    return;
+                }
                 if (e.touches && e.touches.length === 1) {
                     startX = e.touches[0].clientX;
                     startY = e.touches[0].clientY;
@@ -5886,6 +5885,7 @@ Dr. Shalima's Mind Clinic`;
             }, { passive: true });
 
             container.addEventListener('touchend', (e) => {
+                if (startX === 0 && startY === 0) return;
                 if (e.changedTouches && e.changedTouches.length === 1) {
                     const endX = e.changedTouches[0].clientX;
                     const endY = e.changedTouches[0].clientY;
@@ -5898,8 +5898,8 @@ Dr. Shalima's Mind Clinic`;
                             // Swiped left -> open calendar view
                             switchShalimaView('calendar');
                         } else {
-                            // Swiped right -> open list view
-                            switchShalimaView('list');
+                            // Swiped right -> open form view
+                            switchShalimaView('form');
                         }
                     }
                 }
