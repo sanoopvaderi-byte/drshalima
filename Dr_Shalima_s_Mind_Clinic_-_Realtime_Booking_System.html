@@ -684,11 +684,11 @@
                                 </div>
 
                                 <!-- Form Action Buttons -->
-                                <div class="flex items-center gap-2 pt-1">
-                                    <button type="button" id="btn-save-shalima-case" onclick="saveShalimaCase()" class="flex-1 py-3 bg-[#235847] hover:bg-[#1B4739] text-white font-semibold text-xs sm:text-sm rounded-xl transition shadow-sm active:scale-[0.99] flex items-center justify-center gap-1.5">
+                                <div class="flex items-center gap-2 pt-2 pb-1">
+                                    <button type="button" id="btn-save-shalima-case" onclick="saveShalimaCase()" class="flex-1 py-3.5 bg-[#235847] hover:bg-[#1B4739] text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-sm active:scale-[0.99] flex items-center justify-center gap-1.5 cursor-pointer">
                                         <span>💾 Save Patient Record</span>
                                     </button>
-                                    <button type="button" id="btn-cancel-shalima-case" onclick="resetShalimaCaseForm()" class="px-4 py-3 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-semibold text-xs rounded-xl transition">
+                                    <button type="button" id="btn-cancel-shalima-case" onclick="resetShalimaCaseForm()" class="px-4 py-3.5 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-semibold text-xs rounded-xl transition cursor-pointer">
                                         Clear
                                     </button>
                                 </div>
@@ -5391,6 +5391,12 @@
                 if (offWrap) offWrap.classList.remove('hidden');
                 if (nowBtn) nowBtn.classList.add('hidden');
             }
+
+            if (typeof updateShalimaContainerHeight === 'function') {
+                updateShalimaContainerHeight();
+                setTimeout(updateShalimaContainerHeight, 40);
+                setTimeout(updateShalimaContainerHeight, 150);
+            }
         }
 
         function toggleShalimaTime() {
@@ -5497,6 +5503,21 @@
                     badgeEl.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-500';
                 }
             }
+
+            if (typeof updateShalimaContainerHeight === 'function') {
+                updateShalimaContainerHeight();
+                setTimeout(updateShalimaContainerHeight, 40);
+                setTimeout(updateShalimaContainerHeight, 150);
+            }
+
+            if (isShalimaReviewEnabled) {
+                const saveBtn = document.getElementById('btn-save-shalima-case');
+                if (saveBtn) {
+                    setTimeout(() => {
+                        saveBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 100);
+                }
+            }
         }
 
         function toggleShalimaReview() {
@@ -5516,6 +5537,9 @@
                 } else {
                     warnEl.classList.add('hidden');
                 }
+            }
+            if (typeof updateShalimaContainerHeight === 'function') {
+                updateShalimaContainerHeight();
             }
         }
 
@@ -5627,6 +5651,7 @@
 
             initShalimaCalState();
             initShalimaSwipeListeners();
+            initShalimaResizeObserver();
             setTimeout(updateShalimaContainerHeight, 80);
         }
 
@@ -6482,6 +6507,20 @@ Dr. Shalima's Mind Clinic`;
             }
         }
 
+        let shalimaResizeObserver = null;
+        function initShalimaResizeObserver() {
+            if (shalimaResizeObserver) return;
+            const slideForm = document.getElementById('shalima-slide-form');
+            const slideCal = document.getElementById('shalima-slide-calendar');
+            if (!slideForm || !slideCal || typeof ResizeObserver === 'undefined') return;
+
+            shalimaResizeObserver = new ResizeObserver(() => {
+                updateShalimaContainerHeight();
+            });
+            shalimaResizeObserver.observe(slideForm);
+            shalimaResizeObserver.observe(slideCal);
+        }
+
         function updateShalimaContainerHeight() {
             const container = document.getElementById('shalima-swipe-container');
             const slideForm = document.getElementById('shalima-slide-form');
@@ -6490,13 +6529,15 @@ Dr. Shalima's Mind Clinic`;
 
             if (currentShalimaView === 'calendar') {
                 if (slideCal && slideCal.offsetHeight > 0) {
-                    container.style.height = slideCal.offsetHeight + 'px';
+                    const h = Math.max(slideCal.offsetHeight, slideCal.scrollHeight);
+                    container.style.height = (h + 12) + 'px';
                 } else {
                     container.style.height = 'auto';
                 }
             } else {
                 if (slideForm && slideForm.offsetHeight > 0) {
-                    container.style.height = slideForm.offsetHeight + 'px';
+                    const h = Math.max(slideForm.offsetHeight, slideForm.scrollHeight);
+                    container.style.height = (h + 16) + 'px';
                 } else {
                     container.style.height = 'auto';
                 }
