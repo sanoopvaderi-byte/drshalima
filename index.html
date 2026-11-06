@@ -6385,7 +6385,10 @@ Dr. Shalima's Mind Clinic`;
             const formattedDate = formatReviewDateDisplay(dayStr);
             const data = dayCases.map((c, idx) => {
                 const isReview = (c.reviewDate === dayStr);
-                const roleStr = (c.consultDate === dayStr && c.reviewDate === dayStr) ? 'Consult & Review' : (isReview ? 'Follow-up Review' : 'Consultation');
+                const consultDisplay = c.consultDate ? formatReviewDateDisplay(c.consultDate) : '—';
+                const roleStr = (c.consultDate === dayStr && c.reviewDate === dayStr)
+                    ? 'Consult & Review'
+                    : (isReview ? `Follow-up Review (Review after ${c.reviewDays || '—'} days + That day: ${consultDisplay})` : 'Consultation');
                 return {
                     "Sl No": idx + 1,
                     "Patient Name": c.patientName,
@@ -6393,6 +6396,7 @@ Dr. Shalima's Mind Clinic`;
                     "Mobile / WhatsApp": c.phone,
                     "Location": c.location,
                     "Session Role": roleStr,
+                    "Last Consulted Date": consultDisplay,
                     "Consultation Date": c.consultDate || '—',
                     "Consultation Time": c.consultTime || '',
                     "Review After (Days)": c.reviewDays || '—',
@@ -6447,7 +6451,10 @@ Dr. Shalima's Mind Clinic`;
 
             const rows = dayCases.map((c, idx) => {
                 const isReview = (c.reviewDate === dayStr);
-                const roleStr = (c.consultDate === dayStr && c.reviewDate === dayStr) ? 'Consult & Review' : (isReview ? 'Follow-up Review' : 'Consultation');
+                const consultDisplay = c.consultDate ? formatReviewDateDisplay(c.consultDate) : '';
+                const roleStr = (c.consultDate === dayStr && c.reviewDate === dayStr)
+                    ? 'Consult & Review'
+                    : (isReview ? `Follow-up Review (Review after ${c.reviewDays || '—'} days + That day: ${consultDisplay})` : 'Consultation');
                 const timeStr = c.consultTime ? c.consultTime : 'Date only';
                 const statusStr = (c.status === 'cancelled') ? 'Cancelled' : 'Active';
 
@@ -6842,6 +6849,16 @@ Dr. Shalima's Mind Clinic`;
 
                 const timePart = (c.consultTime && c.consultTime.trim() !== '') ? `⏰ ${escapeHtmlShalima(c.consultTime)}` : 'Time: Date only';
 
+                const consultDateFormatted = c.consultDate ? formatReviewDateDisplay(c.consultDate) : '';
+                let reviewScheduleNote = '';
+                if (item.isReview) {
+                    const daysText = c.reviewDays ? `Review after ${c.reviewDays} days` : 'Review scheduled';
+                    const dayPart = consultDateFormatted ? ` + That day: ${consultDateFormatted}` : '';
+                    reviewScheduleNote = `( ${daysText}${dayPart} )`;
+                } else if (c.reviewDate) {
+                    reviewScheduleNote = `( Next Review: ${c.reviewDays ? `after ${c.reviewDays} days · ` : ''}${formatReviewDateDisplay(c.reviewDate)} )`;
+                }
+
                 const editBtnText = isPast ? '🔒 ✏️ Edit' : '✏️ Edit';
                 const editBtnTitle = isPast ? 'Edit this past record (Passcode: 4425 required)' : 'Edit this record';
 
@@ -6881,13 +6898,24 @@ Dr. Shalima's Mind Clinic`;
                                     <span class="text-gray-800 font-semibold">${timePart}</span>
                                     <span>&bull;</span>
                                     <span>📍 ${escapeHtmlShalima(c.location)}</span>
-                                    ${item.isReview && c.reviewDays ? `<span>&bull;</span><span class="text-amber-700 font-bold">Review after ${c.reviewDays} days</span>` : ''}
+                                    ${reviewScheduleNote ? `<span>&bull;</span><span class="${item.isReview ? 'text-amber-700 font-bold' : 'text-[#235847] font-semibold'}">${reviewScheduleNote}</span>` : ''}
                                 </div>
                             </div>
                             <div class="flex items-center gap-1.5 flex-shrink-0 flex-wrap justify-end">
                                 ${actionBtns}
                             </div>
                         </div>
+
+                        ${item.isReview ? `
+                        <!-- Review Origin Info Box: Shows Last Consulted Date -->
+                        <div class="bg-amber-50/70 border border-amber-200/80 rounded-xl px-3 py-1.5 text-xs flex items-center justify-between flex-wrap gap-1.5">
+                            <div class="flex items-center gap-1.5 font-bold text-amber-900 flex-wrap">
+                                <span>🔔 Follow-up Review:</span>
+                                <span class="text-amber-700 font-semibold">( Review after ${c.reviewDays || '—'} days + That day: ${consultDateFormatted || c.consultDate || '—'} )</span>
+                            </div>
+                            <span class="text-[10px] font-bold text-amber-800 bg-amber-100/90 px-2 py-0.5 rounded-full border border-amber-200">Last Consulted: ${consultDateFormatted || c.consultDate || '—'}</span>
+                        </div>
+                        ` : ''}
 
                         <!-- Contact & Action Bar -->
                         <div class="flex items-center justify-between text-xs bg-[#FAF8F3] px-3 py-1.5 rounded-xl border border-gray-100 flex-wrap gap-2">
