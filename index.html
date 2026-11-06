@@ -714,6 +714,9 @@
                                     </div>
                                 </div>
 
+                                <!-- Month-wise Case Counts & Downloads (Populated by renderShalimaMonthSummary()) -->
+                                <div id="shalima-month-summary-container"></div>
+
                                 <!-- Days of week (Styled like psychology calendar) -->
                                 <div class="grid grid-cols-7 gap-1.5 text-center mb-1">
                                     <div class="text-xs font-semibold text-gray-500 py-1">S</div>
@@ -6054,6 +6057,246 @@ Dr. Shalima's Mind Clinic`;
             showMessageModal("Dr. Shalima patient records PDF exported successfully!");
         }
 
+        function renderShalimaMonthSummary() {
+            initShalimaCalState();
+            const container = document.getElementById('shalima-month-summary-container');
+            if (!container) return;
+
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const monthName = monthNames[shalimaCalMonth];
+            const mPrefix = `${shalimaCalYear}-${String(shalimaCalMonth + 1).padStart(2, '0')}`;
+
+            const allCases = (appState && Array.isArray(appState.shalimaCases)) ? appState.shalimaCases : [];
+            const monthCases = allCases.filter(c => (c.consultDate && c.consultDate.startsWith(mPrefix)) || (c.reviewDate && c.reviewDate.startsWith(mPrefix)));
+
+            const activeMonthCases = monthCases.filter(c => c.status !== 'cancelled');
+            const totalCount = activeMonthCases.length;
+            const newCount = activeMonthCases.filter(c => (c.caseType || '').toLowerCase().includes('initial') || c.caseType === 'Initial').length;
+            const followupCount = activeMonthCases.filter(c => (c.caseType || '').toLowerCase().includes('follow') || c.caseType === 'Follow-up').length;
+            const cancelledCount = monthCases.filter(c => c.status === 'cancelled').length;
+
+            container.innerHTML = `
+                <div class="bg-white rounded-xl p-2.5 border border-gray-200 shadow-2xs space-y-2">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-wider">Month Summary:</span>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-[#E8F3EE] text-[#235847] border border-[#235847]/20" title="Total active client consultations and reviews in this month">
+                                Total: <strong class="text-xs sm:text-sm font-extrabold">${totalCount}</strong>
+                            </span>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200" title="Initial new consultations">
+                                New Cases: <strong class="text-xs sm:text-sm font-extrabold">${newCount}</strong>
+                            </span>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-purple-50 text-purple-800 border border-purple-200" title="Follow-up reviews">
+                                Follow-up: <strong class="text-xs sm:text-sm font-extrabold">${followupCount}</strong>
+                            </span>
+                            ${cancelledCount > 0 ? `
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200" title="Cancelled cases in this month">
+                                Cancelled: <strong>${cancelledCount}</strong>
+                            </span>` : ''}
+                        </div>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <button type="button" onclick="exportShalimaMonthExcel()" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition inline-flex items-center gap-1 shadow-2xs active:scale-95" title="Download ${monthName} ${shalimaCalYear} Excel report">
+                                <span>📊 Month Excel</span>
+                            </button>
+                            <button type="button" onclick="exportShalimaMonthPDF()" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-[#235847] hover:bg-[#1B4739] text-white transition inline-flex items-center gap-1 shadow-2xs active:scale-95" title="Download ${monthName} ${shalimaCalYear} PDF report">
+                                <span>📄 Month PDF</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function exportShalimaMonthExcel() {
+            initShalimaCalState();
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const monthName = monthNames[shalimaCalMonth];
+            const mPrefix = `${shalimaCalYear}-${String(shalimaCalMonth + 1).padStart(2, '0')}`;
+
+            const allCases = (appState && Array.isArray(appState.shalimaCases)) ? appState.shalimaCases : [];
+            const monthCases = allCases.filter(c => (c.consultDate && c.consultDate.startsWith(mPrefix)) || (c.reviewDate && c.reviewDate.startsWith(mPrefix)));
+
+            if (monthCases.length === 0) {
+                showMessageModal(`No patient records or review appointments found for ${monthName} ${shalimaCalYear}.`);
+                return;
+            }
+
+            if (!window.XLSX) {
+                showMessageModal("Excel export library is loading. Please try again.");
+                return;
+            }
+
+            const data = monthCases.map((c, idx) => ({
+                "Sl No": idx + 1,
+                "Patient Name": c.patientName,
+                "Case Type": c.caseType || 'Initial',
+                "Mobile / WhatsApp": c.phone,
+                "Location": c.location,
+                "Consultation Date": c.consultDate || '—',
+                "Consultation Time": c.consultTime || '',
+                "Review After (Days)": c.reviewDays || '—',
+                "Next Review Date": c.reviewDate || '—',
+                "Status": (c.status === 'cancelled') ? 'Cancelled' : 'Active',
+                "Recorded Date": new Date(c.createdAt || Date.now()).toLocaleDateString('en-GB')
+            }));
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, `${monthName} ${shalimaCalYear}`);
+
+            XLSX.writeFile(wb, `Dr_Shalima_Patient_Records_${monthName}_${shalimaCalYear}.xlsx`);
+            showMessageModal(`Dr. Shalima patient records for ${monthName} ${shalimaCalYear} exported to Excel!`);
+        }
+
+        function exportShalimaMonthPDF() {
+            initShalimaCalState();
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const monthName = monthNames[shalimaCalMonth];
+            const mPrefix = `${shalimaCalYear}-${String(shalimaCalMonth + 1).padStart(2, '0')}`;
+
+            const allCases = (appState && Array.isArray(appState.shalimaCases)) ? appState.shalimaCases : [];
+            const monthCases = allCases.filter(c => (c.consultDate && c.consultDate.startsWith(mPrefix)) || (c.reviewDate && c.reviewDate.startsWith(mPrefix)));
+
+            if (monthCases.length === 0) {
+                showMessageModal(`No patient records or review appointments found for ${monthName} ${shalimaCalYear}.`);
+                return;
+            }
+
+            if (!window.jspdf || !window.jspdf.jsPDF) {
+                showMessageModal("PDF export is initializing. Please try again in a few seconds.");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+            const today = getClinicNow();
+            const activeCount = monthCases.filter(c => c.status !== 'cancelled').length;
+            const cancelledCount = monthCases.filter(c => c.status === 'cancelled').length;
+            const initialCount = monthCases.filter(c => ((c.caseType || '').toLowerCase().includes('initial') || c.caseType === 'Initial') && c.status !== 'cancelled').length;
+            const followupCount = monthCases.filter(c => ((c.caseType || '').toLowerCase().includes('follow') || c.caseType === 'Follow-up') && c.status !== 'cancelled').length;
+
+            // Brand Header
+            doc.setFontSize(16);
+            doc.setTextColor(35, 88, 71); // #235847
+            doc.text("DR. SHALIMA'S MIND CLINIC", 14, 15);
+
+            doc.setFontSize(11);
+            doc.setTextColor(50, 50, 50);
+            doc.text(`Dr. Shalima Shamudheen — Monthly Patient Case Records: ${monthName} ${shalimaCalYear}`, 14, 22);
+
+            doc.setFontSize(8.5);
+            doc.setTextColor(110, 110, 110);
+            doc.text(`Generated: ${today.todayStr}  |  Total: ${monthCases.length}  |  Active: ${activeCount}  |  New Cases: ${initialCount}  |  Follow-up Cases: ${followupCount}  |  Cancelled: ${cancelledCount}`, 14, 28);
+
+            const tableRows = monthCases.map((c, idx) => {
+                const statusStr = (c.status === 'cancelled') ? 'Cancelled' : 'Active';
+                const timeStr = c.consultTime ? c.consultTime : '—';
+                const revDaysStr = c.reviewDays ? `+${c.reviewDays} days` : '—';
+                const revDateStr = c.reviewDate ? formatReviewDateDisplay(c.reviewDate) : '—';
+                const consultDateStr = c.consultDate ? formatReviewDateDisplay(c.consultDate) : '—';
+
+                return [
+                    idx + 1,
+                    c.patientName || '—',
+                    c.phone || '—',
+                    c.caseType || 'Initial',
+                    c.location || '—',
+                    consultDateStr,
+                    timeStr,
+                    revDaysStr,
+                    revDateStr,
+                    statusStr
+                ];
+            });
+
+            doc.autoTable({
+                startY: 33,
+                head: [['#', 'Patient Name', 'Mobile / WhatsApp', 'Case Type', 'Location', 'Consult Date', 'Time', 'Review After', 'Next Review Date', 'Status']],
+                body: tableRows,
+                headStyles: {
+                    fillColor: [35, 88, 71],
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    fontSize: 8.5
+                },
+                styles: {
+                    fontSize: 8,
+                    cellPadding: 2.5,
+                    valign: 'middle'
+                },
+                columnStyles: {
+                    0: { cellWidth: 10, halign: 'center' },
+                    1: { fontStyle: 'bold' },
+                    3: { halign: 'center' },
+                    6: { halign: 'center' },
+                    7: { halign: 'center' },
+                    9: { halign: 'center', fontStyle: 'bold' }
+                },
+                didParseCell: function(data) {
+                    if (data.section === 'body') {
+                        const rowIdx = data.row.index;
+                        const caseItem = monthCases[rowIdx];
+                        if (caseItem && caseItem.status === 'cancelled') {
+                            data.cell.styles.textColor = [185, 28, 28];
+                            if (data.column.index === 9) {
+                                data.cell.styles.fillColor = [254, 226, 226];
+                            }
+                        }
+                    }
+                },
+                alternateRowStyles: {
+                    fillColor: [249, 250, 251]
+                },
+                margin: { left: 14, right: 14 }
+            });
+
+            doc.save(`Dr_Shalima_Patient_Records_${monthName}_${shalimaCalYear}.pdf`);
+            showMessageModal(`Dr. Shalima patient records PDF for ${monthName} ${shalimaCalYear} exported successfully!`);
+        }
+
+        function exportShalimaDayExcel(dayStr) {
+            if (!dayStr) dayStr = getClinicNow().todayStr;
+            const allCases = (appState && Array.isArray(appState.shalimaCases)) ? appState.shalimaCases : [];
+            const dayCases = allCases.filter(c => c.consultDate === dayStr || c.reviewDate === dayStr);
+
+            if (dayCases.length === 0) {
+                showMessageModal(`No patient records or review appointments found on ${formatReviewDateDisplay(dayStr)}.`);
+                return;
+            }
+
+            if (!window.XLSX) {
+                showMessageModal("Excel export library is loading. Please try again.");
+                return;
+            }
+
+            const formattedDate = formatReviewDateDisplay(dayStr);
+            const data = dayCases.map((c, idx) => {
+                const isReview = (c.reviewDate === dayStr);
+                const roleStr = (c.consultDate === dayStr && c.reviewDate === dayStr) ? 'Consult & Review' : (isReview ? 'Follow-up Review' : 'Consultation');
+                return {
+                    "Sl No": idx + 1,
+                    "Patient Name": c.patientName,
+                    "Case Type": c.caseType || 'Initial',
+                    "Mobile / WhatsApp": c.phone,
+                    "Location": c.location,
+                    "Session Role": roleStr,
+                    "Consultation Date": c.consultDate || '—',
+                    "Consultation Time": c.consultTime || '',
+                    "Review After (Days)": c.reviewDays || '—',
+                    "Next Review Date": c.reviewDate || '—',
+                    "Status": (c.status === 'cancelled') ? 'Cancelled' : 'Active'
+                };
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, `Appointments ${dayStr}`);
+
+            XLSX.writeFile(wb, `Dr_Shalima_Patients_${dayStr}.xlsx`);
+            showMessageModal(`Dr. Shalima patient records for ${formattedDate} exported to Excel!`);
+        }
+
         function exportShalimaDayPDF(dayStr) {
             if (!dayStr) dayStr = getClinicNow().todayStr;
             const allCases = (appState && Array.isArray(appState.shalimaCases)) ? appState.shalimaCases : [];
@@ -6072,8 +6315,11 @@ Dr. Shalima's Mind Clinic`;
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             const formattedDate = formatReviewDateDisplay(dayStr);
-            const activeCount = dayCases.filter(c => c.status !== 'cancelled').length;
+            const activeCases = dayCases.filter(c => c.status !== 'cancelled');
+            const activeCount = activeCases.length;
             const cancelledCount = dayCases.filter(c => c.status === 'cancelled').length;
+            const newCount = activeCases.filter(c => (c.caseType || '').toLowerCase().includes('initial') || c.caseType === 'Initial').length;
+            const followupCount = activeCases.filter(c => (c.caseType || '').toLowerCase().includes('follow') || c.caseType === 'Follow-up').length;
 
             doc.setFontSize(16);
             doc.setTextColor(35, 88, 71);
@@ -6083,9 +6329,9 @@ Dr. Shalima's Mind Clinic`;
             doc.setTextColor(50, 50, 50);
             doc.text(`Dr. Shalima Shamudheen — Daily Patient Appointments: ${formattedDate}`, 14, 25);
 
-            doc.setFontSize(9);
+            doc.setFontSize(8.5);
             doc.setTextColor(110, 110, 110);
-            doc.text(`Total: ${dayCases.length}  |  Active: ${activeCount}  |  Cancelled: ${cancelledCount}`, 14, 31);
+            doc.text(`Total: ${dayCases.length}  |  Active: ${activeCount}  |  New Cases: ${newCount}  |  Follow-up Cases: ${followupCount}  |  Cancelled: ${cancelledCount}`, 14, 31);
 
             const rows = dayCases.map((c, idx) => {
                 const isReview = (c.reviewDate === dayStr);
@@ -6097,7 +6343,7 @@ Dr. Shalima's Mind Clinic`;
                     idx + 1,
                     c.patientName,
                     c.phone,
-                    c.caseType,
+                    c.caseType || 'Initial',
                     c.location,
                     timeStr,
                     roleStr,
@@ -6294,6 +6540,8 @@ Dr. Shalima's Mind Clinic`;
                 titleEl.textContent = `${monthNames[shalimaCalMonth]} ${shalimaCalYear}`;
             }
 
+            renderShalimaMonthSummary();
+
             grid.innerHTML = '';
 
             const firstDay = new Date(shalimaCalYear, shalimaCalMonth, 1).getDay();
@@ -6394,22 +6642,47 @@ Dr. Shalima's Mind Clinic`;
             const dayItems = Array.from(combinedMap.values());
             const formattedDate = formatReviewDateDisplay(dayStr);
 
-            if (dayItems.length === 0) {
-                container.innerHTML = `
-                    <div class="bg-white rounded-2xl p-4 border border-dashed border-gray-300 text-center space-y-2">
-                        <div class="text-gray-400 text-2xl">📅</div>
-                        <div class="text-xs font-bold text-gray-800">${formattedDate}</div>
-                        <p class="text-[11px] text-gray-500">No client consultations or review appointments on this date.</p>
-                        <button type="button" onclick="setShalimaConsultDateAndFocus('${dayStr}')" class="px-3.5 py-1.5 bg-[#235847] hover:bg-[#1B4739] text-white text-xs font-bold rounded-xl transition inline-flex items-center gap-1.5 shadow-xs">
-                            <span>➕ Record Patient on ${dayStr}</span>
-                        </button>
-                    </div>
-                `;
-                return;
-            }
-
             const activeItems = dayItems.filter(item => item.case.status !== 'cancelled');
             const cancelledItems = dayItems.filter(item => item.case.status === 'cancelled');
+            const dateNewCount = activeItems.filter(item => (item.case.caseType || '').toLowerCase().includes('initial') || item.case.caseType === 'Initial').length;
+            const dateFollowupCount = activeItems.filter(item => (item.case.caseType || '').toLowerCase().includes('follow') || item.case.caseType === 'Follow-up').length;
+
+            if (dayItems.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-2xl p-3 border border-gray-200 space-y-2.5">
+                        <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-gray-100">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-sm font-bold text-gray-900">📅 ${formattedDate}</span>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#E8F3EE] text-[#235847]">
+                                    Total: <strong>0</strong>
+                                </span>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                    New: <strong>0</strong>
+                                </span>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-purple-50 text-purple-800 border border-purple-200">
+                                    Follow-up: <strong>0</strong>
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="setShalimaConsultDateAndFocus('${dayStr}')" class="text-xs font-bold text-[#235847] hover:underline flex items-center gap-1">
+                                    <span>➕ Record Patient on ${dayStr}</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="py-6 text-center space-y-2 border border-dashed border-gray-200 rounded-xl bg-[#FAF8F3]/50">
+                            <div class="text-gray-400 text-2xl">📅</div>
+                            <p class="text-xs text-gray-500">No client consultations or review appointments on this date.</p>
+                            <button type="button" onclick="setShalimaConsultDateAndFocus('${dayStr}')" class="px-3.5 py-1.5 bg-[#235847] hover:bg-[#1B4739] text-white text-xs font-bold rounded-xl transition inline-flex items-center gap-1.5 shadow-xs">
+                                <span>➕ Record Patient on ${dayStr}</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                if (typeof updateShalimaContainerHeight === 'function') {
+                    updateShalimaContainerHeight();
+                }
+                return;
+            }
 
             let cardsHtml = '';
             dayItems.forEach(item => {
@@ -6497,25 +6770,33 @@ Dr. Shalima's Mind Clinic`;
                 `;
             });
 
-            let badgeSummary = `${activeItems.length} Patient${activeItems.length === 1 ? '' : 's'} Booked`;
-            if (cancelledItems.length > 0) {
-                badgeSummary += ` • ${cancelledItems.length} Cancelled`;
-            }
-
             container.innerHTML = `
                 <div class="bg-white rounded-2xl p-3 border border-gray-200 space-y-2.5">
-                    <div class="flex items-center justify-between flex-wrap gap-2 pb-1 border-b border-gray-100">
-                        <div class="flex items-center gap-1.5">
+                    <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-gray-100">
+                        <div class="flex items-center gap-1.5 flex-wrap">
                             <span class="text-sm font-bold text-gray-900">📅 ${formattedDate}</span>
-                            <span class="px-2 py-0.5 ${cancelledItems.length > 0 && activeItems.length === 0 ? 'bg-red-100 text-red-700' : 'bg-[#E8F3EE] text-[#235847]'} text-[10px] font-extrabold rounded-full">
-                                ${badgeSummary}
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#E8F3EE] text-[#235847] border border-[#235847]/20" title="Active patients on this date">
+                                Total: <strong class="font-extrabold">${activeItems.length}</strong>
                             </span>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200" title="New Cases">
+                                New: <strong class="font-extrabold">${dateNewCount}</strong>
+                            </span>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-purple-50 text-purple-800 border border-purple-200" title="Follow-up Cases">
+                                Follow-up: <strong class="font-extrabold">${dateFollowupCount}</strong>
+                            </span>
+                            ${cancelledItems.length > 0 ? `
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-50 text-red-700 border border-red-200" title="Cancelled on this date">
+                                Cancelled: <strong>${cancelledItems.length}</strong>
+                            </span>` : ''}
                         </div>
-                        <div class="flex items-center gap-2">
-                            <button type="button" onclick="exportShalimaDayPDF('${dayStr}')" class="text-xs font-semibold text-[#235847] hover:underline flex items-center gap-1" title="Download Day PDF report">
-                                <span>📄 Day PDF</span>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <button type="button" onclick="exportShalimaDayExcel('${dayStr}')" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition inline-flex items-center gap-1 shadow-2xs active:scale-95" title="Download Day Excel spreadsheet">
+                                <span>📊 Date Excel</span>
                             </button>
-                            <button type="button" onclick="setShalimaConsultDateAndFocus('${dayStr}')" class="text-xs font-bold text-[#235847] hover:underline flex items-center gap-1">
+                            <button type="button" onclick="exportShalimaDayPDF('${dayStr}')" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-[#235847] hover:bg-[#1B4739] text-white transition inline-flex items-center gap-1 shadow-2xs active:scale-95" title="Download Day PDF report">
+                                <span>📄 Date PDF</span>
+                            </button>
+                            <button type="button" onclick="setShalimaConsultDateAndFocus('${dayStr}')" class="text-xs font-bold text-[#235847] hover:underline flex items-center gap-1 pl-1">
                                 <span>➕ Add Record</span>
                             </button>
                         </div>
@@ -6525,6 +6806,10 @@ Dr. Shalima's Mind Clinic`;
                     </div>
                 </div>
             `;
+
+            if (typeof updateShalimaContainerHeight === 'function') {
+                updateShalimaContainerHeight();
+            }
         }
 
         function setShalimaConsultDateAndFocus(dateStr) {
