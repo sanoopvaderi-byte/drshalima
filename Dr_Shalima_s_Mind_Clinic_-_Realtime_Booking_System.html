@@ -492,23 +492,21 @@
 
         <!-- CARD 4: Dr. Shalima Shamudheen Consulted Case History -->
         <div id="shalima-cases-card" class="bg-white rounded-3xl p-5 card-shadow scroll-mt-20">
-            <div class="flex items-center justify-between mb-3">
-                <button type="button" onclick="toggleShalimaCasesSection()" class="flex items-center space-x-2 text-left group focus:outline-none">
-                    <span id="shalima-cases-heading-arrow" class="text-sm text-[#235847] font-bold transition-transform">▼</span>
+            <button type="button" onclick="toggleShalimaCasesSection()" class="w-full flex items-center justify-between text-left group focus:outline-none mb-3">
+                <div class="flex items-center space-x-2">
+                    <span id="shalima-cases-heading-arrow" class="text-sm text-[#235847] font-bold transition-transform">▶</span>
                     <div>
                         <h2 class="text-base sm:text-lg font-bold text-gray-900 group-hover:text-[#235847] transition">Dr. Shalima Shamudheen: Consulted Case History</h2>
                         <p class="text-xs text-gray-500 font-medium">Record patient case history, clinical notes &amp; updates</p>
                     </div>
-                </button>
+                </div>
                 <div class="flex items-center gap-1.5 flex-shrink-0">
                     <span id="shalima-cases-count-badge" class="px-2 py-0.5 bg-[#E8F3EE] text-[#235847] text-[11px] font-bold rounded-full">0 cases</span>
-                    <button type="button" onclick="toggleShalimaCasesSection()" id="shalima-cases-min-btn" class="w-7 h-7 flex items-center justify-center rounded-full bg-[#F7F6F0] hover:bg-[#EAE8E1] text-gray-700 text-xs font-bold transition" title="Minimize or expand section">
-                        <span id="shalima-cases-min-icon">−</span>
-                    </button>
+                    <span id="shalima-cases-heading-hint" class="text-xs font-semibold text-[#235847] bg-[#E8F3EE] px-2.5 py-1 rounded-full transition group-hover:bg-[#D4E8DF]">🔒 Tap to open</span>
                 </div>
-            </div>
+            </button>
 
-            <div id="shalima-cases-card-body" class="space-y-4">
+            <div id="shalima-cases-card-body" class="hidden space-y-4">
                 <!-- Case Entry / Updation Form -->
                 <div class="bg-[#F7F6F0] rounded-2xl p-4 space-y-3.5 border border-gray-100">
                     <div class="flex items-center justify-between">
@@ -4056,7 +4054,10 @@
             const subEl = document.getElementById('passcode-modal-subtitle');
 
             if (titleEl && subEl) {
-                if (action === 'book_session') {
+                if (action === 'shalima_cases') {
+                    titleEl.textContent = "Dr. Shalima's Case History Passcode";
+                    subEl.textContent = 'Enter passcode (6498) to open consulted case records & calendar.';
+                } else if (action === 'book_session') {
                     titleEl.textContent = 'Book a Session Passcode';
                     subEl.textContent = 'Enter passcode (4-digit) to add a new session.';
                 } else if (action === 'edit_session') {
@@ -4130,13 +4131,35 @@
             if (!input) return;
 
             const action = pendingPasscodeAction;
-            const requiredCode = (action === 'book_session' || action === 'edit_session' || action === 'cancel_session' || action === 'toggle_psychologist_status')
+            const requiredCode = (action === 'shalima_cases' || action === 'book_session' || action === 'edit_session' || action === 'cancel_session' || action === 'toggle_psychologist_status')
                 ? SESSION_PASSCODE
                 : REPORT_PASSCODE;
 
             if (input.value.trim() === requiredCode) {
                 closeReportPasscodeModal();
-                if (action === 'book_session') {
+                if (action === 'shalima_cases') {
+                    const sBody = document.getElementById('shalima-cases-card-body');
+                    const sArrow = document.getElementById('shalima-cases-heading-arrow');
+                    const sHint = document.getElementById('shalima-cases-heading-hint');
+                    if (sBody) sBody.classList.remove('hidden');
+                    if (sArrow) sArrow.textContent = '▼';
+                    if (sHint) sHint.textContent = 'Tap to hide';
+                    renderShalimaCasesList();
+                    if (pendingEditShalimaCaseId) {
+                        const cid = pendingEditShalimaCaseId;
+                        pendingEditShalimaCaseId = null;
+                        editShalimaCase(cid);
+                    } else if (pendingShalimaDateFocus) {
+                        const dStr = pendingShalimaDateFocus;
+                        pendingShalimaDateFocus = null;
+                        setShalimaConsultDateAndFocus(dStr);
+                    } else {
+                        const sCard = document.getElementById('shalima-cases-card');
+                        if (sCard) {
+                            setTimeout(() => sCard.scrollIntoView({ behavior: 'smooth' }), 60);
+                        }
+                    }
+                } else if (action === 'book_session') {
                     const bsWrapper = document.getElementById('book-session-card-wrapper');
                     const bsArrow = document.getElementById('book-session-heading-arrow');
                     const bsHint = document.getElementById('book-session-heading-hint');
@@ -5173,21 +5196,21 @@
         // =========================================================================
 
         let currentShalimaCaseType = 'Initial';
+        let pendingEditShalimaCaseId = null;
+        let pendingShalimaDateFocus = null;
 
         function toggleShalimaCasesSection() {
             const body = document.getElementById('shalima-cases-card-body');
             const arrow = document.getElementById('shalima-cases-heading-arrow');
-            const minIcon = document.getElementById('shalima-cases-min-icon');
+            const hint = document.getElementById('shalima-cases-heading-hint');
             if (!body) return;
             const isHidden = body.classList.contains('hidden');
             if (isHidden) {
-                body.classList.remove('hidden');
-                if (arrow) arrow.textContent = '▼';
-                if (minIcon) minIcon.textContent = '−';
+                openReportPasscodeModal('shalima_cases');
             } else {
                 body.classList.add('hidden');
                 if (arrow) arrow.textContent = '▶';
-                if (minIcon) minIcon.textContent = '+';
+                if (hint) hint.textContent = '🔒 Tap to open';
             }
         }
 
@@ -5580,7 +5603,9 @@
 
             const body = document.getElementById('shalima-cases-card-body');
             if (body && body.classList.contains('hidden')) {
-                toggleShalimaCasesSection();
+                pendingEditShalimaCaseId = caseId;
+                openReportPasscodeModal('shalima_cases');
+                return;
             }
 
             const idInput = document.getElementById('shalima-case-id');
@@ -6063,7 +6088,9 @@ Dr. Shalima's Mind Clinic`;
         function setShalimaConsultDateAndFocus(dateStr) {
             const body = document.getElementById('shalima-cases-card-body');
             if (body && body.classList.contains('hidden')) {
-                toggleShalimaCasesSection();
+                pendingShalimaDateFocus = dateStr;
+                openReportPasscodeModal('shalima_cases');
+                return;
             }
             const dateInput = document.getElementById('shalima-consult-date');
             if (dateInput) {
