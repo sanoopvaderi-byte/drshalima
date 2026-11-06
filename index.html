@@ -600,7 +600,7 @@
                         <div class="space-y-2">
                             <div class="flex items-center gap-2">
                                 <div class="flex-1">
-                                    <label class="block text-[11px] font-semibold text-gray-500 mb-1">1. Next review after (number of days):</label>
+                                    <label class="block text-[11px] font-semibold text-gray-500 mb-1">Next review after (number of days):</label>
                                     <input type="number" id="shalima-review-days" min="1" max="365" value="2" oninput="onShalimaReviewDaysChange(this.value)" placeholder="e.g. 2" class="w-full bg-[#F7F6F0] border border-gray-200 rounded-xl px-3 py-2 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-[#235847] outline-none">
                                 </div>
                                 <div class="flex-1">
@@ -627,59 +627,12 @@
                                 <span id="shalima-calculated-date-text" class="font-bold text-[#235847]">...</span>
                             </div>
                         </div>
-
-                        <!-- 2. Option: Automatically Book on Calculated Review Date -->
-                        <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3 space-y-2.5">
-                            <label class="flex items-center space-x-2.5 cursor-pointer select-none">
-                                <input type="checkbox" id="shalima-autobook-toggle" onchange="toggleShalimaAutoBookSection(this.checked)" checked class="w-4 h-4 text-[#235847] rounded focus:ring-[#235847] border-gray-300">
-                                <div class="text-xs">
-                                    <span class="font-bold text-[#235847]">2. Automatically book review appointment on this date</span>
-                                    <span class="text-[11px] text-gray-500 block">Locks a 45-min follow-up session in the clinic schedule</span>
-                                </div>
-                            </label>
-
-                            <div id="shalima-autobook-fields" class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-emerald-100">
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-gray-600 mb-1">Psychologist for Review</label>
-                                    <select id="shalima-autobook-psy" class="w-full bg-white border border-gray-200 rounded-xl p-2 text-xs font-semibold text-gray-800 outline-none">
-                                        <option value="Habla">Habla</option>
-                                        <option value="Varda">Varda</option>
-                                        <option value="Sahla">Sahla</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-gray-600 mb-1">Preferred Time Slot</label>
-                                    <select id="shalima-autobook-time" class="w-full bg-white border border-gray-200 rounded-xl p-2 text-xs font-semibold text-gray-800 outline-none">
-                                        <option value="10:00 AM">10:00 AM</option>
-                                        <option value="10:30 AM">10:30 AM</option>
-                                        <option value="11:00 AM">11:00 AM</option>
-                                        <option value="11:30 AM">11:30 AM</option>
-                                        <option value="12:00 PM">12:00 PM</option>
-                                        <option value="12:30 PM">12:30 PM</option>
-                                        <option value="1:00 PM">1:00 PM</option>
-                                        <option value="1:30 PM">1:30 PM</option>
-                                        <option value="2:00 PM">2:00 PM</option>
-                                        <option value="2:30 PM">2:30 PM</option>
-                                        <option value="3:00 PM">3:00 PM</option>
-                                        <option value="3:30 PM">3:30 PM</option>
-                                        <option value="4:00 PM">4:00 PM</option>
-                                        <option value="4:30 PM">4:30 PM</option>
-                                        <option value="5:00 PM">5:00 PM</option>
-                                        <option value="5:30 PM">5:30 PM</option>
-                                        <option value="6:00 PM">6:00 PM</option>
-                                        <option value="6:30 PM">6:30 PM</option>
-                                        <option value="7:00 PM">7:00 PM</option>
-                                        <option value="7:30 PM">7:30 PM</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- Form Action Buttons -->
                     <div class="flex items-center gap-2 pt-1">
                         <button type="button" id="btn-save-shalima-case" onclick="saveShalimaCase()" class="flex-1 py-3 bg-[#235847] hover:bg-[#1B4739] text-white font-semibold text-xs sm:text-sm rounded-xl transition shadow-sm active:scale-[0.99] flex items-center justify-center gap-1.5">
-                            <span>💾 Save Case &amp; Schedule Review</span>
+                            <span>💾 Save Patient Record</span>
                         </button>
                         <button type="button" id="btn-cancel-shalima-case" onclick="resetShalimaCaseForm()" class="px-4 py-3 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-semibold text-xs rounded-xl transition">
                             Clear
@@ -4598,12 +4551,11 @@
                     "Consultation Date": c.consultDate,
                     "Consultation Time": c.consultTime || '',
                     "Review After (Days)": c.reviewDays || '—',
-                    "Scheduled Review Date": c.reviewDate || '—',
-                    "Auto-Booked in Calendar": c.autoBooked ? 'Yes' : 'No',
-                    "Review Slot": c.autoBooked ? `${c.reviewPsy || ''} (${c.reviewTime || ''})` : '—'
+                    "Next Review Date": c.reviewDate || '—',
+                    "Recorded Date": new Date(c.createdAt || Date.now()).toLocaleDateString('en-GB')
                 }));
                 const wsCases = XLSX.utils.json_to_sheet(caseRows);
-                XLSX.utils.book_append_sheet(wb, wsCases, "Dr Shalima Consulted Cases");
+                XLSX.utils.book_append_sheet(wb, wsCases, "Doctor Patient Records");
             }
 
             const fileSuffix = scope === 'selected' ? monthStr : 'All_Records';
@@ -5372,22 +5324,19 @@
             const titleEl = document.getElementById('shalima-form-mode-title');
             const editBadge = document.getElementById('shalima-form-edit-indicator');
             const saveBtn = document.getElementById('btn-save-shalima-case');
-            const autoBookToggle = document.getElementById('shalima-autobook-toggle');
 
             if (idInput) idInput.value = '';
             if (nameInput) nameInput.value = '';
             if (phoneInput) phoneInput.value = '';
             if (locInput) locInput.value = '';
             if (daysInput) daysInput.value = '2';
-            if (autoBookToggle) autoBookToggle.checked = true;
-            toggleShalimaAutoBookSection(true);
 
             initShalimaCasesCard();
             selectShalimaCaseType('Initial');
 
-            if (titleEl) titleEl.textContent = 'New Case History Record';
+            if (titleEl) titleEl.textContent = 'New Patient Record';
             if (editBadge) editBadge.classList.add('hidden');
-            if (saveBtn) saveBtn.innerHTML = '<span>💾 Save Case &amp; Schedule Review</span>';
+            if (saveBtn) saveBtn.innerHTML = '<span>💾 Save Patient Record</span>';
         }
 
         function saveShalimaCase() {
@@ -5400,9 +5349,6 @@
             const timeInput = document.getElementById('shalima-consult-time');
             const daysInput = document.getElementById('shalima-review-days');
             const followupInput = document.getElementById('shalima-next-followup');
-            const autoBookToggle = document.getElementById('shalima-autobook-toggle');
-            const psySelect = document.getElementById('shalima-autobook-psy');
-            const timeSelect = document.getElementById('shalima-autobook-time');
 
             const patientName = (nameInput ? nameInput.value : '').trim();
             if (!patientName) {
@@ -5440,60 +5386,8 @@
                 reviewDate = addDaysToDateStr(consultDate, 2);
             }
 
-            const isAutoBook = autoBookToggle ? autoBookToggle.checked : false;
-            const reviewPsy = (psySelect ? psySelect.value : 'Habla') || 'Habla';
-            const reviewSlot = (timeSelect ? timeSelect.value : '10:00 AM') || '10:00 AM';
-            const reviewSessionTime = formatSessionTime(reviewSlot, 'Individual');
-
             if (!Array.isArray(appState.shalimaCases)) {
                 appState.shalimaCases = [];
-            }
-            if (!Array.isArray(appState.bookings)) {
-                appState.bookings = [];
-            }
-
-            let reviewBookingId = null;
-
-            // Handle automatic review slot booking
-            if (isAutoBook && reviewDate) {
-                // Check if already booked for this case or create a new booking
-                const existingId = idInput ? idInput.value : '';
-                const existingCase = existingId ? appState.shalimaCases.find(c => c.id === existingId) : null;
-                
-                if (existingCase && existingCase.reviewBookingId) {
-                    const existingBooking = appState.bookings.find(b => b.id === existingCase.reviewBookingId);
-                    if (existingBooking) {
-                        existingBooking.clientName = patientName;
-                        existingBooking.phone = phone;
-                        existingBooking.psychologist = reviewPsy;
-                        existingBooking.date = reviewDate;
-                        existingBooking.time = reviewSessionTime;
-                        existingBooking.updatedAt = Date.now();
-                        reviewBookingId = existingBooking.id;
-                    }
-                }
-
-                if (!reviewBookingId) {
-                    reviewBookingId = 'b_rev_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-                    const newReviewBooking = {
-                        id: reviewBookingId,
-                        clientName: patientName,
-                        psychologist: reviewPsy,
-                        date: reviewDate,
-                        time: reviewSessionTime,
-                        phone: phone,
-                        channel: '',
-                        caseType: 'Follow-up case',
-                        sessionType: 'Individual session',
-                        consultationMode: 'Offline',
-                        status: 'active',
-                        reminderDue: true,
-                        notes: `Dr. Shalima Review (After ${reviewDays || 2} days)`,
-                        createdAt: Date.now(),
-                        updatedAt: Date.now()
-                    };
-                    appState.bookings.push(newReviewBooking);
-                }
             }
 
             const existingId = idInput ? idInput.value : '';
@@ -5508,18 +5402,13 @@
                     existing.consultTime = consultTime;
                     existing.reviewDays = reviewDays;
                     existing.reviewDate = reviewDate;
-                    existing.autoBooked = isAutoBook;
-                    existing.reviewBookingId = reviewBookingId;
-                    existing.reviewPsy = reviewPsy;
-                    existing.reviewTime = reviewSessionTime;
                     existing.updatedAt = Date.now();
 
                     saveToStorage();
                     renderAll();
                     resetShalimaCaseForm();
 
-                    const autoMsg = isAutoBook ? `\nReview slot booked with ${reviewPsy} on ${formatReviewDateDisplay(reviewDate)} (${reviewSessionTime}).` : '';
-                    showMessageModal(`Case for "${patientName}" updated successfully.${autoMsg}`);
+                    showMessageModal(`Patient record for "${patientName}" updated successfully.`);
                     return;
                 }
             }
@@ -5535,10 +5424,6 @@
                 consultTime: consultTime,
                 reviewDays: reviewDays,
                 reviewDate: reviewDate,
-                autoBooked: isAutoBook,
-                reviewBookingId: reviewBookingId,
-                reviewPsy: reviewPsy,
-                reviewTime: reviewSessionTime,
                 createdAt: Date.now(),
                 updatedAt: Date.now()
             };
@@ -5548,10 +5433,7 @@
             renderAll();
             resetShalimaCaseForm();
 
-            const autoMsg = isAutoBook 
-                ? `\n\nAutomatically booked review appointment with ${reviewPsy} on ${formatReviewDateDisplay(reviewDate)} at ${reviewSessionTime}.` 
-                : `\n\nNext review scheduled for ${formatReviewDateDisplay(reviewDate)}.`;
-            showMessageModal(`Consulted patient "${patientName}" recorded successfully!${autoMsg}`);
+            showMessageModal(`Doctor patient record for "${patientName}" saved successfully!\nNext review scheduled for ${formatReviewDateDisplay(reviewDate)}.`);
         }
 
         function editShalimaCase(caseId) {
@@ -5575,8 +5457,6 @@
             const titleEl = document.getElementById('shalima-form-mode-title');
             const editBadge = document.getElementById('shalima-form-edit-indicator');
             const saveBtn = document.getElementById('btn-save-shalima-case');
-            const autoBookToggle = document.getElementById('shalima-autobook-toggle');
-            const psySelect = document.getElementById('shalima-autobook-psy');
 
             if (idInput) idInput.value = caseItem.id;
             if (nameInput) nameInput.value = caseItem.patientName || '';
@@ -5593,19 +5473,15 @@
             if (daysInput) daysInput.value = caseItem.reviewDays || '';
             if (followupInput) followupInput.value = caseItem.reviewDate || '';
 
-            if (autoBookToggle) autoBookToggle.checked = !!caseItem.autoBooked;
-            toggleShalimaAutoBookSection(!!caseItem.autoBooked);
-            if (psySelect && caseItem.reviewPsy) psySelect.value = caseItem.reviewPsy;
-
             if (caseItem.reviewDate) {
                 onShalimaReviewDateManualChange(caseItem.reviewDate);
             }
 
             selectShalimaCaseType(caseItem.caseType || 'Initial');
 
-            if (titleEl) titleEl.textContent = `Edit Case: ${caseItem.patientName}`;
+            if (titleEl) titleEl.textContent = `Edit Patient: ${caseItem.patientName}`;
             if (editBadge) editBadge.classList.remove('hidden');
-            if (saveBtn) saveBtn.innerHTML = '<span>✏️ Update Case &amp; Review Schedule</span>';
+            if (saveBtn) saveBtn.innerHTML = '<span>✏️ Update Patient Record</span>';
 
             const card = document.getElementById('shalima-cases-card');
             if (card) {
@@ -5621,7 +5497,7 @@
             const caseItem = appState.shalimaCases.find(c => c.id === caseId);
             if (!caseItem) return;
 
-            if (!confirm(`Are you sure you want to delete the consulted case for "${caseItem.patientName}"?`)) {
+            if (!confirm(`Are you sure you want to delete the doctor patient record for "${caseItem.patientName}"?`)) {
                 return;
             }
 
@@ -5630,19 +5506,6 @@
             }
             if (!appState.deletedShalimaCaseIds.includes(caseId)) {
                 appState.deletedShalimaCaseIds.push(caseId);
-            }
-
-            // If an appointment was booked automatically, offer to remove it
-            if (caseItem.reviewBookingId) {
-                if (confirm(`A review appointment is also scheduled in the clinic calendar for ${formatReviewDateDisplay(caseItem.reviewDate)}. Do you want to cancel that review booking too?`)) {
-                    if (!Array.isArray(appState.deletedBookingIds)) {
-                        appState.deletedBookingIds = [];
-                    }
-                    if (!appState.deletedBookingIds.includes(caseItem.reviewBookingId)) {
-                        appState.deletedBookingIds.push(caseItem.reviewBookingId);
-                    }
-                    appState.bookings = appState.bookings.filter(b => b.id !== caseItem.reviewBookingId);
-                }
             }
 
             appState.shalimaCases = appState.shalimaCases.filter(c => c.id !== caseId);
@@ -5654,53 +5517,7 @@
 
             saveToStorage();
             renderAll();
-            showMessageModal(`Case record for "${caseItem.patientName}" has been removed.`);
-        }
-
-        function bookReviewSlotFromCase(caseId) {
-            if (!appState || !Array.isArray(appState.shalimaCases)) return;
-            const c = appState.shalimaCases.find(item => item.id === caseId);
-            if (!c) return;
-
-            const targetDate = c.reviewDate || addDaysToDateStr(c.consultDate, c.reviewDays || 2);
-            appState.selectedDateStr = targetDate;
-            
-            const bookDateEl = document.getElementById('booking-date');
-            if (bookDateEl) bookDateEl.value = targetDate;
-
-            const bookNameEl = document.getElementById('booking-name');
-            if (bookNameEl) bookNameEl.value = c.patientName;
-
-            const bookPhoneEl = document.getElementById('booking-phone');
-            if (bookPhoneEl) bookPhoneEl.value = c.phone;
-
-            const bookCaseTypeEl = document.getElementById('booking-case-type');
-            if (bookCaseTypeEl) {
-                bookCaseTypeEl.value = 'Follow-up case';
-                if (typeof onCaseTypeChange === 'function') onCaseTypeChange('Follow-up case');
-            }
-
-            // Open book session card if hidden
-            const wrapper = document.getElementById('book-session-card-wrapper');
-            if (wrapper && wrapper.classList.contains('hidden')) {
-                wrapper.classList.remove('hidden');
-            }
-
-            renderAll();
-
-            const bookCard = document.getElementById('book-session-card');
-            if (bookCard) {
-                bookCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }
-
-        function viewDateInSchedule(dateStr) {
-            if (!dateStr) return;
-            selectCalendarDate(dateStr);
-            const scheduleCard = document.getElementById('team-schedule-card');
-            if (scheduleCard) {
-                scheduleCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+            showMessageModal(`Patient record for "${caseItem.patientName}" has been removed.`);
         }
 
         function copyShalimaCaseSummary(caseId) {
@@ -5711,7 +5528,7 @@
             const revDateFormatted = formatReviewDateDisplay(c.reviewDate);
             const timePart = (c.consultTime && c.consultTime.trim() !== '') ? ` · ${c.consultTime}` : '';
             const text = 
-`DR. SHALIMA SHAMUDHEEN – CONSULTED PATIENT RECORD
+`DR. SHALIMA SHAMUDHEEN – PATIENT RECORD
 ------------------------------------------------
 Patient Name: ${c.patientName}
 Case Type: ${c.caseType}
@@ -5719,7 +5536,7 @@ Mobile: ${c.phone}
 Location: ${c.location}
 Consultation: ${c.consultDate}${timePart}
 Next Review: ${c.reviewDays ? `After ${c.reviewDays} days (` + revDateFormatted + ')' : revDateFormatted}
-${c.autoBooked ? `Review Booking: Scheduled with ${c.reviewPsy} (${c.reviewTime})\n` : ''}------------------------------------------------
+------------------------------------------------
 Dr. Shalima's Mind Clinic`;
 
             if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -5748,18 +5565,16 @@ Dr. Shalima's Mind Clinic`;
                 "Consultation Date": c.consultDate,
                 "Consultation Time": c.consultTime || '',
                 "Review After (Days)": c.reviewDays || '—',
-                "Scheduled Review Date": c.reviewDate || '—',
-                "Review Auto-Booked": c.autoBooked ? 'Yes' : 'No',
-                "Review Details": c.autoBooked ? `${c.reviewPsy || ''} (${c.reviewTime || ''})` : '—',
+                "Next Review Date": c.reviewDate || '—',
                 "Recorded Date": new Date(c.createdAt || Date.now()).toLocaleDateString('en-GB')
             }));
 
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.json_to_sheet(data);
-            XLSX.utils.book_append_sheet(wb, ws, "Consulted Cases & Reviews");
+            XLSX.utils.book_append_sheet(wb, ws, "Doctor Patient Records");
 
             const todayStr = getClinicNow().todayStr;
-            XLSX.writeFile(wb, `Dr_Shalima_Consulted_Cases_${todayStr}.xlsx`);
+            XLSX.writeFile(wb, `Dr_Shalima_Patient_Records_${todayStr}.xlsx`);
         }
 
         function escapeHtmlShalima(str) {
@@ -5782,7 +5597,7 @@ Dr. Shalima's Mind Clinic`;
             const totalCount = allCases.length;
 
             if (countBadge) {
-                countBadge.textContent = `${totalCount} case${totalCount === 1 ? '' : 's'}`;
+                countBadge.textContent = `${totalCount} patient${totalCount === 1 ? '' : 's'}`;
             }
 
             const searchInput = document.getElementById('shalima-cases-search');
@@ -5814,16 +5629,16 @@ Dr. Shalima's Mind Clinic`;
                     listContainer.innerHTML = `
                         <div class="bg-[#F7F6F0] rounded-2xl p-6 text-center space-y-2 border border-dashed border-gray-300">
                             <span class="text-2xl">📋</span>
-                            <div class="text-xs font-bold text-gray-700">No consulted cases recorded yet</div>
+                            <div class="text-xs font-bold text-gray-700">No patient records saved yet</div>
                             <p class="text-[11px] text-gray-500 leading-relaxed max-w-xs mx-auto">
-                                Record consulted patients above with automatic review scheduling (e.g. after 2 days).
+                                Record consulted patients above with review days scheduling (e.g. after 2 days).
                             </p>
                         </div>
                     `;
                 } else {
                     listContainer.innerHTML = `
                         <div class="bg-[#F7F6F0] rounded-2xl p-4 text-center text-xs text-gray-500">
-                            No case records matching your search/filter.
+                            No records matching your search/filter.
                         </div>
                     `;
                 }
@@ -5851,7 +5666,6 @@ Dr. Shalima's Mind Clinic`;
                 } catch (e) {}
 
                 const revDateFormatted = formatReviewDateDisplay(c.reviewDate);
-                const revDateShort = formatReviewDateShort(c.reviewDate);
                 const timeHtml = (c.consultTime && c.consultTime.trim() !== '')
                     ? `<span>&bull;</span><span>⏰ ${escapeHtmlShalima(c.consultTime)}</span>`
                     : '';
@@ -5894,38 +5708,19 @@ Dr. Shalima's Mind Clinic`;
                             <a href="tel:${cleanPhone}" class="inline-flex items-center gap-1 text-[11px] font-bold text-gray-700 bg-white hover:bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-md transition" title="Call patient">
                                 <span>📞 Call</span>
                             </a>
-                            <button type="button" onclick="copyShalimaCaseSummary('${c.id}')" class="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-600 bg-white hover:bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-md transition" title="Copy case summary">
+                            <button type="button" onclick="copyShalimaCaseSummary('${c.id}')" class="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-600 bg-white hover:bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-md transition" title="Copy patient summary">
                                 <span>📋 Copy</span>
                             </button>
                         </div>
                     </div>
 
                     <!-- Review Schedule Display Box -->
-                    <div class="bg-[#F7F6F0] rounded-xl p-3 border border-gray-200 space-y-1.5">
-                        <div class="flex items-center justify-between flex-wrap gap-1.5">
-                            <div class="flex items-center gap-1.5 text-xs font-bold text-gray-800">
-                                <span>🔔 Next Review:</span>
-                                <span class="text-[#235847]">${c.reviewDays ? `After ${c.reviewDays} day${c.reviewDays == 1 ? '' : 's'} · ` : ''}${revDateFormatted}</span>
-                            </div>
-                            ${c.autoBooked ? `
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-[#235847] border border-emerald-200">
-                                    ✅ Booked (${escapeHtmlShalima(c.reviewPsy || 'Habla')}, ${escapeHtmlShalima(c.reviewTime || '')})
-                                </span>
-                            ` : `
-                                <button onclick="bookReviewSlotFromCase('${c.id}')" class="px-2.5 py-1 bg-[#235847] hover:bg-[#1B4739] text-white text-[10px] font-bold rounded-lg transition active:scale-95 shadow-xs">
-                                    📅 Book Slot on ${revDateShort}
-                                </button>
-                            `}
+                    <div class="bg-[#F7F6F0] rounded-xl px-3 py-2 border border-gray-200 flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-1.5 font-bold text-gray-800">
+                            <span>🔔 Next Review:</span>
+                            <span class="text-[#235847]">${c.reviewDays ? `After ${c.reviewDays} day${c.reviewDays == 1 ? '' : 's'} · ` : ''}${revDateFormatted}</span>
                         </div>
-                        ${c.autoBooked ? `
-                            <div class="text-[11px] text-gray-500 flex items-center justify-between pt-0.5 border-t border-gray-200/60">
-                                <span>Auto-scheduled in clinic timetable</span>
-                                <button onclick="viewDateInSchedule('${c.reviewDate}')" class="text-[11px] text-[#235847] font-bold hover:underline flex items-center gap-0.5">
-                                    <span>View on ${revDateShort} Schedule</span>
-                                    <span>&rarr;</span>
-                                </button>
-                            </div>
-                        ` : ''}
+                        <span class="text-[10px] font-semibold text-gray-400">Doctor Review</span>
                     </div>
                 `;
 
