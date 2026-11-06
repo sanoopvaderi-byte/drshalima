@@ -490,6 +490,139 @@
             </div>
         </div>
 
+        <!-- CARD 4: Dr. Shalima Shamudheen Consulted Case History -->
+        <div id="shalima-cases-card" class="bg-white rounded-3xl p-5 card-shadow scroll-mt-20">
+            <div class="flex items-center justify-between mb-3">
+                <button type="button" onclick="toggleShalimaCasesSection()" class="flex items-center space-x-2 text-left group focus:outline-none">
+                    <span id="shalima-cases-heading-arrow" class="text-sm text-[#235847] font-bold transition-transform">▼</span>
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold text-gray-900 group-hover:text-[#235847] transition">Dr. Shalima Shamudheen: Consulted Case History</h2>
+                        <p class="text-xs text-gray-500 font-medium">Record patient case history, clinical notes &amp; updates</p>
+                    </div>
+                </button>
+                <div class="flex items-center gap-1.5 flex-shrink-0">
+                    <span id="shalima-cases-count-badge" class="px-2 py-0.5 bg-[#E8F3EE] text-[#235847] text-[11px] font-bold rounded-full">0 cases</span>
+                    <button type="button" onclick="toggleShalimaCasesSection()" id="shalima-cases-min-btn" class="w-7 h-7 flex items-center justify-center rounded-full bg-[#F7F6F0] hover:bg-[#EAE8E1] text-gray-700 text-xs font-bold transition" title="Minimize or expand section">
+                        <span id="shalima-cases-min-icon">−</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="shalima-cases-card-body" class="space-y-4">
+                <!-- Case Entry / Updation Form -->
+                <div class="bg-[#F7F6F0] rounded-2xl p-4 space-y-3.5 border border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <span id="shalima-form-mode-title" class="text-xs font-bold uppercase tracking-wider text-[#235847]">New Case History Record</span>
+                        <span id="shalima-form-edit-indicator" class="hidden px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Editing Mode</span>
+                    </div>
+
+                    <input type="hidden" id="shalima-case-id" value="">
+
+                    <!-- Row 1: Patient Name & Mobile -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Patient Name *</label>
+                            <input type="text" id="shalima-patient-name" placeholder="Patient Full Name" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Mobile / WhatsApp Number *</label>
+                            <input type="text" id="shalima-patient-phone" placeholder="91XXXXXXXXXX" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Case Type & Location -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Case Type *</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" id="shalima-type-initial" onclick="selectShalimaCaseType('Initial')" class="py-2 text-xs font-bold rounded-xl border border-[#235847] bg-[#E8F3EE] text-[#235847] transition">
+                                    Initial
+                                </button>
+                                <button type="button" id="shalima-type-followup" onclick="selectShalimaCaseType('Follow-up')" class="py-2 text-xs font-bold rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition">
+                                    Follow-up
+                                </button>
+                            </div>
+                            <input type="hidden" id="shalima-case-type" value="Initial">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Patient Location *</label>
+                            <input type="text" id="shalima-patient-location" placeholder="City / District / Place (e.g. Kozhikode, Dubai)" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Consultation Date & Time -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Consultation Date</label>
+                            <input type="date" id="shalima-consult-date" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                        </div>
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="text-xs font-semibold text-gray-600">Consultation Time</label>
+                                <button type="button" onclick="setShalimaTimeNow()" class="text-[10px] font-bold text-[#235847] hover:underline">Set Current Time</button>
+                            </div>
+                            <input type="text" id="shalima-consult-time" placeholder="e.g. 11:30 AM" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Consulted Case History / Clinical Notes -->
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Consulted Case History / Clinical Notes / Updation *</label>
+                        <textarea id="shalima-case-history" rows="3" placeholder="Enter case details, symptoms/presenting complaints, history, diagnosis/assessment, therapy plan, or consultation progress..." class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none resize-y"></textarea>
+                    </div>
+
+                    <!-- Row 5: Next Follow-up Date (Optional) -->
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Next Follow-up Date (Optional)</label>
+                        <input type="date" id="shalima-next-followup" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                    </div>
+
+                    <!-- Form Action Buttons -->
+                    <div class="flex items-center gap-2 pt-1">
+                        <button type="button" id="btn-save-shalima-case" onclick="saveShalimaCase()" class="flex-1 py-3 bg-[#235847] hover:bg-[#1B4739] text-white font-semibold text-xs sm:text-sm rounded-xl transition shadow-sm active:scale-[0.99] flex items-center justify-center gap-1.5">
+                            <span>💾 Save Case History</span>
+                        </button>
+                        <button type="button" id="btn-cancel-shalima-case" onclick="resetShalimaCaseForm()" class="px-4 py-3 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-semibold text-xs rounded-xl transition">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Saved Cases Records Section ("saving formate") -->
+                <div class="space-y-3 pt-2">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <div class="flex items-center gap-1.5">
+                            <h3 class="text-sm font-bold text-gray-900">Saved Case Records</h3>
+                            <span id="shalima-cases-filtered-count" class="text-xs text-gray-500 font-medium">(0)</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" onclick="exportShalimaCasesExcel()" class="px-2.5 py-1 bg-[#E8F3EE] hover:bg-[#D4E8DF] text-[#235847] font-semibold text-xs rounded-lg transition flex items-center gap-1" title="Download Excel sheet of all case histories">
+                                📊 Export Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Search & Filter Bar -->
+                    <div class="flex items-center gap-2">
+                        <div class="relative flex-1">
+                            <input type="text" id="shalima-cases-search" oninput="renderShalimaCasesList()" placeholder="Search by name, mobile, location, notes..." class="w-full bg-[#F7F6F0] border border-gray-200 rounded-xl pl-8 pr-3 py-2 text-xs text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                            <span class="absolute left-2.5 top-2 text-gray-400 text-xs">🔍</span>
+                        </div>
+                        <select id="shalima-cases-filter-type" onchange="renderShalimaCasesList()" class="bg-[#F7F6F0] border border-gray-200 rounded-xl px-2.5 py-2 text-xs font-semibold text-gray-700 outline-none">
+                            <option value="all">All Cases</option>
+                            <option value="Initial">Initial</option>
+                            <option value="Follow-up">Follow-up</option>
+                        </select>
+                    </div>
+
+                    <!-- Dynamic List of Saved Cases -->
+                    <div id="shalima-cases-list" class="space-y-3 max-h-96 overflow-y-auto pr-1">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- CARD 5: Backup Card -->
         <div id="backup-card-anchor" class="bg-white rounded-3xl p-5 card-shadow">
             <button type="button" onclick="toggleBackupSection()" class="w-full flex items-center justify-between text-left group focus:outline-none">
@@ -1103,6 +1236,39 @@
                         });
                     }
 
+                    // Smart merge for Dr. Shalima consulted case history
+                    if (Array.isArray(remote.shalimaCases)) {
+                        const localDelCases = Array.isArray(window.appState.deletedShalimaCaseIds) ? window.appState.deletedShalimaCaseIds : [];
+                        const remoteDelCases = Array.isArray(remote.deletedShalimaCaseIds) ? remote.deletedShalimaCaseIds : [];
+                        const delCaseSet = new Set([...localDelCases, ...remoteDelCases]);
+                        window.appState.deletedShalimaCaseIds = Array.from(delCaseSet).slice(-500);
+
+                        const caseMap = new Map();
+                        (window.appState.shalimaCases || []).forEach(c => {
+                            if (c && c.id && !delCaseSet.has(c.id)) {
+                                caseMap.set(c.id, c);
+                            }
+                        });
+
+                        remote.shalimaCases.forEach(rc => {
+                            if (!rc || !rc.id || delCaseSet.has(rc.id)) return;
+                            const existing = caseMap.get(rc.id);
+                            if (!existing) {
+                                caseMap.set(rc.id, rc);
+                                hasChanges = true;
+                            } else {
+                                const rTime = rc.updatedAt || 0;
+                                const lTime = existing.updatedAt || 0;
+                                if (rTime >= lTime && JSON.stringify(existing) !== JSON.stringify(rc)) {
+                                    caseMap.set(rc.id, rc);
+                                    hasChanges = true;
+                                }
+                            }
+                        });
+
+                        window.appState.shalimaCases = Array.from(caseMap.values());
+                    }
+
                     window.appState.bookings = mergedBookings;
                     window.appState.deletedBookingIds = Array.from(deletedSet).slice(-500);
                     window.appState.lastModified = Math.max(window.appState.lastModified || 0, remote.lastModified || 0);
@@ -1144,7 +1310,9 @@
                     lastBackupTimestamp: stateData.lastBackupTimestamp || null,
                     psychologistOfflineByDate: (stateData.psychologistOfflineByDate && typeof stateData.psychologistOfflineByDate === 'object') ? stateData.psychologistOfflineByDate : {},
                     deletedBookingIds: Array.isArray(stateData.deletedBookingIds) ? stateData.deletedBookingIds.slice(-500) : [],
-                    bookings: Array.isArray(stateData.bookings) ? stateData.bookings : []
+                    bookings: Array.isArray(stateData.bookings) ? stateData.bookings : [],
+                    deletedShalimaCaseIds: Array.isArray(stateData.deletedShalimaCaseIds) ? stateData.deletedShalimaCaseIds.slice(-500) : [],
+                    shalimaCases: Array.isArray(stateData.shalimaCases) ? stateData.shalimaCases : []
                 };
             }
 
@@ -1326,6 +1494,8 @@
             clinicPhone: '91XXXXXXXXXX',
             lastBackupTimestamp: null,
             psychologistOfflineByDate: {},
+            deletedShalimaCaseIds: [],
+            shalimaCases: [],
             bookings: [
                 {
                     id: 'b1',
@@ -1613,6 +1783,7 @@
             setInterval(updateLiveClock, 1000);
             
             document.getElementById('booking-date').value = appState.selectedDateStr;
+            initShalimaCasesCard();
             renderAll();
         };
 
@@ -1649,6 +1820,10 @@
                                 b.time = formatSessionTime(sPart, 'Couples');
                             }
                         });
+                    }
+                    if (parsed) {
+                        if (!Array.isArray(parsed.shalimaCases)) parsed.shalimaCases = [];
+                        if (!Array.isArray(parsed.deletedShalimaCaseIds)) parsed.deletedShalimaCaseIds = [];
                     }
                     appState = parsed;
                 } catch(e) {
@@ -2447,6 +2622,7 @@
             renderMonthlyReport();
             renderDailyReport();
             checkUpcomingSessionNotifications(true);
+            renderShalimaCasesList();
         };
 
         // Live Clock Component
@@ -4313,6 +4489,22 @@
             XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
             XLSX.utils.book_append_sheet(wb, wsBookings, "Bookings");
 
+            if (Array.isArray(appState.shalimaCases) && appState.shalimaCases.length > 0) {
+                const caseRows = appState.shalimaCases.map((c, idx) => ({
+                    "Sl No": idx + 1,
+                    "Patient Name": c.patientName,
+                    "Case Type": c.caseType,
+                    "Mobile Number": c.phone,
+                    "Location": c.location,
+                    "Consultation Date": c.consultDate,
+                    "Consultation Time": c.consultTime || '',
+                    "Case History / Clinical Notes": c.caseHistory,
+                    "Next Follow-up": c.nextFollowup || ''
+                }));
+                const wsCases = XLSX.utils.json_to_sheet(caseRows);
+                XLSX.utils.book_append_sheet(wb, wsCases, "Dr Shalima Consulted Cases");
+            }
+
             const fileSuffix = scope === 'selected' ? monthStr : 'All_Records';
             XLSX.writeFile(wb, `Clinic_Monthly_Report_${fileSuffix}.xlsx`);
         }
@@ -4836,6 +5028,474 @@
             renderAll();
             closeEraseDataModal();
             showMessageModal(`Erased all ${total} session bookings.`);
+        }
+
+        // =========================================================================
+        // Dr. Shalima Shamudheen – Consulted Case History Logic
+        // =========================================================================
+
+        let currentShalimaCaseType = 'Initial';
+
+        function toggleShalimaCasesSection() {
+            const body = document.getElementById('shalima-cases-card-body');
+            const arrow = document.getElementById('shalima-cases-heading-arrow');
+            const minIcon = document.getElementById('shalima-cases-min-icon');
+            if (!body) return;
+            const isHidden = body.classList.contains('hidden');
+            if (isHidden) {
+                body.classList.remove('hidden');
+                if (arrow) arrow.textContent = '▼';
+                if (minIcon) minIcon.textContent = '−';
+            } else {
+                body.classList.add('hidden');
+                if (arrow) arrow.textContent = '▶';
+                if (minIcon) minIcon.textContent = '+';
+            }
+        }
+
+        function selectShalimaCaseType(type) {
+            currentShalimaCaseType = type;
+            const hiddenInput = document.getElementById('shalima-case-type');
+            if (hiddenInput) hiddenInput.value = type;
+
+            const btnInitial = document.getElementById('shalima-type-initial');
+            const btnFollowup = document.getElementById('shalima-type-followup');
+
+            if (type === 'Initial') {
+                if (btnInitial) {
+                    btnInitial.className = 'py-2 text-xs font-bold rounded-xl border border-[#235847] bg-[#E8F3EE] text-[#235847] transition shadow-xs';
+                }
+                if (btnFollowup) {
+                    btnFollowup.className = 'py-2 text-xs font-bold rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition';
+                }
+            } else {
+                if (btnInitial) {
+                    btnInitial.className = 'py-2 text-xs font-bold rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition';
+                }
+                if (btnFollowup) {
+                    btnFollowup.className = 'py-2 text-xs font-bold rounded-xl border border-purple-500 bg-purple-50 text-purple-700 transition shadow-xs';
+                }
+            }
+        }
+
+        function setShalimaTimeNow() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit' });
+            const input = document.getElementById('shalima-consult-time');
+            if (input) input.value = timeStr;
+        }
+
+        function initShalimaCasesCard() {
+            const dateInput = document.getElementById('shalima-consult-date');
+            if (dateInput && !dateInput.value) {
+                const now = getClinicNow();
+                dateInput.value = (appState && appState.selectedDateStr) ? appState.selectedDateStr : now.todayStr;
+            }
+            const timeInput = document.getElementById('shalima-consult-time');
+            if (timeInput && !timeInput.value) {
+                setShalimaTimeNow();
+            }
+        }
+
+        function resetShalimaCaseForm() {
+            const idInput = document.getElementById('shalima-case-id');
+            const nameInput = document.getElementById('shalima-patient-name');
+            const phoneInput = document.getElementById('shalima-patient-phone');
+            const locInput = document.getElementById('shalima-patient-location');
+            const historyInput = document.getElementById('shalima-case-history');
+            const followupInput = document.getElementById('shalima-next-followup');
+            const titleEl = document.getElementById('shalima-form-mode-title');
+            const editBadge = document.getElementById('shalima-form-edit-indicator');
+            const saveBtn = document.getElementById('btn-save-shalima-case');
+
+            if (idInput) idInput.value = '';
+            if (nameInput) nameInput.value = '';
+            if (phoneInput) phoneInput.value = '';
+            if (locInput) locInput.value = '';
+            if (historyInput) historyInput.value = '';
+            if (followupInput) followupInput.value = '';
+
+            initShalimaCasesCard();
+            selectShalimaCaseType('Initial');
+
+            if (titleEl) titleEl.textContent = 'New Case History Record';
+            if (editBadge) editBadge.classList.add('hidden');
+            if (saveBtn) saveBtn.innerHTML = '<span>💾 Save Case History</span>';
+        }
+
+        function saveShalimaCase() {
+            const idInput = document.getElementById('shalima-case-id');
+            const nameInput = document.getElementById('shalima-patient-name');
+            const phoneInput = document.getElementById('shalima-patient-phone');
+            const typeInput = document.getElementById('shalima-case-type');
+            const locInput = document.getElementById('shalima-patient-location');
+            const dateInput = document.getElementById('shalima-consult-date');
+            const timeInput = document.getElementById('shalima-consult-time');
+            const historyInput = document.getElementById('shalima-case-history');
+            const followupInput = document.getElementById('shalima-next-followup');
+
+            const patientName = (nameInput ? nameInput.value : '').trim();
+            if (!patientName) {
+                showMessageModal('Please enter Patient Name.');
+                if (nameInput) nameInput.focus();
+                return;
+            }
+
+            const phone = (phoneInput ? phoneInput.value : '').trim();
+            if (!phone) {
+                showMessageModal('Please enter Mobile / WhatsApp Number.');
+                if (phoneInput) phoneInput.focus();
+                return;
+            }
+
+            const location = (locInput ? locInput.value : '').trim();
+            if (!location) {
+                showMessageModal('Please enter Patient Location (City / District / Place).');
+                if (locInput) locInput.focus();
+                return;
+            }
+
+            const caseHistory = (historyInput ? historyInput.value : '').trim();
+            if (!caseHistory) {
+                showMessageModal('Please enter Consulted Case History / Clinical Notes.');
+                if (historyInput) historyInput.focus();
+                return;
+            }
+
+            const caseType = (typeInput ? typeInput.value : 'Initial') || 'Initial';
+            const consultDate = (dateInput && dateInput.value) ? dateInput.value : getClinicNow().todayStr;
+            const consultTime = (timeInput ? timeInput.value : '').trim() || new Date().toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit' });
+            const nextFollowup = (followupInput ? followupInput.value : '').trim();
+
+            if (!Array.isArray(appState.shalimaCases)) {
+                appState.shalimaCases = [];
+            }
+
+            const existingId = idInput ? idInput.value : '';
+            if (existingId) {
+                const existing = appState.shalimaCases.find(c => c.id === existingId);
+                if (existing) {
+                    existing.patientName = patientName;
+                    existing.phone = phone;
+                    existing.caseType = caseType;
+                    existing.location = location;
+                    existing.consultDate = consultDate;
+                    existing.consultTime = consultTime;
+                    existing.caseHistory = caseHistory;
+                    existing.nextFollowup = nextFollowup;
+                    existing.updatedAt = Date.now();
+
+                    saveToStorage();
+                    renderShalimaCasesList();
+                    resetShalimaCaseForm();
+                    showMessageModal(`Case history for "${patientName}" updated successfully.`);
+                    return;
+                }
+            }
+
+            // New Case record
+            const newCase = {
+                id: 'sc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+                patientName: patientName,
+                caseType: caseType,
+                phone: phone,
+                location: location,
+                consultDate: consultDate,
+                consultTime: consultTime,
+                caseHistory: caseHistory,
+                nextFollowup: nextFollowup,
+                createdAt: Date.now(),
+                updatedAt: Date.now()
+            };
+
+            appState.shalimaCases.unshift(newCase);
+            saveToStorage();
+            renderShalimaCasesList();
+            resetShalimaCaseForm();
+            showMessageModal(`Consulted case history for "${patientName}" saved successfully.`);
+        }
+
+        function editShalimaCase(caseId) {
+            if (!appState || !Array.isArray(appState.shalimaCases)) return;
+            const caseItem = appState.shalimaCases.find(c => c.id === caseId);
+            if (!caseItem) return;
+
+            // Make sure section is open
+            const body = document.getElementById('shalima-cases-card-body');
+            if (body && body.classList.contains('hidden')) {
+                toggleShalimaCasesSection();
+            }
+
+            const idInput = document.getElementById('shalima-case-id');
+            const nameInput = document.getElementById('shalima-patient-name');
+            const phoneInput = document.getElementById('shalima-patient-phone');
+            const locInput = document.getElementById('shalima-patient-location');
+            const dateInput = document.getElementById('shalima-consult-date');
+            const timeInput = document.getElementById('shalima-consult-time');
+            const historyInput = document.getElementById('shalima-case-history');
+            const followupInput = document.getElementById('shalima-next-followup');
+            const titleEl = document.getElementById('shalima-form-mode-title');
+            const editBadge = document.getElementById('shalima-form-edit-indicator');
+            const saveBtn = document.getElementById('btn-save-shalima-case');
+
+            if (idInput) idInput.value = caseItem.id;
+            if (nameInput) nameInput.value = caseItem.patientName || '';
+            if (phoneInput) phoneInput.value = caseItem.phone || '';
+            if (locInput) locInput.value = caseItem.location || '';
+            if (dateInput) dateInput.value = caseItem.consultDate || '';
+            if (timeInput) timeInput.value = caseItem.consultTime || '';
+            if (historyInput) historyInput.value = caseItem.caseHistory || '';
+            if (followupInput) followupInput.value = caseItem.nextFollowup || '';
+
+            selectShalimaCaseType(caseItem.caseType || 'Initial');
+
+            if (titleEl) titleEl.textContent = `Edit Case: ${caseItem.patientName}`;
+            if (editBadge) editBadge.classList.remove('hidden');
+            if (saveBtn) saveBtn.innerHTML = '<span>✏️ Update Case History</span>';
+
+            const card = document.getElementById('shalima-cases-card');
+            if (card) {
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            if (nameInput) {
+                setTimeout(() => nameInput.focus(), 300);
+            }
+        }
+
+        function deleteShalimaCase(caseId) {
+            if (!appState || !Array.isArray(appState.shalimaCases)) return;
+            const caseItem = appState.shalimaCases.find(c => c.id === caseId);
+            if (!caseItem) return;
+
+            if (!confirm(`Are you sure you want to delete the consulted case history for "${caseItem.patientName}"?`)) {
+                return;
+            }
+
+            if (!Array.isArray(appState.deletedShalimaCaseIds)) {
+                appState.deletedShalimaCaseIds = [];
+            }
+            if (!appState.deletedShalimaCaseIds.includes(caseId)) {
+                appState.deletedShalimaCaseIds.push(caseId);
+            }
+
+            appState.shalimaCases = appState.shalimaCases.filter(c => c.id !== caseId);
+
+            const editingId = (document.getElementById('shalima-case-id') || {}).value;
+            if (editingId === caseId) {
+                resetShalimaCaseForm();
+            }
+
+            saveToStorage();
+            renderShalimaCasesList();
+            showMessageModal(`Case record for "${caseItem.patientName}" has been removed.`);
+        }
+
+        function copyShalimaCaseSummary(caseId) {
+            if (!appState || !Array.isArray(appState.shalimaCases)) return;
+            const c = appState.shalimaCases.find(item => item.id === caseId);
+            if (!c) return;
+
+            const text = 
+`DR. SHALIMA SHAMUDHEEN – CONSULTED CASE SUMMARY
+------------------------------------------------
+Patient Name: ${c.patientName}
+Case Type: ${c.caseType}
+Mobile: ${c.phone}
+Location: ${c.location}
+Date & Time: ${c.consultDate} · ${c.consultTime || 'N/A'}
+${c.nextFollowup ? `Next Follow-up: ${c.nextFollowup}\n` : ''}
+Case History & Clinical Notes:
+${c.caseHistory}
+------------------------------------------------
+Dr. Shalima's Mind Clinic`;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showMessageModal(`Case summary for "${c.patientName}" copied to clipboard!`);
+                }).catch(() => {
+                    showMessageModal(text);
+                });
+            } else {
+                showMessageModal(text);
+            }
+        }
+
+        function exportShalimaCasesExcel() {
+            if (!appState || !Array.isArray(appState.shalimaCases) || appState.shalimaCases.length === 0) {
+                showMessageModal("No consulted case history records available to export.");
+                return;
+            }
+
+            const data = appState.shalimaCases.map((c, idx) => ({
+                "Sl No": idx + 1,
+                "Patient Name": c.patientName,
+                "Case Type": c.caseType,
+                "Mobile / WhatsApp": c.phone,
+                "Location": c.location,
+                "Consultation Date": c.consultDate,
+                "Consultation Time": c.consultTime || '',
+                "Case History / Clinical Notes": c.caseHistory,
+                "Next Follow-up Date": c.nextFollowup || '',
+                "Recorded Date": new Date(c.createdAt || Date.now()).toLocaleDateString('en-GB')
+            }));
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, "Consulted Case History");
+
+            const todayStr = getClinicNow().todayStr;
+            XLSX.writeFile(wb, `Dr_Shalima_Consulted_Cases_${todayStr}.xlsx`);
+        }
+
+        function escapeHtmlShalima(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function renderShalimaCasesList() {
+            const listContainer = document.getElementById('shalima-cases-list');
+            const countBadge = document.getElementById('shalima-cases-count-badge');
+            const filteredCountEl = document.getElementById('shalima-cases-filtered-count');
+            if (!listContainer) return;
+
+            const allCases = (appState && Array.isArray(appState.shalimaCases)) ? appState.shalimaCases : [];
+            const totalCount = allCases.length;
+
+            if (countBadge) {
+                countBadge.textContent = `${totalCount} case${totalCount === 1 ? '' : 's'}`;
+            }
+
+            const searchInput = document.getElementById('shalima-cases-search');
+            const searchVal = (searchInput ? searchInput.value : '').trim().toLowerCase();
+
+            const filterSelect = document.getElementById('shalima-cases-filter-type');
+            const filterVal = filterSelect ? filterSelect.value : 'all';
+
+            let filtered = allCases.filter(c => {
+                if (filterVal !== 'all' && c.caseType !== filterVal) {
+                    return false;
+                }
+                if (searchVal) {
+                    const matchName = (c.patientName || '').toLowerCase().includes(searchVal);
+                    const matchPhone = (c.phone || '').toLowerCase().includes(searchVal);
+                    const matchLoc = (c.location || '').toLowerCase().includes(searchVal);
+                    const matchHist = (c.caseHistory || '').toLowerCase().includes(searchVal);
+                    return matchName || matchPhone || matchLoc || matchHist;
+                }
+                return true;
+            });
+
+            if (filteredCountEl) {
+                filteredCountEl.textContent = `(${filtered.length}${filtered.length !== totalCount ? ` of ${totalCount}` : ''})`;
+            }
+
+            if (filtered.length === 0) {
+                if (totalCount === 0) {
+                    listContainer.innerHTML = `
+                        <div class="bg-[#F7F6F0] rounded-2xl p-6 text-center space-y-2 border border-dashed border-gray-300">
+                            <span class="text-2xl">📋</span>
+                            <div class="text-xs font-bold text-gray-700">No consulted cases recorded yet</div>
+                            <p class="text-[11px] text-gray-500 leading-relaxed max-w-xs mx-auto">
+                                Use the form above to record Dr. Shalima's patient case histories, case types, mobile numbers, locations, and consultation notes.
+                            </p>
+                        </div>
+                    `;
+                } else {
+                    listContainer.innerHTML = `
+                        <div class="bg-[#F7F6F0] rounded-2xl p-4 text-center text-xs text-gray-500">
+                            No case records matching your search/filter.
+                        </div>
+                    `;
+                }
+                return;
+            }
+
+            listContainer.innerHTML = '';
+
+            filtered.forEach(c => {
+                const cleanPhone = (c.phone || '').replace(/[^0-9]/g, '');
+                const isInitial = (c.caseType === 'Initial');
+                const badgeClass = isInitial
+                    ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                    : 'bg-purple-100 text-purple-800 border-purple-200';
+
+                let dateFormatted = c.consultDate || 'N/A';
+                try {
+                    if (c.consultDate) {
+                        const parts = c.consultDate.split('-');
+                        if (parts.length === 3) {
+                            const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                            dateFormatted = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+                        }
+                    }
+                } catch (e) {}
+
+                const cardEl = document.createElement('div');
+                cardEl.className = 'bg-white border border-gray-200 rounded-2xl p-3.5 space-y-2.5 card-shadow hover:border-[#235847]/40 transition text-left';
+                cardEl.innerHTML = `
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-sm font-bold text-gray-900 truncate">${escapeHtmlShalima(c.patientName)}</span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${badgeClass}">
+                                    ${escapeHtmlShalima(c.caseType)}
+                                </span>
+                            </div>
+                            <div class="text-[11px] text-gray-500 font-medium flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                <span>📅 ${dateFormatted}</span>
+                                <span>&bull;</span>
+                                <span>⏰ ${escapeHtmlShalima(c.consultTime || '—')}</span>
+                                <span>&bull;</span>
+                                <span class="text-gray-800 font-semibold">📍 ${escapeHtmlShalima(c.location)}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 flex-shrink-0">
+                            <button onclick="editShalimaCase('${c.id}')" class="px-2.5 py-1 bg-[#F7F6F0] hover:bg-[#EAE8E1] text-gray-700 text-xs font-semibold rounded-lg transition active:scale-95" title="Edit this record">
+                                ✏️ Edit
+                            </button>
+                            <button onclick="deleteShalimaCase('${c.id}')" class="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg transition active:scale-95" title="Delete record">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Contact & Communication Bar -->
+                    <div class="flex items-center justify-between text-xs bg-[#FAF8F3] px-3 py-1.5 rounded-xl border border-gray-100 flex-wrap gap-2">
+                        <span class="font-medium text-gray-700">📞 ${escapeHtmlShalima(c.phone)}</span>
+                        <div class="flex items-center gap-1.5">
+                            <a href="https://wa.me/${cleanPhone}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2.5 py-0.5 rounded-md transition" title="Chat on WhatsApp">
+                                <span>💬 WhatsApp</span>
+                            </a>
+                            <a href="tel:${cleanPhone}" class="inline-flex items-center gap-1 text-[11px] font-bold text-gray-700 bg-white hover:bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-md transition" title="Call patient">
+                                <span>📞 Call</span>
+                            </a>
+                            <button type="button" onclick="copyShalimaCaseSummary('${c.id}')" class="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-600 bg-white hover:bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-md transition" title="Copy case summary">
+                                <span>📋 Copy</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Consulted Case History Notes -->
+                    <div class="bg-[#F7F6F0] rounded-xl p-3 text-xs text-gray-800 leading-relaxed border-l-4 border-[#235847] whitespace-pre-wrap">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Consulted Case History / Clinical Notes:</div>
+                        ${escapeHtmlShalima(c.caseHistory)}
+                    </div>
+
+                    ${c.nextFollowup ? `
+                        <div class="text-[11px] font-semibold text-[#235847] flex items-center gap-1.5 bg-[#E8F3EE] px-3 py-1 rounded-xl">
+                            <span>🔔 Next Follow-up:</span>
+                            <span class="font-bold">${escapeHtmlShalima(c.nextFollowup)}</span>
+                        </div>
+                    ` : ''}
+                `;
+
+                listContainer.appendChild(cardEl);
+            });
         }
 
         // Custom Modal Alert replacement (no alert())
