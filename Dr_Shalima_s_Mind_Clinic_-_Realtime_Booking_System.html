@@ -4056,6 +4056,9 @@
                 if (action === 'shalima_cases') {
                     titleEl.textContent = "Dr. Shalima's Case History Passcode";
                     subEl.textContent = 'Enter passcode (6498) to open consulted case records & calendar.';
+                } else if (action === 'edit_shalima_case') {
+                    titleEl.textContent = 'Edit Patient Record';
+                    subEl.textContent = 'Enter passcode (6498) to edit this doctor patient record.';
                 } else if (action === 'cancel_shalima_case') {
                     titleEl.textContent = 'Cancel Patient Booking';
                     subEl.textContent = 'Enter passcode (6498) to cancel this doctor patient booking.';
@@ -4136,7 +4139,7 @@
             if (!input) return;
 
             const action = pendingPasscodeAction;
-            const requiredCode = (action === 'shalima_cases' || action === 'book_session' || action === 'edit_session' || action === 'cancel_session' || action === 'cancel_shalima_case' || action === 'delete_shalima_case' || action === 'toggle_psychologist_status')
+            const requiredCode = (action === 'shalima_cases' || action === 'book_session' || action === 'edit_session' || action === 'cancel_session' || action === 'cancel_shalima_case' || action === 'edit_shalima_case' || action === 'delete_shalima_case' || action === 'toggle_psychologist_status')
                 ? SESSION_PASSCODE
                 : REPORT_PASSCODE;
 
@@ -4184,6 +4187,12 @@
                 } else if (action === 'cancel_session') {
                     if (pendingCancelId) {
                         doRequestCancelBooking(pendingCancelId);
+                    }
+                } else if (action === 'edit_shalima_case') {
+                    if (pendingEditShalimaCaseId) {
+                        const cid = pendingEditShalimaCaseId;
+                        pendingEditShalimaCaseId = null;
+                        doEditShalimaCase(cid);
                     }
                 } else if (action === 'cancel_shalima_case') {
                     if (pendingCancelShalimaCaseId) {
@@ -5672,14 +5681,26 @@
             const caseItem = appState.shalimaCases.find(c => c.id === caseId);
             if (!caseItem) return;
 
-            switchShalimaView('form');
+            // Prompt passcode 6498 whenever editing a doctor patient record
+            pendingEditShalimaCaseId = caseId;
+            openReportPasscodeModal('edit_shalima_case');
+        }
+
+        function doEditShalimaCase(caseId) {
+            if (!appState || !Array.isArray(appState.shalimaCases)) return;
+            const caseItem = appState.shalimaCases.find(c => c.id === caseId);
+            if (!caseItem) return;
 
             const body = document.getElementById('shalima-cases-card-body');
+            const arrow = document.getElementById('shalima-cases-heading-arrow');
+            const hint = document.getElementById('shalima-cases-heading-hint');
             if (body && body.classList.contains('hidden')) {
-                pendingEditShalimaCaseId = caseId;
-                openReportPasscodeModal('shalima_cases');
-                return;
+                body.classList.remove('hidden');
+                if (arrow) arrow.textContent = '▼';
+                if (hint) hint.textContent = 'Tap to hide';
             }
+
+            switchShalimaView('form');
 
             const idInput = document.getElementById('shalima-case-id');
             const nameInput = document.getElementById('shalima-patient-name');
@@ -5730,6 +5751,7 @@
             if (nameInput) {
                 setTimeout(() => nameInput.focus(), 300);
             }
+            setTimeout(updateShalimaContainerHeight, 80);
         }
 
         let pendingCancelShalimaCaseId = null;
