@@ -4222,8 +4222,13 @@
                     titleEl.textContent = 'Edit Patient Record';
                     subEl.textContent = 'Enter clinic passcode to edit this doctor patient record.';
                 } else if (action === 'cancel_shalima_case') {
-                    titleEl.textContent = 'Cancel Patient Booking';
-                    subEl.textContent = 'Enter clinic passcode to cancel this doctor patient booking.';
+                    if (pendingCancelShalimaAction === 'review_call') {
+                        titleEl.textContent = 'Cancel Review Call';
+                        subEl.textContent = 'Enter clinic passcode to cancel this review appointment (consulted day record remains active).';
+                    } else {
+                        titleEl.textContent = 'Cancel Patient Consultation';
+                        subEl.textContent = 'Enter clinic passcode to cancel this doctor patient consultation record.';
+                    }
                 } else if (action === 'delete_shalima_case') {
                     titleEl.textContent = 'Delete Patient Record';
                     subEl.textContent = 'Enter clinic passcode to permanently delete this record.';
@@ -4405,7 +4410,11 @@
                     if (pendingCancelShalimaCaseId) {
                         const cid = pendingCancelShalimaCaseId;
                         pendingCancelShalimaCaseId = null;
-                        doCancelShalimaCase(cid);
+                        if (pendingCancelShalimaAction === 'review_call') {
+                            doCancelShalimaReviewCall(cid);
+                        } else {
+                            doCancelShalimaCase(cid);
+                        }
                     }
                 } else if (action === 'delete_shalima_case') {
                     if (pendingCancelShalimaCaseId) {
@@ -6109,6 +6118,70 @@
         }
 
         let pendingCancelShalimaCaseId = null;
+        let pendingCancelShalimaAction = 'case'; // 'case' | 'review_call'
+
+        function requestCancelShalimaReviewCall(caseId) {
+            if (!appState || !Array.isArray(appState.shalimaCases)) return;
+            const c = appState.shalimaCases.find(item => item.id === caseId);
+            if (!c) return;
+
+            pendingCancelShalimaCaseId = caseId;
+            pendingCancelShalimaAction = 'review_call';
+            openReportPasscodeModal('cancel_shalima_case');
+        }
+
+        function doCancelShalimaReviewCall(caseId) {
+            if (!appState || !Array.isArray(appState.shalimaCases)) return;
+            const c = appState.shalimaCases.find(item => item.id === caseId);
+            if (!c) return;
+
+            const oldReviewDate = c.reviewDate || '';
+            const oldReviewDays = c.reviewDays || null;
+            const consultDateFormatted = c.consultDate ? formatReviewDateDisplay(c.consultDate) : '';
+
+            // Only cancel the review call; KEEP the original consultation record 100% active!
+            c.reviewCancelledDate = oldReviewDate;
+            c.reviewCancelledDays = oldReviewDays;
+            c.reviewCancelledAt = Date.now();
+            c.reviewDate = '';
+            c.reviewDays = null;
+            c.status = 'active'; // Never delete or cancel the consulted day record!
+            c.updatedAt = Date.now();
+
+            const editingId = (document.getElementById('shalima-case-id') || {}).value;
+            if (editingId === caseId) {
+                const daysInput = document.getElementById('shalima-review-days');
+                const followupInput = document.getElementById('shalima-next-followup');
+                if (daysInput) daysInput.value = '';
+                if (followupInput) followupInput.value = '';
+                setShalimaReviewState(false, false);
+            }
+
+            saveToStorage();
+            renderAll();
+            renderShalimaCalendar();
+            if (shalimaCalSelectedDate) {
+                renderShalimaDayDetails(shalimaCalSelectedDate);
+            }
+            renderShalimaCasesList();
+
+            showMessageModal(`Review call for "${c.patientName}" scheduled on ${formatReviewDateDisplay(oldReviewDate)} has been cancelled.\n\n✓ The patient\'s consulted day record (${consultDateFormatted}) remains safely active and recorded.`);
+        }
+
+        function rescheduleShalimaReview(caseId) {
+            if (!appState || !Array.isArray(appState.shalimaCases)) return;
+            const c = appState.shalimaCases.find(item => item.id === caseId);
+            if (!c) return;
+
+            doEditShalimaCase(caseId);
+            setShalimaReviewState(true, false);
+            const daysInput = document.getElementById('shalima-review-days');
+            if (daysInput) {
+                daysInput.value = c.reviewCancelledDays || 7;
+                onShalimaReviewDaysChange(daysInput.value);
+                daysInput.focus();
+            }
+        }
 
         function requestCancelShalimaCase(caseId) {
             if (!appState || !Array.isArray(appState.shalimaCases)) return;
@@ -6116,6 +6189,7 @@
             if (!c) return;
 
             pendingCancelShalimaCaseId = caseId;
+            pendingCancelShalimaAction = 'case';
             openReportPasscodeModal('cancel_shalima_case');
         }
 
@@ -6139,7 +6213,8 @@
             if (shalimaCalSelectedDate) {
                 renderShalimaDayDetails(shalimaCalSelectedDate);
             }
-            showMessageModal(`Patient booking for "${c.patientName}" has been cancelled.`);
+            renderShalimaCasesList();
+            showMessageModal(`Patient consultation for "${c.patientName}" has been cancelled.`);
         }
 
         function requestRestoreShalimaCase(caseId) {
@@ -7125,21 +7200,36 @@ Dr. Shalima's Mind Clinic`;
                         <button type="button" onclick="editShalimaCase('${c.id}')" class="px-2.5 py-1 bg-[#F7F6F0] hover:bg-[#EAE8E1] text-gray-700 text-xs font-semibold rounded-lg transition active:scale-95 inline-flex items-center gap-1" title="${editBtnTitle}">
                             ${editBtnText}
                         </button>
-                        <button type="button" onclick="requestRestoreShalimaCase('${c.id}')" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg border border-emerald-200 transition active:scale-95" title="Reactivate this patient booking">
-                            ↺ Restore
+                        <button type="button" onclick="requestRestoreShalimaCase('${c.id}')" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg border border-emerald-200 transition active:scale-95" title="Reactivate this patient consultation">
+                            ↺ Restore Consultation
                         </button>
                         <button type="button" onclick="requestDeleteShalimaCase('${c.id}')" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg border border-red-200 transition active:scale-95" title="Delete record permanently">
                             🗑️ Delete
                         </button>
                     `
-                    : `
-                        <button type="button" onclick="editShalimaCase('${c.id}')" class="px-2.5 py-1 bg-[#F7F6F0] hover:bg-[#EAE8E1] text-gray-700 text-xs font-semibold rounded-lg transition active:scale-95 inline-flex items-center gap-1" title="${editBtnTitle}">
-                            ${editBtnText}
-                        </button>
-                        <button type="button" onclick="requestCancelShalimaCase('${c.id}')" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg border border-red-200 transition active:scale-95" title="Cancel this patient booking">
-                            ❌ Cancel
-                        </button>
-                    `;
+                    : (item.isReview && !item.isConsult
+                        ? `
+                            <button type="button" onclick="editShalimaCase('${c.id}')" class="px-2.5 py-1 bg-[#F7F6F0] hover:bg-[#EAE8E1] text-gray-700 text-xs font-semibold rounded-lg transition active:scale-95 inline-flex items-center gap-1" title="${editBtnTitle}">
+                                ${editBtnText}
+                            </button>
+                            <button type="button" onclick="requestCancelShalimaReviewCall('${c.id}')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold rounded-lg border border-amber-200 transition active:scale-95 inline-flex items-center gap-1" title="Cancel this follow-up review call (consulted day record remains safely active)">
+                                ❌ Cancel Review Call
+                            </button>
+                        `
+                        : `
+                            <button type="button" onclick="editShalimaCase('${c.id}')" class="px-2.5 py-1 bg-[#F7F6F0] hover:bg-[#EAE8E1] text-gray-700 text-xs font-semibold rounded-lg transition active:scale-95 inline-flex items-center gap-1" title="${editBtnTitle}">
+                                ${editBtnText}
+                            </button>
+                            ${(c.reviewDate && c.reviewDate.trim() !== '') ? `
+                            <button type="button" onclick="requestCancelShalimaReviewCall('${c.id}')" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold rounded-lg border border-amber-200 transition active:scale-95 inline-flex items-center gap-1" title="Cancel scheduled review call only (keeps consultation active)">
+                                ❌ Cancel Review Call
+                            </button>
+                            ` : ''}
+                            <button type="button" onclick="requestCancelShalimaCase('${c.id}')" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg border border-red-200 transition active:scale-95" title="Cancel this patient consultation">
+                                ❌ Cancel Case
+                            </button>
+                        `
+                    );
 
                 cardsHtml += `
                     <div class="bg-white border ${isCancelled ? 'border-red-200 bg-red-50/20' : 'border-gray-200'} rounded-2xl p-3.5 space-y-2.5 card-shadow hover:border-[#235847]/40 transition text-left">
@@ -7713,12 +7803,27 @@ Dr. Shalima's Mind Clinic`;
 
                         <!-- Review Schedule Display Box -->
                         ${(c.reviewDate && c.reviewDate.trim() !== '') ? `
-                        <div class="bg-[#F7F6F0] rounded-xl px-3 py-2 border border-gray-200 flex items-center justify-between text-xs">
+                        <div class="bg-[#F7F6F0] rounded-xl px-3 py-2 border border-gray-200 flex items-center justify-between text-xs flex-wrap gap-1">
                             <div class="flex items-center gap-1.5 font-bold text-gray-800">
                                 <span>🔔 Next Review:</span>
                                 <span class="text-[#235847]">${c.reviewDays ? `After ${c.reviewDays} day${c.reviewDays == 1 ? '' : 's'} · ` : ''}${formatReviewDateDisplay(c.reviewDate)}</span>
                             </div>
-                            <span class="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">Review Scheduled</span>
+                            <div class="flex items-center gap-1">
+                                <span class="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">Review Scheduled</span>
+                                <button type="button" onclick="requestCancelShalimaReviewCall('${c.id}')" class="px-2 py-0.5 bg-red-50 hover:bg-red-100 text-red-600 text-[10px] font-bold rounded border border-red-200 transition" title="Cancel review call only (keeps consulted day record active)">
+                                    Cancel Review Call
+                                </button>
+                            </div>
+                        </div>
+                        ` : (c.reviewCancelledDate ? `
+                        <div class="bg-amber-50/50 rounded-xl px-3 py-1.5 border border-dashed border-amber-200 flex items-center justify-between text-xs flex-wrap gap-1">
+                            <div class="flex items-center gap-1.5 font-medium text-amber-900">
+                                <span>🔔 Review Call:</span>
+                                <span class="text-amber-800 font-semibold">Cancelled (${formatReviewDateDisplay(c.reviewCancelledDate)}) · Consultation Active</span>
+                            </div>
+                            <button type="button" onclick="rescheduleShalimaReview('${c.id}')" class="px-2 py-0.5 bg-white border border-gray-200 text-[#235847] text-[10px] font-bold rounded-lg hover:bg-gray-50 transition shadow-2xs">
+                                📅 Re-schedule Review
+                            </button>
                         </div>
                         ` : `
                         <div class="bg-[#FAF8F3] rounded-xl px-3 py-1.5 border border-dashed border-gray-200 flex items-center justify-between text-xs">
@@ -7728,7 +7833,7 @@ Dr. Shalima's Mind Clinic`;
                             </div>
                             <span class="text-[10px] font-semibold text-gray-400">Single Session</span>
                         </div>
-                        `}
+                        `)}
                     `;
 
                     listContainer.appendChild(cardEl);
