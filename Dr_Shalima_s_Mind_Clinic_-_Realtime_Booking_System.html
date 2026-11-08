@@ -508,14 +508,18 @@
                         <div id="shalima-cases-card-body" class="hidden space-y-3">
                 <!-- Top Header & Navigation Bar (Swipe Header: New Record vs Calendar) -->
                 <div class="flex items-center justify-between flex-wrap gap-2 pb-1 border-b border-gray-100">
-                    <!-- Navigation Tabs -->
-                    <div class="inline-flex p-1 bg-[#F7F6F0] rounded-2xl border border-gray-200">
+                    <!-- Navigation Tabs (3-Tab Swipe: Form -> Calendar -> Patient Records) -->
+                    <div class="inline-flex p-1 bg-[#F7F6F0] rounded-2xl border border-gray-200 flex-wrap gap-1">
                         <button type="button" id="shalima-view-tab-form" onclick="switchShalimaView('form')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#235847] text-white shadow-xs">
                             <span>📝 New Case Record</span>
                         </button>
                         <button type="button" id="shalima-view-tab-calendar" onclick="switchShalimaView('calendar')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-gray-600 hover:text-gray-900">
                             <span>📅 Calendar Details</span>
                             <span id="shalima-calendar-tab-badge" class="px-1.5 py-0.2 bg-[#235847]/10 text-[#235847] rounded-full text-[10px] hidden">0</span>
+                        </button>
+                        <button type="button" id="shalima-view-tab-records" onclick="switchShalimaView('records')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-gray-600 hover:text-gray-900">
+                            <span>📋 Patient Records</span>
+                            <span id="shalima-records-tab-badge" class="px-1.5 py-0.2 bg-[#235847]/10 text-[#235847] rounded-full text-[10px] hidden">0</span>
                         </button>
                     </div>
 
@@ -544,7 +548,12 @@
                                     <span id="shalima-form-mode-title" class="text-xs font-bold uppercase tracking-wider text-[#235847]">New Case History Record</span>
                                     <div class="flex items-center gap-2">
                                         <button type="button" onclick="switchShalimaView('calendar')" class="text-[11px] font-semibold text-[#235847] hover:underline flex items-center gap-1">
-                                            <span>📅 View Calendar</span>
+                                            <span>📅 Calendar</span>
+                                            <span>→</span>
+                                        </button>
+                                        <span class="text-gray-300">|</span>
+                                        <button type="button" onclick="switchShalimaView('records')" class="text-[11px] font-semibold text-[#235847] hover:underline flex items-center gap-1">
+                                            <span>📋 Records</span>
                                             <span>→</span>
                                         </button>
                                         <span id="shalima-form-edit-indicator" class="hidden px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Editing Mode</span>
@@ -699,9 +708,15 @@
                         <div id="shalima-slide-calendar" class="w-full flex-shrink-0 pl-0.5 space-y-3">
                             <div class="flex items-center justify-between px-1">
                                 <span class="text-xs font-bold uppercase tracking-wider text-[#235847]">Calendar &amp; Scheduled Bookings</span>
-                                <button type="button" onclick="switchShalimaView('form')" class="text-[11px] font-semibold text-[#235847] hover:underline flex items-center gap-1">
-                                    <span>← Back to Case Form</span>
-                                </button>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="switchShalimaView('form')" class="text-[11px] font-semibold text-[#235847] hover:underline flex items-center gap-1">
+                                        <span>← Form</span>
+                                    </button>
+                                    <span class="text-gray-300">|</span>
+                                    <button type="button" onclick="switchShalimaView('records')" class="text-[11px] font-semibold text-[#235847] hover:underline flex items-center gap-1">
+                                        <span>📋 Records →</span>
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Calendar Card Header: Month/Year Nav & Quick Controls -->
@@ -753,13 +768,81 @@
                             </div>
                         </div>
 
+                        <!-- SLIDE 3: Patient Consulted Records & Full Search Filter -->
+                        <div id="shalima-slide-records" class="w-full flex-shrink-0 pl-0.5 space-y-3">
+                            <!-- Records Header & Search Card -->
+                            <div class="bg-[#F7F6F0] rounded-2xl p-4 space-y-3 border border-gray-100">
+                                <div class="flex items-center justify-between flex-wrap gap-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-bold uppercase tracking-wider text-[#235847]">📋 Patient Consulted Records</span>
+                                        <span id="shalima-cases-filtered-count" class="text-xs font-bold text-gray-500"></span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" onclick="switchShalimaView('form')" class="text-[11px] font-semibold text-[#235847] hover:underline flex items-center gap-1">
+                                            <span>➕ New Record</span>
+                                        </button>
+                                        <span class="text-gray-300">|</span>
+                                        <button type="button" onclick="switchShalimaView('calendar')" class="text-[11px] font-semibold text-[#235847] hover:underline flex items-center gap-1">
+                                            <span>📅 Calendar</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Search & Filter Controls -->
+                                <div class="space-y-2 pt-1">
+                                    <!-- Search input column: Patient Name, Mobile/WhatsApp, Place, Consult Date Taken -->
+                                    <div class="relative">
+                                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 text-xs">
+                                            🔍
+                                        </span>
+                                        <input type="text" id="shalima-cases-search" oninput="renderShalimaCasesList()" placeholder="Search patient name, phone number, place, or consult date..." class="w-full pl-9 pr-8 py-2 bg-white text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-[#235847] transition placeholder-gray-400">
+                                        <button type="button" onclick="clearShalimaCasesSearch()" id="shalima-cases-search-clear" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 text-xs hidden" title="Clear search">
+                                            ✕
+                                        </button>
+                                    </div>
+
+                                    <!-- Filter pills & date picker: Initial or Follow-up + Date Taken -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                        <!-- Case type filter buttons (Initial / Follow-up / All) -->
+                                        <div class="flex items-center gap-1 p-1 bg-white rounded-xl border border-gray-200">
+                                            <span class="text-[10px] font-bold text-gray-400 uppercase px-1.5 flex-shrink-0">Type:</span>
+                                            <button type="button" id="shalima-filter-type-all" onclick="setShalimaCaseTypeFilter('all')" class="flex-1 py-1 rounded-lg font-bold text-[11px] transition bg-[#235847] text-white">
+                                                All
+                                            </button>
+                                            <button type="button" id="shalima-filter-type-Initial" onclick="setShalimaCaseTypeFilter('Initial')" class="flex-1 py-1 rounded-lg font-bold text-[11px] transition text-gray-600 hover:text-gray-900">
+                                                Initial
+                                            </button>
+                                            <button type="button" id="shalima-filter-type-Follow-up" onclick="setShalimaCaseTypeFilter('Follow-up')" class="flex-1 py-1 rounded-lg font-bold text-[11px] transition text-gray-600 hover:text-gray-900">
+                                                Follow-up
+                                            </button>
+                                        </div>
+
+                                        <!-- Date Taken / Consulted Date Filter Picker -->
+                                        <div class="flex items-center gap-1.5 bg-white rounded-xl border border-gray-200 px-2.5 py-1">
+                                            <span class="text-[10px] font-bold text-gray-400 uppercase flex-shrink-0">📅 Date:</span>
+                                            <input type="date" id="shalima-cases-date-filter" onchange="renderShalimaCasesList()" class="w-full text-xs font-semibold text-gray-700 bg-transparent focus:outline-none">
+                                            <button type="button" onclick="clearShalimaDateFilter()" class="text-[10px] font-bold text-gray-400 hover:text-gray-600 flex-shrink-0" title="Clear date filter">
+                                                ✕
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Patient Record Cards List -->
+                            <div id="shalima-cases-list" class="space-y-2.5">
+                                <!-- Populated dynamically by renderShalimaCasesList() -->
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
-                <!-- Slide dots indicator -->
+                <!-- Slide dots indicator (3 Slides: Form, Calendar, Records) -->
                 <div class="flex items-center justify-center space-x-1.5 pt-1">
                     <button type="button" onclick="switchShalimaView('form')" id="shalima-dot-form" class="w-2 h-2 rounded-full bg-[#235847] transition-all" title="New Case Record"></button>
                     <button type="button" onclick="switchShalimaView('calendar')" id="shalima-dot-calendar" class="w-2 h-2 rounded-full bg-gray-300 hover:bg-gray-400 transition-all" title="Calendar View"></button>
+                    <button type="button" onclick="switchShalimaView('records')" id="shalima-dot-records" class="w-2 h-2 rounded-full bg-gray-300 hover:bg-gray-400 transition-all" title="Patient Records"></button>
                 </div>
             </div>
         </div>
@@ -6634,6 +6717,7 @@ Dr. Shalima's Mind Clinic`;
             if (shalimaResizeObserver) return;
             const slideForm = document.getElementById('shalima-slide-form');
             const slideCal = document.getElementById('shalima-slide-calendar');
+            const slideRec = document.getElementById('shalima-slide-records');
             if (!slideForm || !slideCal || typeof ResizeObserver === 'undefined') return;
 
             shalimaResizeObserver = new ResizeObserver(() => {
@@ -6641,49 +6725,77 @@ Dr. Shalima's Mind Clinic`;
             });
             shalimaResizeObserver.observe(slideForm);
             shalimaResizeObserver.observe(slideCal);
+            if (slideRec) {
+                shalimaResizeObserver.observe(slideRec);
+            }
         }
 
         function updateShalimaContainerHeight() {
             const container = document.getElementById('shalima-swipe-container');
             const slideForm = document.getElementById('shalima-slide-form');
             const slideCal = document.getElementById('shalima-slide-calendar');
+            const slideRec = document.getElementById('shalima-slide-records');
             if (!container) return;
 
+            let activeSlide = slideForm;
             if (currentShalimaView === 'calendar') {
-                if (slideCal && slideCal.offsetHeight > 0) {
-                    const h = Math.max(slideCal.offsetHeight, slideCal.scrollHeight);
-                    container.style.height = (h + 12) + 'px';
-                } else {
-                    container.style.height = 'auto';
-                }
+                activeSlide = slideCal;
+            } else if (currentShalimaView === 'records') {
+                activeSlide = slideRec;
+            }
+
+            if (activeSlide && activeSlide.offsetHeight > 0) {
+                const h = Math.max(activeSlide.offsetHeight, activeSlide.scrollHeight);
+                container.style.height = (h + 16) + 'px';
             } else {
-                if (slideForm && slideForm.offsetHeight > 0) {
-                    const h = Math.max(slideForm.offsetHeight, slideForm.scrollHeight);
-                    container.style.height = (h + 16) + 'px';
-                } else {
-                    container.style.height = 'auto';
-                }
+                container.style.height = 'auto';
             }
         }
 
         function switchShalimaView(view) {
-            currentShalimaView = (view === 'calendar') ? 'calendar' : 'form';
+            if (view === 'records') {
+                currentShalimaView = 'records';
+            } else if (view === 'calendar') {
+                currentShalimaView = 'calendar';
+            } else {
+                currentShalimaView = 'form';
+            }
+
             const track = document.getElementById('shalima-swipe-track');
             const tabForm = document.getElementById('shalima-view-tab-form');
             const tabCal = document.getElementById('shalima-view-tab-calendar');
+            const tabRec = document.getElementById('shalima-view-tab-records');
             const dotForm = document.getElementById('shalima-dot-form');
             const dotCal = document.getElementById('shalima-dot-calendar');
+            const dotRec = document.getElementById('shalima-dot-records');
 
-            if (currentShalimaView === 'calendar') {
+            const activeTabClass = 'px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#235847] text-white shadow-xs';
+            const inactiveTabClass = 'px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-gray-600 hover:text-gray-900';
+
+            const activeDotClass = 'w-2 h-2 rounded-full bg-[#235847] transition-all';
+            const inactiveDotClass = 'w-2 h-2 rounded-full bg-gray-300 hover:bg-gray-400 transition-all';
+
+            if (currentShalimaView === 'records') {
+                if (track) track.style.transform = 'translateX(-200%)';
+                if (tabForm) tabForm.className = inactiveTabClass;
+                if (tabCal) tabCal.className = inactiveTabClass;
+                if (tabRec) tabRec.className = activeTabClass;
+
+                if (dotForm) dotForm.className = inactiveDotClass;
+                if (dotCal) dotCal.className = inactiveDotClass;
+                if (dotRec) dotRec.className = activeDotClass;
+
+                renderShalimaCasesList();
+                setTimeout(updateShalimaContainerHeight, 50);
+            } else if (currentShalimaView === 'calendar') {
                 if (track) track.style.transform = 'translateX(-100%)';
-                if (tabForm) {
-                    tabForm.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-gray-600 hover:text-gray-900';
-                }
-                if (tabCal) {
-                    tabCal.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#235847] text-white shadow-xs';
-                }
-                if (dotForm) dotForm.className = 'w-2 h-2 rounded-full bg-gray-300 hover:bg-gray-400 transition-all';
-                if (dotCal) dotCal.className = 'w-2 h-2 rounded-full bg-[#235847] transition-all';
+                if (tabForm) tabForm.className = inactiveTabClass;
+                if (tabCal) tabCal.className = activeTabClass;
+                if (tabRec) tabRec.className = inactiveTabClass;
+
+                if (dotForm) dotForm.className = inactiveDotClass;
+                if (dotCal) dotCal.className = activeDotClass;
+                if (dotRec) dotRec.className = inactiveDotClass;
                 
                 initShalimaCalState();
                 renderShalimaCalendar();
@@ -6694,14 +6806,13 @@ Dr. Shalima's Mind Clinic`;
                 setTimeout(updateShalimaContainerHeight, 50);
             } else {
                 if (track) track.style.transform = 'translateX(0%)';
-                if (tabForm) {
-                    tabForm.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#235847] text-white shadow-xs';
-                }
-                if (tabCal) {
-                    tabCal.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-gray-600 hover:text-gray-900';
-                }
-                if (dotForm) dotForm.className = 'w-2 h-2 rounded-full bg-[#235847] transition-all';
-                if (dotCal) dotCal.className = 'w-2 h-2 rounded-full bg-gray-300 hover:bg-gray-400 transition-all';
+                if (tabForm) tabForm.className = activeTabClass;
+                if (tabCal) tabCal.className = inactiveTabClass;
+                if (tabRec) tabRec.className = inactiveTabClass;
+
+                if (dotForm) dotForm.className = activeDotClass;
+                if (dotCal) dotCal.className = inactiveDotClass;
+                if (dotRec) dotRec.className = inactiveDotClass;
                 setTimeout(updateShalimaContainerHeight, 50);
             }
         }
@@ -6738,11 +6849,19 @@ Dr. Shalima's Mind Clinic`;
                     // Prominent horizontal swipe check (> 38px and horizontal > vertical * 1.3)
                     if (Math.abs(diffX) > 38 && Math.abs(diffX) > Math.abs(diffY) * 1.3) {
                         if (diffX < 0) {
-                            // Swiped left -> open calendar view
-                            switchShalimaView('calendar');
+                            // Swiped left: Form -> Calendar -> Records
+                            if (currentShalimaView === 'form') {
+                                switchShalimaView('calendar');
+                            } else if (currentShalimaView === 'calendar') {
+                                switchShalimaView('records');
+                            }
                         } else {
-                            // Swiped right -> open form view
-                            switchShalimaView('form');
+                            // Swiped right: Records -> Calendar -> Form
+                            if (currentShalimaView === 'records') {
+                                switchShalimaView('calendar');
+                            } else if (currentShalimaView === 'calendar') {
+                                switchShalimaView('form');
+                            }
                         }
                     }
                 }
@@ -7127,23 +7246,56 @@ Dr. Shalima's Mind Clinic`;
             }
         }
 
+        let shalimaCaseTypeFilter = 'all';
+
+        function setShalimaCaseTypeFilter(type) {
+            shalimaCaseTypeFilter = type;
+            ['all', 'Initial', 'Follow-up'].forEach(t => {
+                const btn = document.getElementById(`shalima-filter-type-${t}`);
+                if (btn) {
+                    if (t === type) {
+                        btn.className = 'flex-1 py-1 rounded-lg font-bold text-[11px] transition bg-[#235847] text-white';
+                    } else {
+                        btn.className = 'flex-1 py-1 rounded-lg font-bold text-[11px] transition text-gray-600 hover:text-gray-900';
+                    }
+                }
+            });
+            renderShalimaCasesList();
+        }
+
+        function clearShalimaCasesSearch() {
+            const searchInput = document.getElementById('shalima-cases-search');
+            if (searchInput) {
+                searchInput.value = '';
+                renderShalimaCasesList();
+            }
+        }
+
+        function clearShalimaDateFilter() {
+            const dateInput = document.getElementById('shalima-cases-date-filter');
+            if (dateInput) {
+                dateInput.value = '';
+                renderShalimaCasesList();
+            }
+        }
+
         function renderShalimaCasesList() {
             const listContainer = document.getElementById('shalima-cases-list');
-            const countBadge = document.getElementById('shalima-cases-count-badge');
-            const tabCountBadge = document.getElementById('shalima-cases-tab-count');
             const filteredCountEl = document.getElementById('shalima-cases-filtered-count');
-            if (!listContainer) return;
+            const recordsTabBadge = document.getElementById('shalima-records-tab-badge');
 
             initShalimaSwipeListeners();
 
             const allCases = (appState && Array.isArray(appState.shalimaCases)) ? appState.shalimaCases : [];
             const totalCount = allCases.length;
 
-            if (countBadge) {
-                countBadge.textContent = `${totalCount} patient${totalCount === 1 ? '' : 's'}`;
-            }
-            if (tabCountBadge) {
-                tabCountBadge.textContent = totalCount;
+            if (recordsTabBadge) {
+                if (totalCount > 0) {
+                    recordsTabBadge.textContent = totalCount;
+                    recordsTabBadge.classList.remove('hidden');
+                } else {
+                    recordsTabBadge.classList.add('hidden');
+                }
             }
 
             const calTabBadge = document.getElementById('shalima-calendar-tab-badge');
@@ -7159,23 +7311,67 @@ Dr. Shalima's Mind Clinic`;
                 }
             }
 
+            if (!listContainer) return;
+
             const searchInput = document.getElementById('shalima-cases-search');
             const searchVal = (searchInput ? searchInput.value : '').trim().toLowerCase();
+            const searchClearBtn = document.getElementById('shalima-cases-search-clear');
+            if (searchClearBtn) {
+                if (searchVal) {
+                    searchClearBtn.classList.remove('hidden');
+                } else {
+                    searchClearBtn.classList.add('hidden');
+                }
+            }
 
-            const filterSelect = document.getElementById('shalima-cases-filter-type');
-            const filterVal = filterSelect ? filterSelect.value : 'all';
+            const dateFilterInput = document.getElementById('shalima-cases-date-filter');
+            const dateFilterVal = dateFilterInput ? dateFilterInput.value : '';
 
             let filtered = allCases.filter(c => {
-                if (filterVal !== 'all' && c.caseType !== filterVal) {
-                    return false;
+                // Filter by Case Type: 'all', 'Initial', 'Follow-up'
+                if (shalimaCaseTypeFilter && shalimaCaseTypeFilter !== 'all') {
+                    if (c.caseType !== shalimaCaseTypeFilter) return false;
                 }
+
+                // Filter by Specific Date (Consultation / Data Taken or Review Date)
+                if (dateFilterVal) {
+                    const matchConsult = (c.consultDate === dateFilterVal);
+                    const matchReview = (c.reviewDate === dateFilterVal);
+                    if (!matchConsult && !matchReview) return false;
+                }
+
+                // Filter by Search Query (patient data taken, name, phone number, place)
                 if (searchVal) {
-                    const matchName = (c.patientName || '').toLowerCase().includes(searchVal);
-                    const matchPhone = (c.phone || '').toLowerCase().includes(searchVal);
-                    const matchLoc = (c.location || '').toLowerCase().includes(searchVal);
-                    const matchDate = (c.reviewDate || '').toLowerCase().includes(searchVal);
-                    return matchName || matchPhone || matchLoc || matchDate;
+                    const name = (c.patientName || '').toLowerCase();
+                    const phone = (c.phone || '').toLowerCase();
+                    const cleanPhone = phone.replace(/[^0-9]/g, '');
+                    const place = (c.location || '').toLowerCase();
+                    const consultDate = (c.consultDate || '').toLowerCase();
+                    const reviewDate = (c.reviewDate || '').toLowerCase();
+
+                    // Formatted consult date search (e.g. "08 Nov", "November")
+                    let consultFormatted = '';
+                    try {
+                        if (c.consultDate) {
+                            const p = c.consultDate.split('-');
+                            if (p.length === 3) {
+                                const d = new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+                                consultFormatted = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toLowerCase();
+                            }
+                        }
+                    } catch (e) {}
+
+                    const matchName = name.includes(searchVal);
+                    const matchPhone = phone.includes(searchVal) || cleanPhone.includes(searchVal);
+                    const matchPlace = place.includes(searchVal);
+                    const matchConsultDate = consultDate.includes(searchVal) || consultFormatted.includes(searchVal);
+                    const matchReviewDate = reviewDate.includes(searchVal);
+
+                    if (!matchName && !matchPhone && !matchPlace && !matchConsultDate && !matchReviewDate) {
+                        return false;
+                    }
                 }
+
                 return true;
             });
 
@@ -7190,21 +7386,35 @@ Dr. Shalima's Mind Clinic`;
                             <span class="text-2xl">📋</span>
                             <div class="text-xs font-bold text-gray-700">No patient records saved yet</div>
                             <p class="text-[11px] text-gray-500 leading-relaxed max-w-xs mx-auto">
-                                Record consulted patients above with review days scheduling (e.g. after 2 days).
+                                Record consulted patients using the New Case Record tab or Schedule review dates.
                             </p>
                         </div>
                     `;
                 } else {
                     listContainer.innerHTML = `
-                        <div class="bg-[#F7F6F0] rounded-2xl p-4 text-center text-xs text-gray-500">
-                            No records matching your search/filter.
+                        <div class="bg-[#F7F6F0] rounded-2xl p-5 text-center space-y-2 border border-gray-200">
+                            <span class="text-xl">🔍</span>
+                            <div class="text-xs font-bold text-gray-700">No matching patient records found</div>
+                            <p class="text-[11px] text-gray-500">
+                                Try adjusting your search query, case type filter, or date picker.
+                            </p>
+                            <button type="button" onclick="clearShalimaCasesSearch(); clearShalimaDateFilter(); setShalimaCaseTypeFilter('all');" class="mt-1 px-3 py-1 bg-[#235847] text-white text-[11px] font-bold rounded-lg hover:bg-[#1B4739] transition">
+                                Reset Filters
+                            </button>
                         </div>
                     `;
                 }
             } else {
                 listContainer.innerHTML = '';
 
-                filtered.forEach(c => {
+                // Sort with newest consultation date first
+                const sorted = [...filtered].sort((a, b) => {
+                    const da = a.consultDate || '';
+                    const db = b.consultDate || '';
+                    return db.localeCompare(da);
+                });
+
+                sorted.forEach(c => {
                     const cleanPhone = (c.phone || '').replace(/[^0-9]/g, '');
                     const isInitial = (c.caseType === 'Initial');
                     const badgeClass = isInitial
@@ -7222,10 +7432,12 @@ Dr. Shalima's Mind Clinic`;
                         }
                     } catch (e) {}
 
-                    const revDateFormatted = formatReviewDateDisplay(c.reviewDate);
                     const timeHtml = (c.consultTime && c.consultTime.trim() !== '')
                         ? `<span>&bull;</span><span>⏰ ${escapeHtmlShalima(c.consultTime)}</span>`
                         : '';
+
+                    const isPast = isShalimaPastDate(c.consultDate);
+                    const editButtonLabel = isPast ? '🔒 ✏️ Edit' : '✏️ Edit';
 
                     const cardEl = document.createElement('div');
                     cardEl.className = 'bg-white border border-gray-200 rounded-2xl p-3.5 space-y-2.5 card-shadow hover:border-[#235847]/40 transition text-left';
@@ -7239,7 +7451,7 @@ Dr. Shalima's Mind Clinic`;
                                     </span>
                                 </div>
                                 <div class="text-[11px] text-gray-500 font-medium flex items-center gap-1.5 mt-0.5 flex-wrap">
-                                    <span>📅 Consulted: ${dateFormatted}</span>
+                                    <span>📅 Consulted: <strong class="text-gray-800">${dateFormatted}</strong></span>
                                     ${timeHtml}
                                     <span>&bull;</span>
                                     <span class="text-gray-800 font-semibold">📍 ${escapeHtmlShalima(c.location)}</span>
@@ -7247,7 +7459,7 @@ Dr. Shalima's Mind Clinic`;
                             </div>
                             <div class="flex items-center gap-1 flex-shrink-0">
                                 <button onclick="editShalimaCase('${c.id}')" class="px-2.5 py-1 bg-[#F7F6F0] hover:bg-[#EAE8E1] text-gray-700 text-xs font-semibold rounded-lg transition active:scale-95" title="Edit this record">
-                                    ✏️ Edit
+                                    ${editButtonLabel}
                                 </button>
                                 <button onclick="deleteShalimaCase('${c.id}')" class="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg transition active:scale-95" title="Delete record">
                                     🗑️
@@ -7278,7 +7490,7 @@ Dr. Shalima's Mind Clinic`;
                                 <span>🔔 Next Review:</span>
                                 <span class="text-[#235847]">${c.reviewDays ? `After ${c.reviewDays} day${c.reviewDays == 1 ? '' : 's'} · ` : ''}${formatReviewDateDisplay(c.reviewDate)}</span>
                             </div>
-                            <span class="text-[10px] font-semibold text-gray-400">Doctor Review</span>
+                            <span class="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">Review Scheduled</span>
                         </div>
                         ` : `
                         <div class="bg-[#FAF8F3] rounded-xl px-3 py-1.5 border border-dashed border-gray-200 flex items-center justify-between text-xs">
@@ -7286,7 +7498,7 @@ Dr. Shalima's Mind Clinic`;
                                 <span>🔔 Next Review:</span>
                                 <span class="text-gray-400 italic">No review scheduled (Completed)</span>
                             </div>
-                            <span class="text-[10px] font-semibold text-gray-400">Doctor Review</span>
+                            <span class="text-[10px] font-semibold text-gray-400">Single Session</span>
                         </div>
                         `}
                     `;
@@ -7301,6 +7513,10 @@ Dr. Shalima's Mind Clinic`;
                 shalimaCalSelectedDate = getClinicNow().todayStr;
             }
             renderShalimaDayDetails(shalimaCalSelectedDate);
+
+            if (typeof updateShalimaContainerHeight === 'function') {
+                updateShalimaContainerHeight();
+            }
         }
 
         // Custom Modal Alert replacement (no alert())
