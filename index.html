@@ -4302,12 +4302,20 @@
 
             const action = pendingPasscodeAction;
             const entered = input.value.trim();
-            const isPastShalimaAction = (action === 'past_date_shalima_edit' || action === 'past_date_shalima_add' || action === 'past_date_shalima_save');
+            const isShalimaCaseAction = (
+                action === 'past_date_shalima_edit' ||
+                action === 'past_date_shalima_add' ||
+                action === 'past_date_shalima_save' ||
+                action === 'edit_shalima_case' ||
+                action === 'cancel_shalima_case' ||
+                action === 'delete_shalima_case'
+            );
             
             let isMatch = false;
-            if (isPastShalimaAction) {
-                isMatch = (entered === '4425' || entered === 'Mindclinic@4425');
-            } else if (action === 'shalima_cases' || action === 'book_session' || action === 'edit_session' || action === 'cancel_session' || action === 'cancel_shalima_case' || action === 'edit_shalima_case' || action === 'delete_shalima_case' || action === 'toggle_psychologist_status') {
+            if (isShalimaCaseAction) {
+                // Passcode 4425 is activated for locked previous days and all Dr. Shalima case edit options
+                isMatch = (entered === '4425' || entered === 'Mindclinic@4425' || entered === SESSION_PASSCODE || entered === REPORT_PASSCODE);
+            } else if (action === 'shalima_cases' || action === 'book_session' || action === 'edit_session' || action === 'cancel_session' || action === 'toggle_psychologist_status') {
                 isMatch = (entered === SESSION_PASSCODE);
             } else if (action === 'export_json' || action === 'import_json') {
                 isMatch = (entered === REPORT_PASSCODE || entered === '4425' || entered === SESSION_PASSCODE);
@@ -4317,7 +4325,7 @@
 
             if (isMatch) {
                 closeReportPasscodeModal();
-                if (action === 'past_date_shalima_edit') {
+                if (action === 'past_date_shalima_edit' || action === 'edit_shalima_case') {
                     if (pendingEditShalimaCaseId) {
                         const cid = pendingEditShalimaCaseId;
                         pendingEditShalimaCaseId = null;
@@ -4392,12 +4400,7 @@
                     if (pendingCancelId) {
                         doRequestCancelBooking(pendingCancelId);
                     }
-                } else if (action === 'edit_shalima_case') {
-                    if (pendingEditShalimaCaseId) {
-                        const cid = pendingEditShalimaCaseId;
-                        pendingEditShalimaCaseId = null;
-                        doEditShalimaCase(cid);
-                    }
+
                 } else if (action === 'cancel_shalima_case') {
                     if (pendingCancelShalimaCaseId) {
                         const cid = pendingCancelShalimaCaseId;
@@ -6026,14 +6029,13 @@
             if (!caseItem) return;
 
             pendingEditShalimaCaseId = caseId;
-            const todayStr = getClinicNow().todayStr;
-            const isPast = (caseItem.consultDate && caseItem.consultDate < todayStr);
+            const isPast = isShalimaPastDate(caseItem.consultDate) || isShalimaPastDate(caseItem.reviewDate);
 
             if (isPast) {
                 // Previous days locked with passcode 4425
                 openReportPasscodeModal('past_date_shalima_edit');
             } else {
-                // Today or future days prompt passcode 6498
+                // Today or future records edit with passcode 4425 or clinic passcode
                 openReportPasscodeModal('edit_shalima_case');
             }
         }
@@ -7301,12 +7303,29 @@ Dr. Shalima's Mind Clinic`;
             }
         }
 
-        // Safely determine if consultation date is in the past
+        // Safely determine if consultation date is in the past (supports ISO and DD/MM/YYYY)
         function isShalimaPastDate(dateStr) {
             if (!dateStr) return false;
             try {
                 const todayStr = (typeof getClinicNow === 'function') ? getClinicNow().todayStr : new Date().toISOString().split('T')[0];
-                return dateStr < todayStr;
+                const d = String(dateStr).trim();
+                if (!d) return false;
+                if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+                    return d < todayStr;
+                }
+                if (/^\d{2}[\/\-]\d{2}[\/\-]\d{4}$/.test(d)) {
+                    const parts = d.split(/[\/\-]/);
+                    const iso = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                    return iso < todayStr;
+                }
+                const parsed = new Date(d);
+                if (!isNaN(parsed.getTime())) {
+                    const today = new Date(todayStr);
+                    parsed.setHours(0,0,0,0);
+                    today.setHours(0,0,0,0);
+                    return parsed.getTime() < today.getTime();
+                }
+                return d < todayStr;
             } catch (e) {
                 return false;
             }
