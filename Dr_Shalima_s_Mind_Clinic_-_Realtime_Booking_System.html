@@ -562,6 +562,28 @@
 
                                 <input type="hidden" id="shalima-case-id" value="">
 
+                                <!-- Patient Search & Previous Records Quick-Lookup -->
+                                <div class="bg-white rounded-2xl p-3 border border-gray-200 shadow-2xs space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1">
+                                            <span>🔍</span> <span>Search Patient History / Lookup</span>
+                                        </span>
+                                        <span class="text-[10px] text-gray-400 font-medium">Type name, phone, or place</span>
+                                    </div>
+                                    <div class="relative">
+                                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 text-xs">
+                                            🔍
+                                        </span>
+                                        <input type="text" id="shalima-form-patient-search" oninput="handleShalimaFormPatientSearch(this.value)" placeholder="Search patient name, phone, place to view records below..." class="w-full pl-9 pr-8 py-2 bg-[#FAF8F3] text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-[#235847] focus:bg-white transition placeholder-gray-400 font-medium">
+                                        <button type="button" onclick="clearShalimaFormPatientSearch()" id="shalima-form-patient-search-clear" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 text-xs hidden" title="Clear search">
+                                            ✕
+                                        </button>
+                                    </div>
+                                    <!-- Search results container shown below -->
+                                    <div id="shalima-form-search-results" class="hidden space-y-2 pt-1 border-t border-gray-100 max-h-72 overflow-y-auto">
+                                    </div>
+                                </div>
+
                                 <!-- Row 1: Patient Name & Mobile -->
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
@@ -7279,6 +7301,185 @@ Dr. Shalima's Mind Clinic`;
             }
         }
 
+        // Safely determine if consultation date is in the past
+        function isShalimaPastDate(dateStr) {
+            if (!dateStr) return false;
+            try {
+                const todayStr = (typeof getClinicNow === 'function') ? getClinicNow().todayStr : new Date().toISOString().split('T')[0];
+                return dateStr < todayStr;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // Live Quick Search in Slide 1 New Case Record Form
+        function handleShalimaFormPatientSearch(val) {
+            const resultsEl = document.getElementById('shalima-form-search-results');
+            const clearBtn = document.getElementById('shalima-form-patient-search-clear');
+            if (!resultsEl) return;
+
+            const q = (val || '').trim().toLowerCase();
+            if (clearBtn) {
+                if (q) clearBtn.classList.remove('hidden');
+                else clearBtn.classList.add('hidden');
+            }
+
+            if (!q) {
+                resultsEl.classList.add('hidden');
+                resultsEl.innerHTML = '';
+                if (typeof updateShalimaContainerHeight === 'function') {
+                    updateShalimaContainerHeight();
+                }
+                return;
+            }
+
+            const allCases = (appState && Array.isArray(appState.shalimaCases)) ? appState.shalimaCases : [];
+            const cleanQ = q.replace(/[^0-9]/g, '');
+
+            const matches = allCases.filter(c => {
+                const name = (c.patientName || '').toLowerCase();
+                const phone = (c.phone || '').toLowerCase();
+                const cleanPhone = phone.replace(/[^0-9]/g, '');
+                const place = (c.location || '').toLowerCase();
+                const consultDate = (c.consultDate || '').toLowerCase();
+                const reviewDate = (c.reviewDate || '').toLowerCase();
+
+                let consultFormatted = '';
+                try {
+                    if (c.consultDate) {
+                        const p = c.consultDate.split('-');
+                        if (p.length === 3) {
+                            const d = new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+                            consultFormatted = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toLowerCase();
+                        }
+                    }
+                } catch(e) {}
+
+                const matchName = name.includes(q);
+                const matchPhone = phone.includes(q) || (cleanQ && cleanPhone.includes(cleanQ));
+                const matchPlace = place.includes(q);
+                const matchDate = consultDate.includes(q) || consultFormatted.includes(q) || reviewDate.includes(q);
+
+                return matchName || matchPhone || matchPlace || matchDate;
+            });
+
+            resultsEl.classList.remove('hidden');
+
+            if (matches.length === 0) {
+                resultsEl.innerHTML = `
+                    <div class="p-3 text-center text-xs text-gray-500 bg-[#FAF8F3] rounded-xl border border-gray-100">
+                        No previous consultation records found matching "<strong>${escapeHtmlShalima(val)}</strong>".
+                    </div>
+                `;
+            } else {
+                let html = `
+                    <div class="flex items-center justify-between text-[11px] font-bold text-gray-700 px-1 pt-1">
+                        <span>Found ${matches.length} matching record${matches.length === 1 ? '' : 's'}:</span>
+                        <button type="button" onclick="viewPatientInRecords('${escapeHtmlShalima(val)}')" class="text-[#235847] hover:underline font-bold">
+                            View in Patient Records Tab →
+                        </button>
+                    </div>
+                `;
+
+                matches.slice(0, 6).forEach(c => {
+                    const isInitial = (c.caseType === 'Initial');
+                    const badgeClass = isInitial
+                        ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                        : 'bg-purple-100 text-purple-800 border-purple-200';
+                    const revText = c.reviewDate ? ` · Next Review: ${formatReviewDateDisplay(c.reviewDate)}` : '';
+
+                    let dateFormatted = c.consultDate || 'N/A';
+                    try {
+                        if (c.consultDate) {
+                            const parts = c.consultDate.split('-');
+                            if (parts.length === 3) {
+                                const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                                dateFormatted = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                            }
+                        }
+                    } catch (e) {}
+
+                    html += `
+                        <div class="bg-[#FAF8F3] border border-gray-200 rounded-xl p-2.5 text-xs space-y-1.5 hover:border-[#235847]/40 transition text-left">
+                            <div class="flex items-center justify-between gap-1 flex-wrap">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="font-bold text-gray-900">${escapeHtmlShalima(c.patientName)}</span>
+                                    <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold border ${badgeClass}">${escapeHtmlShalima(c.caseType)}</span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <button type="button" onclick="autofillFollowupFromCase('${c.id}')" class="px-2 py-0.5 bg-[#235847] text-white text-[10px] font-bold rounded-lg hover:bg-[#1B4739] transition shadow-2xs">
+                                        ⚡ Autofill Form
+                                    </button>
+                                    <button type="button" onclick="editShalimaCase('${c.id}')" class="px-2 py-0.5 bg-white border border-gray-200 text-gray-700 text-[10px] font-bold rounded-lg hover:bg-gray-100 transition">
+                                        ✏️ Edit
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="text-[11px] text-gray-600 flex items-center gap-1.5 flex-wrap">
+                                <span>📅 Consulted: <strong class="text-gray-800">${dateFormatted}</strong></span>
+                                <span>&bull;</span>
+                                <span>📍 ${escapeHtmlShalima(c.location || '')}</span>
+                                <span>&bull;</span>
+                                <span>📞 ${escapeHtmlShalima(c.phone || '')}</span>
+                                <span class="text-emerald-700 font-semibold">${revText}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                if (matches.length > 6) {
+                    html += `
+                        <div class="text-center pt-1">
+                            <button type="button" onclick="viewPatientInRecords('${escapeHtmlShalima(val)}')" class="text-xs font-bold text-[#235847] hover:underline">
+                                + ${matches.length - 6} more records. View All in Patient Records Tab →
+                            </button>
+                        </div>
+                    `;
+                }
+
+                resultsEl.innerHTML = html;
+            }
+
+            if (typeof updateShalimaContainerHeight === 'function') {
+                setTimeout(updateShalimaContainerHeight, 30);
+            }
+        }
+
+        function clearShalimaFormPatientSearch() {
+            const input = document.getElementById('shalima-form-patient-search');
+            if (input) input.value = '';
+            handleShalimaFormPatientSearch('');
+        }
+
+        function viewPatientInRecords(searchTerm) {
+            switchShalimaView('records');
+            const searchInput = document.getElementById('shalima-cases-search');
+            if (searchInput) {
+                searchInput.value = searchTerm;
+                renderShalimaCasesList();
+                setTimeout(() => searchInput.focus(), 200);
+            }
+        }
+
+        function autofillFollowupFromCase(caseId) {
+            const allCases = (appState && Array.isArray(appState.shalimaCases)) ? appState.shalimaCases : [];
+            const c = allCases.find(item => item.id === caseId);
+            if (!c) return;
+
+            const nameInput = document.getElementById('shalima-patient-name');
+            const phoneInput = document.getElementById('shalima-patient-phone');
+            const locInput = document.getElementById('shalima-patient-location');
+
+            if (nameInput) nameInput.value = c.patientName || '';
+            if (phoneInput) phoneInput.value = c.phone || '';
+            if (locInput) locInput.value = c.location || '';
+
+            selectShalimaCaseType('Follow-up');
+
+            clearShalimaFormPatientSearch();
+            showMessageModal(`Loaded details for "${c.patientName}". Case type set to Follow-up.`);
+        }
+
         function renderShalimaCasesList() {
             const listContainer = document.getElementById('shalima-cases-list');
             const filteredCountEl = document.getElementById('shalima-cases-filtered-count');
@@ -7340,14 +7541,16 @@ Dr. Shalima's Mind Clinic`;
                     if (!matchConsult && !matchReview) return false;
                 }
 
-                // Filter by Search Query (patient data taken, name, phone number, place)
+                // Filter by Search Query (patient data taken, name, phone number, place, notes)
                 if (searchVal) {
                     const name = (c.patientName || '').toLowerCase();
                     const phone = (c.phone || '').toLowerCase();
                     const cleanPhone = phone.replace(/[^0-9]/g, '');
                     const place = (c.location || '').toLowerCase();
+                    const caseType = (c.caseType || '').toLowerCase();
                     const consultDate = (c.consultDate || '').toLowerCase();
                     const reviewDate = (c.reviewDate || '').toLowerCase();
+                    const consultTime = (c.consultTime || '').toLowerCase();
 
                     // Formatted consult date search (e.g. "08 Nov", "November")
                     let consultFormatted = '';
@@ -7361,15 +7564,21 @@ Dr. Shalima's Mind Clinic`;
                         }
                     } catch (e) {}
 
-                    const matchName = name.includes(searchVal);
-                    const matchPhone = phone.includes(searchVal) || cleanPhone.includes(searchVal);
-                    const matchPlace = place.includes(searchVal);
-                    const matchConsultDate = consultDate.includes(searchVal) || consultFormatted.includes(searchVal);
-                    const matchReviewDate = reviewDate.includes(searchVal);
+                    let reviewFormatted = '';
+                    try {
+                        if (c.reviewDate) {
+                            const p = c.reviewDate.split('-');
+                            if (p.length === 3) {
+                                const d = new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+                                reviewFormatted = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toLowerCase();
+                            }
+                        }
+                    } catch (e) {}
 
-                    if (!matchName && !matchPhone && !matchPlace && !matchConsultDate && !matchReviewDate) {
-                        return false;
-                    }
+                    const combined = `${name} ${phone} ${cleanPhone} ${place} ${caseType} ${consultDate} ${consultFormatted} ${reviewDate} ${reviewFormatted} ${consultTime}`;
+                    const terms = searchVal.split(/\s+/).filter(Boolean);
+                    const matchesAll = terms.every(term => combined.includes(term));
+                    if (!matchesAll) return false;
                 }
 
                 return true;
