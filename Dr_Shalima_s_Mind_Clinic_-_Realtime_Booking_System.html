@@ -8372,6 +8372,35 @@ Dr. Shalima's Mind Clinic`;
 
             const dateFilterInput = document.getElementById('shalima-cases-date-filter');
             const dateFilterVal = dateFilterInput ? dateFilterInput.value : '';
+            const isManualSearch = !!(searchVal || dateFilterVal || (shalimaCaseTypeFilter && shalimaCaseTypeFilter !== 'all'));
+
+            if (!isManualSearch) {
+                if (filteredCountEl) {
+                    filteredCountEl.textContent = `(${totalCount} total)`;
+                }
+                if (totalCount === 0) {
+                    listContainer.innerHTML = `
+                        <div class="bg-[#F7F6F0] rounded-2xl p-6 text-center space-y-2 border border-dashed border-gray-300">
+                            <span class="text-2xl">📋</span>
+                            <div class="text-xs font-bold text-gray-700">No patient records saved yet</div>
+                            <p class="text-[11px] text-gray-500 leading-relaxed max-w-xs mx-auto">
+                                Record consulted patients using the New Case Record tab or Schedule review dates.
+                            </p>
+                        </div>
+                    `;
+                } else {
+                    listContainer.innerHTML = `
+                        <div class="bg-[#F7F6F0] rounded-2xl p-6 text-center space-y-2 border border-dashed border-gray-200">
+                            <span class="text-2xl">🔍</span>
+                            <div class="text-xs font-bold text-gray-700">Search Patient Records</div>
+                            <p class="text-[11px] text-gray-500 leading-relaxed max-w-xs mx-auto">
+                                Type patient name, phone number, place, or consult date above to search and find records.
+                            </p>
+                        </div>
+                    `;
+                }
+                return;
+            }
 
             let filtered = allCases.filter(c => {
                 // Filter by Case Type: 'all', 'Initial', 'Follow-up'
