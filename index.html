@@ -60,10 +60,18 @@
             touch-action: manipulation;
         }
 
-        @media screen and (max-width: 768px) {
-            input, select, textarea {
-                font-size: 16px !important;
-            }
+        /* Universal anti-zoom rule for all inputs, selects, textareas */
+        input, select, textarea,
+        input[type="text"], input[type="date"], input[type="search"],
+        input[type="tel"], input[type="number"], input[type="password"],
+        input[type="email"], input[type="time"],
+        input.text-xs, input.text-sm,
+        select.text-xs, select.text-sm,
+        textarea.text-xs, textarea.text-sm,
+        input::-webkit-date-and-time-value,
+        select::-webkit-date-and-time-value {
+            font-size: 16px !important;
+            font-size: max(16px, 1rem) !important;
         }
 
         body {
@@ -239,7 +247,7 @@
                 <div class="mb-4">
                     <label class="block text-xs font-medium text-gray-500 mb-1">Clinic WhatsApp (for client requests)</label>
                     <div class="flex space-x-2">
-                        <input type="text" id="clinic-whatsapp" value="91XXXXXXXXXX" class="flex-1 bg-[#F7F6F0] border-none rounded-xl p-3 text-sm text-gray-800 outline-none">
+                        <input type="text" id="clinic-whatsapp" value="91XXXXXXXXXX" class="flex-1 bg-[#F7F6F0] border-none rounded-xl p-3 text-base text-gray-800 outline-none">
                         <button onclick="saveWhatsAppNumber()" class="px-5 py-3 bg-[#235847] text-white text-xs font-semibold rounded-xl hover:bg-[#1B4739] transition">Save</button>
                     </div>
                 </div>
@@ -385,7 +393,7 @@
                 <!-- Date display / picker -->
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 mb-1">Date</label>
-                    <input type="date" id="booking-date" onchange="onBookingDateChange(this.value)" class="w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                    <input type="date" id="booking-date" onchange="onBookingDateChange(this.value)" class="w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-base font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
                 </div>
 
                 <!-- Available times -->
@@ -407,7 +415,7 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <select id="booking-select-hour" onchange="onDirectTimeSelectChange()" class="flex-1 bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                            <select id="booking-select-hour" onchange="onDirectTimeSelectChange()" class="flex-1 bg-white border border-gray-200 rounded-xl px-3 py-2 text-base font-bold text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
                                 <option value="10 AM">10 AM</option>
                                 <option value="11 AM">11 AM</option>
                                 <option value="12 PM">12 PM</option>
@@ -420,7 +428,7 @@
                                 <option value="7 PM">7 PM</option>
                             </select>
                             <span class="text-sm font-bold text-gray-500">:</span>
-                            <select id="booking-select-min" onchange="onDirectTimeSelectChange()" class="flex-1 bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                            <select id="booking-select-min" onchange="onDirectTimeSelectChange()" class="flex-1 bg-white border border-gray-200 rounded-xl px-3 py-2 text-base font-bold text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
                                 <option value="00">00 min</option>
                                 <option value="05">05 min</option>
                                 <option value="10">10 min</option>
@@ -445,18 +453,18 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-gray-500 mb-1">Your name</label>
-                        <input type="text" id="booking-name" placeholder="Client Full Name" class="w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-sm text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                        <input type="text" id="booking-name" placeholder="Client Full Name" class="w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-base text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-500 mb-1">WhatsApp / mobile (with country code)</label>
-                        <input type="text" id="booking-phone" placeholder="91XXXXXXXXXX" class="w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-sm text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                        <input type="text" id="booking-phone" placeholder="91XXXXXXXXXX" class="w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-base text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
                     </div>
                 </div>
 
                 <!-- Dropdowns -->
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 mb-1">Case type</label>
-                    <select id="booking-case-type" onchange="onCaseTypeChange(this.value)" class="w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none appearance-none">
+                    <select id="booking-case-type" onchange="onCaseTypeChange(this.value)" class="w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-base font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none appearance-none">
                         <option value="Initial case">Initial case</option>
                         <option value="Follow-up case">Follow-up case</option>
                     </select>
@@ -465,7 +473,7 @@
                 <!-- Booking Channel box (only shown when Case type is Initial case) -->
                 <div id="booking-channel-wrapper">
                     <label class="block text-xs font-semibold text-gray-500 mb-1">Booking channel</label>
-                    <select id="booking-channel" class="w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none appearance-none">
+                    <select id="booking-channel" class="w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-base font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none appearance-none">
                         <option value="c/o Dr Shalima">c/o Dr Shalima</option>
                         <option value="Direct">Direct</option>
                     </select>
@@ -473,7 +481,7 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 mb-1">Session type</label>
-                    <select id="booking-session-type" onchange="onBookingSessionTypeChange()" class="w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none appearance-none">
+                    <select id="booking-session-type" onchange="onBookingSessionTypeChange()" class="w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-base font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none appearance-none">
                         <option value="Individual session">Individual session (45 min)</option>
                         <option value="Couples session">Couples session (60 min)</option>
                     </select>
@@ -481,7 +489,7 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 mb-1">Case mode (Online / Offline)</label>
-                    <select id="booking-mode" class="w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none appearance-none">
+                    <select id="booking-mode" class="w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-base font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none appearance-none">
                         <option value="Offline">Offline</option>
                         <option value="Online">Online</option>
                     </select>
@@ -489,14 +497,14 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 mb-1">Next session (follow-up)</label>
-                    <select id="booking-followup" onchange="onFollowupOptionChange(this.value)" class="w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none appearance-none">
+                    <select id="booking-followup" onchange="onFollowupOptionChange(this.value)" class="w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-base font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none appearance-none">
                         <option value="No follow-up now">No follow-up now</option>
                         <option value="1 week later">1 week later</option>
                         <option value="2 weeks later">2 weeks later</option>
                         <option value="1 month later">1 month later</option>
                         <option value="custom">Choose specific date...</option>
                     </select>
-                    <input type="date" id="booking-followup-custom-date" class="hidden mt-2 w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                    <input type="date" id="booking-followup-custom-date" class="hidden mt-2 w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-base font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
                 </div>
 
                 <!-- Submit Button -->
@@ -517,7 +525,7 @@
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 text-xs">
                             🔍
                         </span>
-                        <input type="text" id="booking-client-search" oninput="handleBookingClientSearch(this.value)" placeholder="Search client name or phone to view past sessions..." class="w-full pl-9 pr-8 py-2 bg-[#FAF8F3] text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-[#235847] focus:bg-white transition placeholder-gray-400 font-medium">
+                        <input type="text" id="booking-client-search" oninput="handleBookingClientSearch(this.value)" placeholder="Search client name or phone to view past sessions..." class="w-full pl-9 pr-8 py-2 bg-[#FAF8F3] text-base border border-gray-200 rounded-xl focus:outline-none focus:border-[#235847] focus:bg-white transition placeholder-gray-400 font-medium">
                         <button type="button" onclick="clearBookingClientSearch()" id="booking-client-search-clear" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 text-xs hidden" title="Clear search">
                             ✕
                         </button>
@@ -550,7 +558,7 @@
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-gray-400 text-sm">
                         🔍
                     </span>
-                    <input type="text" id="counselling-search-input" oninput="handleCounsellingSearch(this.value)" placeholder="Search counselling client name or mobile number (e.g. Rahul, Amina, 9876...)" class="w-full pl-10 pr-10 py-3 bg-[#FAF8F3] text-xs sm:text-sm border border-gray-200 rounded-2xl focus:outline-none focus:border-[#235847] focus:bg-white focus:ring-2 focus:ring-[#235847]/20 transition placeholder-gray-400 font-medium">
+                    <input type="text" id="counselling-search-input" oninput="handleCounsellingSearch(this.value)" placeholder="Search counselling client name or mobile number (e.g. Rahul, Amina, 9876...)" class="w-full pl-10 pr-10 py-3 bg-[#FAF8F3] text-base sm:text-base border border-gray-200 rounded-2xl focus:outline-none focus:border-[#235847] focus:bg-white focus:ring-2 focus:ring-[#235847]/20 transition placeholder-gray-400 font-medium">
                     <button type="button" onclick="clearCounsellingSearch()" id="counselling-search-clear" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-gray-400 hover:text-gray-600 text-sm hidden" title="Clear search">
                         ✕
                     </button>
@@ -661,7 +669,7 @@
                                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 text-xs">
                                             🔍
                                         </span>
-                                        <input type="text" id="shalima-form-patient-search" oninput="handleShalimaFormPatientSearch(this.value)" placeholder="Search patient name, phone, place to view records below..." class="w-full pl-9 pr-8 py-2 bg-[#FAF8F3] text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-[#235847] focus:bg-white transition placeholder-gray-400 font-medium">
+                                        <input type="text" id="shalima-form-patient-search" oninput="handleShalimaFormPatientSearch(this.value)" placeholder="Search patient name, phone, place to view records below..." class="w-full pl-9 pr-8 py-2 bg-[#FAF8F3] text-base border border-gray-200 rounded-xl focus:outline-none focus:border-[#235847] focus:bg-white transition placeholder-gray-400 font-medium">
                                         <button type="button" onclick="clearShalimaFormPatientSearch()" id="shalima-form-patient-search-clear" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 text-xs hidden" title="Clear search">
                                             ✕
                                         </button>
@@ -675,11 +683,11 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
                                         <label class="block text-xs font-semibold text-gray-600 mb-1">Patient Name *</label>
-                                        <input type="text" id="shalima-patient-name" placeholder="Patient Full Name" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                                        <input type="text" id="shalima-patient-name" placeholder="Patient Full Name" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-base text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
                                     </div>
                                     <div>
                                         <label class="block text-xs font-semibold text-gray-600 mb-1">Mobile / WhatsApp Number *</label>
-                                        <input type="text" id="shalima-patient-phone" placeholder="91XXXXXXXXXX" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                                        <input type="text" id="shalima-patient-phone" placeholder="91XXXXXXXXXX" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-base text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
                                     </div>
                                 </div>
 
@@ -699,7 +707,7 @@
                                     </div>
                                     <div>
                                         <label class="block text-xs font-semibold text-gray-600 mb-1">Patient Location *</label>
-                                        <input type="text" id="shalima-patient-location" placeholder="City / District / Place (e.g. Kozhikode, Dubai)" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                                        <input type="text" id="shalima-patient-location" placeholder="City / District / Place (e.g. Kozhikode, Dubai)" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-base text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
                                     </div>
                                 </div>
 
@@ -707,7 +715,7 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
                                         <label class="block text-xs font-semibold text-gray-600 mb-1">Consultation Date</label>
-                                        <input type="date" id="shalima-consult-date" onchange="onShalimaConsultDateChange(this.value)" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                                        <input type="date" id="shalima-consult-date" onchange="onShalimaConsultDateChange(this.value)" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-base font-medium text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
                                         <p id="shalima-past-date-warning" class="hidden text-[11px] font-bold text-amber-700 mt-1 flex items-center gap-1">
                                             <span>🔒 Previous date — locked for recording</span>
                                         </p>
@@ -729,7 +737,7 @@
                                         
                                         <!-- When Time is ON -->
                                         <div id="shalima-time-input-wrap">
-                                            <input type="text" id="shalima-consult-time" placeholder="e.g. 11:30 AM" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
+                                            <input type="text" id="shalima-consult-time" placeholder="e.g. 11:30 AM" class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-base text-gray-800 focus:ring-2 focus:ring-[#235847] outline-none">
                                         </div>
 
                                         <!-- When Time is OFF -->
@@ -765,11 +773,11 @@
                                         <div class="flex items-center gap-2">
                                             <div class="flex-1">
                                                 <label class="block text-[11px] font-semibold text-gray-500 mb-1">Next review after (number of days):</label>
-                                                <input type="number" id="shalima-review-days" min="1" max="365" value="2" oninput="onShalimaReviewDaysChange(this.value)" placeholder="e.g. 2" class="w-full bg-[#F7F6F0] border border-gray-200 rounded-xl px-3 py-2 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-[#235847] outline-none">
+                                                <input type="number" id="shalima-review-days" min="1" max="365" value="2" oninput="onShalimaReviewDaysChange(this.value)" placeholder="e.g. 2" class="w-full bg-[#F7F6F0] border border-gray-200 rounded-xl px-3 py-2 text-base font-bold text-gray-900 focus:ring-2 focus:ring-[#235847] outline-none">
                                             </div>
                                             <div class="flex-1">
                                                 <label class="block text-[11px] font-semibold text-gray-500 mb-1">Or pick review date directly:</label>
-                                                <input type="date" id="shalima-next-followup" onchange="onShalimaReviewDateManualChange(this.value)" class="w-full bg-[#F7F6F0] border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:ring-2 focus:ring-[#235847] outline-none">
+                                                <input type="date" id="shalima-next-followup" onchange="onShalimaReviewDateManualChange(this.value)" class="w-full bg-[#F7F6F0] border border-gray-200 rounded-xl px-3 py-2 text-base font-semibold text-gray-900 focus:ring-2 focus:ring-[#235847] outline-none">
                                             </div>
                                         </div>
 
@@ -904,7 +912,7 @@
                                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 text-xs">
                                             🔍
                                         </span>
-                                        <input type="text" id="shalima-cases-search" oninput="renderShalimaCasesList()" placeholder="Search patient name, phone number, place, or consult date..." class="w-full pl-9 pr-8 py-2 bg-white text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-[#235847] transition placeholder-gray-400">
+                                        <input type="text" id="shalima-cases-search" oninput="renderShalimaCasesList()" placeholder="Search patient name, phone number, place, or consult date..." class="w-full pl-9 pr-8 py-2 bg-white text-base border border-gray-200 rounded-xl focus:outline-none focus:border-[#235847] transition placeholder-gray-400">
                                         <button type="button" onclick="clearShalimaCasesSearch()" id="shalima-cases-search-clear" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 text-xs hidden" title="Clear search">
                                             ✕
                                         </button>
@@ -929,7 +937,7 @@
                                         <!-- Date Taken / Consulted Date Filter Picker -->
                                         <div class="flex items-center gap-1.5 bg-white rounded-xl border border-gray-200 px-2.5 py-1">
                                             <span class="text-[10px] font-bold text-gray-400 uppercase flex-shrink-0">📅 Date:</span>
-                                            <input type="date" id="shalima-cases-date-filter" onchange="renderShalimaCasesList()" class="w-full text-xs font-semibold text-gray-700 bg-transparent focus:outline-none">
+                                            <input type="date" id="shalima-cases-date-filter" onchange="renderShalimaCasesList()" class="w-full text-base font-semibold text-gray-700 bg-transparent focus:outline-none">
                                             <button type="button" onclick="clearShalimaDateFilter()" class="text-[10px] font-bold text-gray-400 hover:text-gray-600 flex-shrink-0" title="Clear date filter">
                                                 ✕
                                             </button>
@@ -1019,7 +1027,7 @@
                     <div class="flex gap-2 flex-1">
                         <!-- Month dropdown -->
                         <div class="relative flex-1">
-                            <select id="report-month-select" onchange="onReportMonthSelectChange()" class="w-full bg-[#F7F6F0] border-none rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-800 appearance-none outline-none pr-6">
+                            <select id="report-month-select" onchange="onReportMonthSelectChange()" class="w-full bg-[#F7F6F0] border-none rounded-xl px-3 py-2.5 text-base font-semibold text-gray-800 appearance-none outline-none pr-6">
                                 <option value="0">January</option><option value="1">February</option><option value="2">March</option>
                                 <option value="3">April</option><option value="4">May</option><option value="5">June</option>
                                 <option value="6">July</option><option value="7">August</option><option value="8">September</option>
@@ -1029,7 +1037,7 @@
                         </div>
                         <!-- Year dropdown -->
                         <div class="relative w-24">
-                            <select id="report-year-select" onchange="onReportMonthSelectChange()" class="w-full bg-[#F7F6F0] border-none rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-800 appearance-none outline-none pr-6">
+                            <select id="report-year-select" onchange="onReportMonthSelectChange()" class="w-full bg-[#F7F6F0] border-none rounded-xl px-3 py-2.5 text-base font-semibold text-gray-800 appearance-none outline-none pr-6">
                             </select>
                             <div class="absolute right-2 top-3 pointer-events-none text-gray-400 text-[10px]">▼</div>
                         </div>
@@ -1087,7 +1095,7 @@
                 <div class="pt-3 border-t border-gray-100">
                     <label id="monthly-download-label" class="block text-xs font-semibold text-gray-500 mb-1.5">Download monthly report</label>
                     <div class="relative mb-3">
-                        <select id="export-month-scope" class="w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-sm font-medium text-gray-800 appearance-none outline-none pr-8">
+                        <select id="export-month-scope" class="w-full bg-[#F7F6F0] border-none rounded-xl p-3 text-base font-medium text-gray-800 appearance-none outline-none pr-8">
                             <option id="export-selected-month-opt" value="selected">Selected month (November 2026)</option>
                             <option value="all">All time records</option>
                         </select>
@@ -1113,12 +1121,12 @@
                     <div class="flex gap-2 flex-1">
                         <!-- Day dropdown -->
                         <div class="relative w-16">
-                            <select id="daily-day-select" onchange="renderDailyReport()" class="w-full bg-[#F7F6F0] border-none rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-800 appearance-none outline-none pr-5"></select>
+                            <select id="daily-day-select" onchange="renderDailyReport()" class="w-full bg-[#F7F6F0] border-none rounded-xl px-3 py-2.5 text-base font-semibold text-gray-800 appearance-none outline-none pr-5"></select>
                             <div class="absolute right-2 top-3 pointer-events-none text-gray-400 text-[10px]">▼</div>
                         </div>
                         <!-- Month dropdown (reuse month names) -->
                         <div class="relative flex-1">
-                            <select id="daily-month-select" onchange="onDailyMonthChange()" class="w-full bg-[#F7F6F0] border-none rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-800 appearance-none outline-none pr-6">
+                            <select id="daily-month-select" onchange="onDailyMonthChange()" class="w-full bg-[#F7F6F0] border-none rounded-xl px-3 py-2.5 text-base font-semibold text-gray-800 appearance-none outline-none pr-6">
                                 <option value="0">January</option><option value="1">February</option><option value="2">March</option>
                                 <option value="3">April</option><option value="4">May</option><option value="5">June</option>
                                 <option value="6">July</option><option value="7">August</option><option value="8">September</option>
@@ -1128,7 +1136,7 @@
                         </div>
                         <!-- Year dropdown -->
                         <div class="relative w-24">
-                            <select id="daily-year-select" onchange="onDailyMonthChange()" class="w-full bg-[#F7F6F0] border-none rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-800 appearance-none outline-none pr-6"></select>
+                            <select id="daily-year-select" onchange="onDailyMonthChange()" class="w-full bg-[#F7F6F0] border-none rounded-xl px-3 py-2.5 text-base font-semibold text-gray-800 appearance-none outline-none pr-6"></select>
                             <div class="absolute right-2 top-3 pointer-events-none text-gray-400 text-[10px]">▼</div>
                         </div>
                     </div>
@@ -1176,16 +1184,16 @@
             <div class="space-y-3 text-xs">
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">Client Name</label>
-                    <input type="text" id="edit-name" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-sm outline-none">
+                    <input type="text" id="edit-name" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-base outline-none">
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">Phone</label>
-                    <input type="text" id="edit-phone" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-sm outline-none">
+                    <input type="text" id="edit-phone" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-base outline-none">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block font-semibold text-gray-500 mb-1">Psychologist</label>
-                        <select id="edit-psychologist" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-sm outline-none">
+                        <select id="edit-psychologist" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-base outline-none">
                             <option value="Habla">Habla</option>
                             <option value="Varda">Varda</option>
                             <option value="Sahla">Sahla</option>
@@ -1193,7 +1201,7 @@
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-1">Session Type</label>
-                        <select id="edit-sessiontype" onchange="onEditSessionTypeChange()" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-sm outline-none">
+                        <select id="edit-sessiontype" onchange="onEditSessionTypeChange()" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-base outline-none">
                             <option value="Individual">Individual (45 min)</option>
                             <option value="Couples">Couples (60 min)</option>
                         </select>
@@ -1202,12 +1210,12 @@
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block font-semibold text-gray-500 mb-1">Date</label>
-                        <input type="date" id="edit-date" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-sm outline-none">
+                        <input type="date" id="edit-date" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-base outline-none">
                     </div>
                     <div>
                         <label id="edit-start-time-label" class="block font-semibold text-gray-500 mb-1">Start Time</label>
                         <div class="flex items-center gap-1">
-                            <select id="edit-select-hour" class="flex-1 bg-[#F7F6F0] rounded-xl p-2.5 text-xs font-bold text-gray-800 outline-none">
+                            <select id="edit-select-hour" class="flex-1 bg-[#F7F6F0] rounded-xl p-2.5 text-base font-bold text-gray-800 outline-none">
                                 <option value="10 AM">10 AM</option>
                                 <option value="11 AM">11 AM</option>
                                 <option value="12 PM">12 PM</option>
@@ -1220,7 +1228,7 @@
                                 <option value="7 PM">7 PM</option>
                             </select>
                             <span class="font-bold text-gray-400">:</span>
-                            <select id="edit-select-min" class="flex-1 bg-[#F7F6F0] rounded-xl p-2.5 text-xs font-bold text-gray-800 outline-none">
+                            <select id="edit-select-min" class="flex-1 bg-[#F7F6F0] rounded-xl p-2.5 text-base font-bold text-gray-800 outline-none">
                                 <option value="00">00 min</option>
                                 <option value="05">05 min</option>
                                 <option value="10">10 min</option>
@@ -1240,14 +1248,14 @@
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block font-semibold text-gray-500 mb-1">Case Type</label>
-                        <select id="edit-casetype" onchange="onEditCaseTypeChange(this.value)" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-sm outline-none">
+                        <select id="edit-casetype" onchange="onEditCaseTypeChange(this.value)" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-base outline-none">
                             <option value="Initial case">Initial case</option>
                             <option value="Follow-up case">Follow-up case</option>
                         </select>
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-500 mb-1">Case Mode</label>
-                        <select id="edit-mode" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-sm outline-none">
+                        <select id="edit-mode" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-base outline-none">
                             <option value="Offline">Offline</option>
                             <option value="Online">Online</option>
                         </select>
@@ -1255,7 +1263,7 @@
                 </div>
                 <div id="edit-channel-wrapper">
                     <label class="block font-semibold text-gray-500 mb-1">Booking Channel</label>
-                    <select id="edit-channel" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-sm outline-none">
+                    <select id="edit-channel" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-base outline-none">
                         <option value="c/o Dr Shalima">c/o Dr Shalima</option>
                         <option value="Direct">Direct</option>
                     </select>
@@ -1285,11 +1293,11 @@
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">Clinic Sync Room Code (shared by team)</label>
-                    <input type="text" id="sync-room-code" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-sm font-bold text-gray-800 outline-none" placeholder="DR-SHALIMA-MIND-CLINIC-LIVE">
+                    <input type="text" id="sync-room-code" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-base font-bold text-gray-800 outline-none" placeholder="DR-SHALIMA-MIND-CLINIC-LIVE">
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-500 mb-1">Optional Firebase Realtime DB URL</label>
-                    <input type="text" id="sync-firebase-url" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-xs text-gray-800 outline-none" placeholder="https://your-project-default-rtdb.firebaseio.com">
+                    <input type="text" id="sync-firebase-url" class="w-full bg-[#F7F6F0] rounded-xl p-2.5 text-base text-gray-800 outline-none" placeholder="https://your-project-default-rtdb.firebaseio.com">
                 </div>
             </div>
             <div class="flex gap-2 mt-5">
@@ -1308,7 +1316,7 @@
             <h3 id="passcode-modal-title" class="text-base font-bold text-gray-900 mb-1">Security Verification</h3>
             <p id="passcode-modal-subtitle" class="text-xs text-gray-500 mb-4">Enter clinic passcode to proceed.</p>
             <div class="relative mb-2">
-                <input type="password" id="report-passcode-input" onkeydown="if(event.key==='Enter') verifyReportPasscode()" placeholder="Enter passcode" class="w-full bg-[#F7F6F0] rounded-xl px-3.5 py-2.5 pr-10 text-sm font-medium text-gray-800 outline-none border border-transparent focus:border-[#235847]">
+                <input type="password" id="report-passcode-input" onkeydown="if(event.key==='Enter') verifyReportPasscode()" placeholder="Enter passcode" class="w-full bg-[#F7F6F0] rounded-xl px-3.5 py-2.5 pr-10 text-base font-medium text-gray-800 outline-none border border-transparent focus:border-[#235847]">
                 <button type="button" onclick="toggleReportPasscodeVisibility()" id="report-passcode-eye" class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 text-xs font-semibold">Show</button>
             </div>
             <p id="report-passcode-error" class="hidden text-xs font-semibold text-red-600 mb-3">Incorrect passcode. Please try again.</p>
@@ -1368,7 +1376,7 @@
             <div id="erase-view-date" class="space-y-3 mb-4">
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 mb-1">Select Date to Erase</label>
-                    <input type="date" id="erase-date-input" onchange="updateErasePreview()" class="w-full bg-[#F7F6F0] rounded-xl p-3 text-sm font-semibold text-gray-800 outline-none">
+                    <input type="date" id="erase-date-input" onchange="updateErasePreview()" class="w-full bg-[#F7F6F0] rounded-xl p-3 text-base font-semibold text-gray-800 outline-none">
                 </div>
             </div>
 
@@ -1377,13 +1385,13 @@
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 mb-1">Select Month &amp; Year to Erase</label>
                     <div class="flex gap-2">
-                        <select id="erase-month-select" onchange="updateErasePreview()" class="flex-1 bg-[#F7F6F0] rounded-xl p-3 text-sm font-semibold text-gray-800 outline-none">
+                        <select id="erase-month-select" onchange="updateErasePreview()" class="flex-1 bg-[#F7F6F0] rounded-xl p-3 text-base font-semibold text-gray-800 outline-none">
                             <option value="0">January</option><option value="1">February</option><option value="2">March</option>
                             <option value="3">April</option><option value="4">May</option><option value="5">June</option>
                             <option value="6">July</option><option value="7">August</option><option value="8">September</option>
                             <option value="9">October</option><option value="10">November</option><option value="11">December</option>
                         </select>
-                        <select id="erase-year-select" onchange="updateErasePreview()" class="w-28 bg-[#F7F6F0] rounded-xl p-3 text-sm font-semibold text-gray-800 outline-none">
+                        <select id="erase-year-select" onchange="updateErasePreview()" class="w-28 bg-[#F7F6F0] rounded-xl p-3 text-base font-semibold text-gray-800 outline-none">
                         </select>
                     </div>
                 </div>
@@ -1825,6 +1833,33 @@
         document.addEventListener('gesturestart', function(e) {
             e.preventDefault();
         }, { passive: false });
+
+        // Force all form controls to stay 16px to guarantee zero auto-zoom on mobile
+        (function() {
+            function enforceInputFontSize() {
+                try {
+                    const controls = document.querySelectorAll('input, select, textarea');
+                    controls.forEach(el => {
+                        el.style.fontSize = '16px';
+                    });
+                } catch(e) {}
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', enforceInputFontSize);
+            } else {
+                enforceInputFontSize();
+            }
+            document.addEventListener('touchstart', function(e) {
+                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA')) {
+                    e.target.style.fontSize = '16px';
+                }
+            }, { passive: true, capture: true });
+            document.addEventListener('focusin', function(e) {
+                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA')) {
+                    e.target.style.fontSize = '16px';
+                }
+            }, { passive: true, capture: true });
+        })();
 
         window.addEventListener('DOMContentLoaded', () => {
                 connectRealtimeBrokers();
